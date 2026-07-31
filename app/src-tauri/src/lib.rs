@@ -58,7 +58,9 @@ pub mod watcher;
 // #148 / #151 — Android all-files-access (MANAGE_EXTERNAL_STORAGE) check +
 // request, so the user can point the app at a real vault folder anywhere on
 // shared storage instead of the unreachable /Android/data sandbox.
+#[cfg(target_os = "android")]
 pub mod storage_android;
+#[cfg(target_os = "android")]
 pub mod saf_android;
 
 // v4.0 Pillar 1: in-process agent tool registry + run persistence (panel
@@ -103,19 +105,7 @@ pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_clipboard_manager::init())
-        // tauri-plugin-deep-link: receive incoming files / URLs from
-        // iOS "Open with" / Files app / Mail attachments. On iOS the
-        // plugin hooks `application:openURL:` automatically and emits
-        // a `deep-link://new-url` event over Tauri's event bus, which
-        // App.vue's onMounted handler picks up to spawn a new tab.
-        .plugin(tauri_plugin_deep_link::init())
-        // #148 — tauri-plugin-fs is registered for its Android side alone:
-        // its readFile bridges SAF `content://` URIs through ContentResolver,
-        // which std::fs can never reach. The frontend imports such deliveries
-        // into the Documents workspace (useFiles.ts importContentUri) and the
-        // rest of the app keeps operating on real filesystem paths.
-        .plugin(tauri_plugin_fs::init());
+        .plugin(tauri_plugin_clipboard_manager::init());
 
     #[cfg(desktop)]
     let builder = builder.plugin(
@@ -168,19 +158,33 @@ pub fn run() {
             commands::write_binary_file,
             commands::print_webview,
             commands::copy_file,
+            #[cfg(target_os = "android")]
             storage_android::android_has_all_files_access,
+            #[cfg(target_os = "android")]
             storage_android::android_request_all_files_access,
+            #[cfg(target_os = "android")]
             storage_android::android_system_insets,
+            #[cfg(target_os = "android")]
             storage_android::android_restart_app,
+            #[cfg(target_os = "android")]
             saf_android::saf_pick_folder,
+            #[cfg(target_os = "android")]
             saf_android::saf_poll_picked,
+            #[cfg(target_os = "android")]
             saf_android::saf_persisted_trees,
+            #[cfg(target_os = "android")]
             saf_android::saf_tree_root,
+            #[cfg(target_os = "android")]
             saf_android::saf_tree_name,
+            #[cfg(target_os = "android")]
             saf_android::saf_list,
+            #[cfg(target_os = "android")]
             saf_android::saf_read,
+            #[cfg(target_os = "android")]
             saf_android::saf_write,
+            #[cfg(target_os = "android")]
             saf_android::saf_create,
+            #[cfg(target_os = "android")]
             saf_android::saf_delete,
             image_upload::upload_image,
             commands::list_dir,

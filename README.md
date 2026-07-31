@@ -1,21 +1,19 @@
-# SoloMD
+# SoloMD for Windows
 
-> The editor where agents live.
+> The editor where agents live — Windows edition.
 
 [![Latest release](https://img.shields.io/github/v/release/zhitongblog/solomd)](https://github.com/zhitongblog/solomd/releases/latest)
 [![License: MIT](https://img.shields.io/github/license/zhitongblog/solomd?color=orange)](LICENSE)
 [![Downloads](https://img.shields.io/github/downloads/zhitongblog/solomd/total)](https://github.com/zhitongblog/solomd/releases)
 [![Website](https://img.shields.io/badge/website-solomd.app-ff9f40.svg)](https://solomd.app)
 
-🌐 **[中文](README.zh.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português](README.pt.md) · [Italiano](README.it.md) · [Polski](README.pl.md) · [Nederlands](README.nl.md) · [Türkçe](README.tr.md) · [Svenska](README.sv.md) · [Українська](README.uk.md)** · 🪞 **[Gitee mirror →](https://gitee.com/zhitong45/solomd)** (faster downloads from China)
-
-[**Download the latest release**](https://github.com/zhitongblog/solomd/releases/latest) · [**Launch post**](https://solomd.app/blog/v4-0-0-agent-native-author/) · [**How we built it**](https://solomd.app/blog/v4-0-0-how-we-built-it/) · [**Website**](https://solomd.app) · [**Security**](https://solomd.app/security)
+[**Download the latest release**](https://github.com/zhitongblog/solomd/releases/latest) · [**Website**](https://solomd.app) · [**Security**](https://solomd.app/security)
 
 ![SoloMD editor](web/public/demo/solomd-demo.svg)
 
 Your notes live in a folder. **SoloMD is the editor on top — with a first-class agent surface inside the editor, and the MCP endpoint Claude Code / Cursor can drive from outside.** Same `.md` files. Chat with your vault. Schedule recipes that run when you're not at the keyboard. Hand the same vault to any MCP client.
 
-Built on Tauri 2 + Vue 3 + CodeMirror 6. Universal macOS dmg ~32 MB. Free, MIT, no subscription, no SoloMD-hosted servers. Your notes, AI keys, embeddings index, and git history all stay on your machine.
+Built on Tauri 2 + Vue 3 + CodeMirror 6. Windows x64 installer ~10 MB. Free, MIT, no subscription, no SoloMD-hosted servers. Your notes, AI keys, embeddings index, and git history all stay on your machine.
 
 ## New in 4.6 — the knowledge-graph layer
 
@@ -74,8 +72,8 @@ solomd mcp-config
 {
   "mcpServers": {
     "solomd": {
-      "command": "/Applications/SoloMD.app/Contents/Resources/solomd-mcp",
-      "args": ["--workspace", "/Users/me/Documents/SoloMD"]
+      "command": "C:\\Program Files\\SoloMD\\solomd-mcp.exe",
+      "args": ["--workspace", "C:\\Users\\me\\Documents\\SoloMD"]
     }
   }
 }
@@ -85,8 +83,8 @@ Paste into Claude Desktop / Cursor / etc. For multi-vault federation, repeat `--
 
 ```json
 "args": [
-  "--workspace", "/Users/me/Documents/SoloMD",
-  "--workspace", "/Users/me/Documents/work-notes"
+  "--workspace", "C:\\Users\\me\\Documents\\SoloMD",
+  "--workspace", "C:\\Users\\me\\Documents\\work-notes"
 ]
 ```
 
@@ -102,24 +100,6 @@ Path-traversal guarded. No network port. The LLM only sees what you point the wo
 
 Latest release: [**v4.0.0**](https://github.com/zhitongblog/solomd/releases/latest).
 
-### macOS — universal dmg (Apple Silicon + Intel, signed + notarized)
-
-```bash
-brew install --cask zhitongblog/solomd/solomd
-```
-
-Or download the dmg directly:
-
-```
-https://github.com/zhitongblog/solomd/releases/latest/download/SoloMD_4.0.0_universal.dmg
-```
-
-Or one-line shell install:
-
-```bash
-curl -fsSL https://solomd.app/install.sh | bash
-```
-
 ### Windows — x64
 
 - [`SoloMD_4.0.0_x64_en-US.msi`](https://github.com/zhitongblog/solomd/releases/latest/download/SoloMD_4.0.0_x64_en-US.msi)
@@ -133,15 +113,6 @@ irm https://solomd.app/install.ps1 | iex
 ```powershell
 winget install solomd
 ```
-
-### Linux — x86_64 + aarch64
-
-- `.AppImage` (universal), `.deb` (Debian/Ubuntu), `.rpm` (Fedora/RHEL) — both architectures from [the releases page](https://github.com/zhitongblog/solomd/releases/latest).
-- Arch users: [`solomd-bin`](https://aur.archlinux.org/packages/solomd-bin) on AUR.
-
-### iPad
-
-[App Store](https://apps.apple.com/app/solomd/id6762498874) — same engine, native iPad UI.
 
 ## Marketplaces & integrations
 
@@ -165,33 +136,9 @@ Available as:
 
 Full overview + submission status: [`marketplace/README.md`](marketplace/README.md).
 
-## Compared
-
-| | SoloMD v4.5 | Obsidian | Typora | Tolaria |
-|---|---|---|---|---|
-| License | **MIT** | proprietary (free) | paid ($14.99) | AGPL |
-| Stack | Tauri 2 (Rust + WebView) | Electron | Electron | Tauri 2 |
-| Platforms | macOS · Win · Linux · **iPad/iOS/Android** | macOS · Win · Linux · iOS · Android | macOS · Win · Linux | macOS · Win · Linux |
-| Installer | ~32 MB (mac) / ~10 MB (win) | ~120 MB | ~95 MB | ~25 MB |
-| **Inline Agent Panel** | **✅ v4.0** | 🟡 paid plugins (Smart Composer / Copilot) | ❌ | 🟡 providers + agents, no inline panel |
-| **Scheduled agent recipes** | **✅ v4.0** | ❌ | ❌ | ❌ |
-| **AutoGit branch sandbox + accept/reject** | **✅ v4.0** | ❌ | ❌ | ❌ |
-| **Replayable agent trace** | **✅ v4.0** | ❌ | ❌ | ❌ |
-| **Multi-workspace** | **✅ v4.0 MCP federation** | ❌ | ❌ | 🟡 multi-vault |
-| **MCP server bundled** | **✅ 13 tools, 5 SoloMD-only** | ❌ (community plugins) | ❌ | ✅ generic |
-| **Built-in AI rewrite** | **✅ 14 BYOK providers** | plugin only | ❌ | ✅ built-in providers |
-| GitHub-backed sync | ✅ | ❌ (Obsidian Sync $5/mo) | ❌ | ❌ |
-| End-to-end encryption | ✅ on your repo | ✅ on Obsidian's servers | ❌ | ❌ |
-| Local RAG / semantic search | ✅ off by default | plugin only | ❌ | ❌ |
-| Version history per note | ✅ AutoGit | plugin only | ❌ | ✅ |
-| Markdown whiteboards (tldraw) | ❌ | 🟡 Canvas (own format) | ❌ | ✅ |
-| CJK encodings (GBK / Big5) | ✅ auto-detect | ❌ | ❌ | ❌ |
-
-Detailed breakdowns: [vs Obsidian](https://solomd.app/compare/vs-obsidian) · [vs Typora](https://solomd.app/compare/vs-typora) · [vs Tolaria](https://solomd.app/compare/vs-tolaria) · [vs Marktext](https://solomd.app/compare/vs-marktext).
-
 ## Privacy & security
 
-Pure client-side. Your `.md` files stay in the folder you chose. API keys live in the OS keychain (macOS Keychain / Windows Credential Manager / Linux libsecret), never in `localStorage` or any config file. AI requests go direct from your machine to the provider you picked — no SoloMD relay. RAG embeddings and the AutoGit repo are local-only. The MCP server speaks stdio, never opens a network port. The whole codebase is MIT and auditable.
+Pure client-side. Your `.md` files stay in the folder you chose. API keys live in the Windows Credential Manager, never in `localStorage` or any config file. AI requests go direct from your machine to the provider you picked — no SoloMD relay. RAG embeddings and the AutoGit repo are local-only. The MCP server speaks stdio, never opens a network port. The whole codebase is MIT and auditable.
 
 **Agent safety rails (v4.0).** Every recipe run starts on its own AutoGit branch — your `main` stays untouched until you click Accept on the diff. Per-run write-cap (default 5, hard ceiling 50) prevents runaway loops. Recipe runner refuses to start when the working tree is dirty (no agent commit will ever sweep your work-in-progress). Path-traversal guards reject `..` segments and absolute paths upfront in every Tauri / MCP / REST endpoint that accepts a user-supplied path.
 
@@ -201,9 +148,9 @@ Full writeup: <https://solomd.app/security>.
 
 ## Build from source
 
-Prereqs: Rust (stable), Node 18+, pnpm.
+Prereqs: Rust (stable), Node 18+, pnpm, Visual Studio Build Tools (C++).
 
-```bash
+```powershell
 git clone https://github.com/zhitongblog/solomd.git
 cd solomd/app
 pnpm install
@@ -211,9 +158,7 @@ pnpm tauri dev      # dev with hot reload
 pnpm tauri build    # release artifacts → src-tauri/target/release/bundle/
 ```
 
-Linux additionally needs `libdbus-1-dev` for the keychain backend.
-
-The MCP server is a separate crate at `mcp-server/`; the dev MCP harness used for end-to-end testing lives at `dev-mcp/`. End-to-end test entry point: `scripts/v4-self-test.sh` (run with `--with-release --with-ollama --with-ui` for full coverage).
+The MCP server is a separate crate at `mcp-server/`; the dev MCP harness used for end-to-end testing lives at `dev-mcp/`. End-to-end test entry point: `scripts/v4-self-test.sh`.
 
 ## Contributing
 
