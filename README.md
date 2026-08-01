@@ -14,8 +14,8 @@ Notademics项目的Windows版本。技术栈使用Tauri + Rust + React，后端R
 ### 开发进程
 
 - [x] 基础底座
-- [ ] Markdown渲染
-- [ ] 文件存取，打开文件夹
+- [x] Markdown渲染
+- [x] 文件存取，打开文件夹
 - [ ] 大纲
 - [ ] 插入和编辑功能
 - [ ] 主题
@@ -24,3 +24,4 @@ Notademics项目的Windows版本。技术栈使用Tauri + Rust + React，后端R
 - [ ] AI BYOK
 - [ ] 传输至服务端
 - [ ] 加密和加密传输
+- [ ] 命令模式

@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:app": "tauri dev",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "check:rs": "cd src-tauri && cargo check"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",

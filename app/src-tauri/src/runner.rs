@@ -196,6 +196,40 @@ fn force_close_window(window: tauri::Window) {
     window.close().ok();
 }
 
+/// Store a recent file or workspace path, then rebuild native menus.
+#[tauri::command]
+fn add_recent_entry(
+    app: tauri::AppHandle,
+    kind: String,
+    path: String,
+) -> Result<(), String> {
+    let home = dirs_home().unwrap_or_else(std::env::temp_dir);
+    let fname = if kind == "file" {
+        ".notademics-recent-files.json"
+    } else {
+        ".notademics-recent-folders.json"
+    };
+    let fpath = home.join(fname);
+
+    let mut list: Vec<String> = if let Ok(raw) = std::fs::read_to_string(&fpath) {
+        serde_json::from_str(&raw).unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+    list.retain(|p| p != &path);
+    list.insert(0, path);
+    list.truncate(20);
+    let json = serde_json::to_string(&list).map_err(|e| e.to_string())?;
+    std::fs::write(&fpath, &json).map_err(|e| e.to_string())?;
+
+    // Rebuild the entire menu
+    let lang = read_saved_language();
+    if let Ok(menu) = build_app_menu(&app, &lang) {
+        let _ = app.set_menu(menu);
+    }
+    Ok(())
+}
+
 /// Localized menu strings. Two languages for now: "en" and "zh".
 struct MenuStrings {
     file: &'static str,
@@ -206,12 +240,16 @@ struct MenuStrings {
     new_txt: &'static str,
     open_file: &'static str,
     open_folder: &'static str,
+    open_recent_file: &'static str,
+    open_recent_workspace: &'static str,
     save: &'static str,
     save_as: &'static str,
-    print_item: &'static str,
     close_tab: &'static str,
+    close_all_tabs: &'static str,
     new_window: &'static str,
-    open_external: &'static str,
+    settings_item: &'static str,
+    preferences_item: &'static str,
+    exit_item: &'static str,
     toggle_theme: &'static str,
     toggle_sidebar: &'static str,
     toggle_outline: &'static str,
@@ -228,7 +266,6 @@ struct MenuStrings {
     preview_zoom_reset: &'static str,
     palette: &'static str,
     global_search: &'static str,
-    settings_menu: &'static str,
     md_help: &'static str,
     about: &'static str,
 }
@@ -243,13 +280,17 @@ fn strings_for(lang: &str) -> MenuStrings {
             new_md: "新建 Markdown",
             new_txt: "新建纯文本",
             open_file: "打开文件…",
-            open_folder: "打开文件夹…",
+            open_folder: "打开工作区…",
+            open_recent_file: "打开最近文件",
+            open_recent_workspace: "打开最近工作区",
             save: "保存",
             save_as: "另存为…",
-            print_item: "打印…",
             close_tab: "关闭标签页",
+            close_all_tabs: "关闭所有标签页",
             new_window: "新建窗口",
-            open_external: "用外部编辑器打开",
+            settings_item: "设置…",
+            preferences_item: "偏好…",
+            exit_item: "退出",
             toggle_theme: "切换主题",
             toggle_sidebar: "切换文件树",
             toggle_outline: "切换大纲",
@@ -265,9 +306,8 @@ fn strings_for(lang: &str) -> MenuStrings {
             preview_zoom_reset: "预览：复位字号",
             palette: "命令面板",
             global_search: "在文件夹中搜索…",
-            settings_menu: "设置…",
             md_help: "Markdown 速查",
-            about: "关于 SoloMD",
+            about: "关于 Notademics",
         }
     } else {
         MenuStrings {
@@ -278,13 +318,17 @@ fn strings_for(lang: &str) -> MenuStrings {
             new_md: "New Markdown",
             new_txt: "New Plain Text",
             open_file: "Open File…",
-            open_folder: "Open Folder…",
+            open_folder: "Open Workspace…",
+            open_recent_file: "Open Recent File",
+            open_recent_workspace: "Open Recent Workspace",
             save: "Save",
             save_as: "Save As…",
-            print_item: "Print…",
             close_tab: "Close Tab",
+            close_all_tabs: "Close All Tabs",
             new_window: "New Window",
-            open_external: "Open in External Editor",
+            settings_item: "Settings…",
+            preferences_item: "Preferences…",
+            exit_item: "Exit",
             toggle_theme: "Toggle Theme",
             toggle_sidebar: "Toggle File Tree",
             toggle_outline: "Toggle Outline",
@@ -300,11 +344,45 @@ fn strings_for(lang: &str) -> MenuStrings {
             preview_zoom_reset: "Preview: Reset Zoom",
             palette: "Command Palette",
             global_search: "Search in Folder…",
-            settings_menu: "Settings…",
             md_help: "Markdown Cheatsheet",
-            about: "About SoloMD",
+            about: "About Notademics",
         }
     }
+}
+
+/// Build menu items for recent files/workspaces from a JSON file.
+fn build_recent_submenu_items<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    prefix: &str,
+    filename: &str,
+) -> tauri::Result<Vec<tauri::menu::MenuItem<R>>> {
+    use serde_json::Value;
+    let mut items: Vec<tauri::menu::MenuItem<R>> = Vec::new();
+    let home = dirs_home().unwrap_or_else(std::env::temp_dir);
+    let path = home.join(filename);
+    if let Ok(raw) = std::fs::read_to_string(&path) {
+        if let Ok(arr) = serde_json::from_str::<Value>(&raw) {
+            if let Some(list) = arr.as_array() {
+                for entry in list.iter().take(20) {
+                    if let Some(p) = entry.as_str() {
+                        if !p.is_empty() {
+                            // Encode path in the id using | as separator
+                            let id = format!("{}|{}", prefix, p);
+                            let display = if p.len() > 70 {
+                                let shortened = &p[p.len().saturating_sub(67)..];
+                                format!("...{}", shortened)
+                            } else {
+                                p.to_string()
+                            };
+                            let item = MenuItemBuilder::with_id(&id, &display).build(app)?;
+                            items.push(item);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(items)
 }
 
 fn build_app_menu<R: tauri::Runtime>(
@@ -323,41 +401,62 @@ fn build_app_menu<R: tauri::Runtime>(
         .accelerator("CmdOrCtrl+O")
         .build(app)?;
     let open_folder = MenuItemBuilder::with_id("file.openFolder", s.open_folder).build(app)?;
+    // Recent submenus built dynamically below.
     let save = MenuItemBuilder::with_id("file.save", s.save)
         .accelerator("CmdOrCtrl+S")
         .build(app)?;
     let save_as = MenuItemBuilder::with_id("file.saveAs", s.save_as)
         .accelerator("CmdOrCtrl+Shift+S")
         .build(app)?;
-    let print_item = MenuItemBuilder::with_id("file.print", s.print_item)
-        .accelerator("CmdOrCtrl+P")
-        .build(app)?;
     let close_tab = MenuItemBuilder::with_id("file.closeTab", s.close_tab)
         .accelerator("CmdOrCtrl+W")
+        .build(app)?;
+    let close_all_tabs = MenuItemBuilder::with_id("file.closeAllTabs", s.close_all_tabs)
+        .accelerator("CmdOrCtrl+Shift+W")
         .build(app)?;
     let new_window = MenuItemBuilder::with_id("window.new", s.new_window)
         .accelerator("CmdOrCtrl+Shift+N")
         .build(app)?;
-    let open_external = MenuItemBuilder::with_id("file.openExternal", s.open_external)
-        .accelerator("CmdOrCtrl+Shift+E")
+    let preferences_item = MenuItemBuilder::with_id("file.preferences", s.preferences_item)
+        .accelerator("CmdOrCtrl+,")
+        .build(app)?;
+    let exit_item = MenuItemBuilder::with_id("file.exit", s.exit_item)
+        .accelerator("CmdOrCtrl+Q")
         .build(app)?;
 
-    let file_submenu = SubmenuBuilder::new(app, s.file)
+    // ---- Recent files / workspaces submenus ----
+    let recent_file_items = build_recent_submenu_items(app, "recent-file", ".notademics-recent-files.json")?;
+    let recent_folder_items = build_recent_submenu_items(app, "recent-workspace", ".notademics-recent-folders.json")?;
+
+    let mut fb = SubmenuBuilder::new(app, s.file)
         .item(&new_md)
         .item(&new_txt)
         .separator()
         .item(&open_file)
-        .item(&open_folder)
+        .item(&open_folder);
+
+    if !recent_file_items.is_empty() {
+        let mut sfb = SubmenuBuilder::new(app, s.open_recent_file);
+        for item in &recent_file_items { sfb = sfb.item(item); }
+        fb = fb.item(&sfb.build()?);
+    }
+    if !recent_folder_items.is_empty() {
+        let mut sfb = SubmenuBuilder::new(app, s.open_recent_workspace);
+        for item in &recent_folder_items { sfb = sfb.item(item); }
+        fb = fb.item(&sfb.build()?);
+    }
+
+    let file_submenu = fb
         .separator()
         .item(&save)
         .item(&save_as)
-        .separator()
-        .item(&open_external)
-        .separator()
-        .item(&print_item)
+        .item(&close_tab)
+        .item(&close_all_tabs)
         .separator()
         .item(&new_window)
-        .item(&close_tab)
+        .separator()
+        .item(&preferences_item)
+        .item(&exit_item)
         .build()?;
 
     let edit_submenu = SubmenuBuilder::new(app, s.edit)
@@ -417,7 +516,7 @@ fn build_app_menu<R: tauri::Runtime>(
     let global_search = MenuItemBuilder::with_id("search.global", s.global_search)
         .accelerator("CmdOrCtrl+Shift+F")
         .build(app)?;
-    let settings_item = MenuItemBuilder::with_id("view.settings", s.settings_menu)
+    let settings_item = MenuItemBuilder::with_id("view.settings", s.preferences_item)
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
 
@@ -705,6 +804,7 @@ pub fn run_with(initial_file: Option<String>) {
             force_close_window,
             set_menu_language,
             save_language_preference,
+            add_recent_entry,
             set_default::set_as_default_markdown_editor,
             convert::convert_file_to_markdown,
             workspace_index::workspace_index_init,

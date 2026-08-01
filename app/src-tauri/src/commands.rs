@@ -565,6 +565,40 @@ pub async fn list_dir(path: String) -> Result<Vec<DirEntry>, String> {
         .map_err(|e| format!("join: {e}"))?
 }
 
+/// Recursively list all files and directories under a folder.
+/// Returns a flat list of `DirEntry` with `path` as absolute path.
+/// Uses `walkdir`, which is already a dependency.
+#[tauri::command]
+pub async fn list_files_recursive(folder: String) -> Result<Vec<DirEntry>, String> {
+    tauri::async_runtime::spawn_blocking(move || list_files_recursive_inner(folder))
+        .await
+        .map_err(|e| format!("join: {e}"))?
+}
+
+fn list_files_recursive_inner(folder: String) -> Result<Vec<DirEntry>, String> {
+    let mut entries: Vec<DirEntry> = Vec::new();
+    for entry in walkdir::WalkDir::new(&folder)
+        .max_depth(20)
+        .into_iter()
+        .filter_entry(|e| !e.file_name().to_string_lossy().starts_with('.'))
+    {
+        let entry = entry.map_err(|e| format!("walkdir error: {e}"))?;
+        if entry.depth() == 0 { continue; } // skip root
+        let name = entry.file_name().to_string_lossy().to_string();
+        entries.push(DirEntry {
+            name,
+            path: entry.path().to_string_lossy().to_string(),
+            is_dir: entry.file_type().is_dir(),
+        });
+    }
+    entries.sort_by(|a, b| match (a.is_dir, b.is_dir) {
+        (true, false) => std::cmp::Ordering::Less,
+        (false, true) => std::cmp::Ordering::Greater,
+        _ => a.path.to_lowercase().cmp(&b.path.to_lowercase()),
+    });
+    Ok(entries)
+}
+
 // ---------------------------------------------------------------------------
 // Frontmatter property editing (v4.6 F1 — Properties inspector).
 //
