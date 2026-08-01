@@ -19,7 +19,7 @@
 // value flips this to true — the build scripts only export the variable when
 // they actually want the App Store gate, so a stray `=0` setting in someone's
 // shell shouldn't happen in practice.
-pub const IS_APP_STORE: bool = option_env!("SOLOMD_APP_STORE_BUILD").is_some();
+pub const IS_APP_STORE: bool = option_env!("NOTADEMICS_APP_STORE_BUILD").is_some();
 
 #[derive(serde::Serialize)]
 pub struct BuildInfo {

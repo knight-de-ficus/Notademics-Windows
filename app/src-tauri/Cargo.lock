@@ -2984,6 +2984,57 @@ dependencies = [
 ]
 
 [[package]]
+name = "notademics"
+version = "4.11.1"
+dependencies = [
+ "argon2",
+ "async-stream",
+ "base64 0.22.1",
+ "calamine",
+ "chacha20poly1305",
+ "chardetng",
+ "chrono",
+ "cron",
+ "csv",
+ "encoding_rs",
+ "futures-util",
+ "git2",
+ "globset",
+ "hex",
+ "hmac",
+ "htmd",
+ "keyring",
+ "notify",
+ "notify-debouncer-mini",
+ "once_cell",
+ "pdf-extract",
+ "quick-xml 0.37.5",
+ "rand 0.8.6",
+ "regex-lite",
+ "reqwest 0.12.28",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "spellbook",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-clipboard-manager",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-window-state",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "trash",
+ "walkdir",
+ "winreg 0.52.0",
+ "zip",
+]
+
+[[package]]
 name = "notify"
 version = "8.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4780,57 +4831,6 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "solomd"
-version = "4.11.1"
-dependencies = [
- "argon2",
- "async-stream",
- "base64 0.22.1",
- "calamine",
- "chacha20poly1305",
- "chardetng",
- "chrono",
- "cron",
- "csv",
- "encoding_rs",
- "futures-util",
- "git2",
- "globset",
- "hex",
- "hmac",
- "htmd",
- "keyring",
- "notify",
- "notify-debouncer-mini",
- "once_cell",
- "pdf-extract",
- "quick-xml 0.37.5",
- "rand 0.8.6",
- "regex-lite",
- "reqwest 0.12.28",
- "rusqlite",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2",
- "spellbook",
- "tauri",
- "tauri-build",
- "tauri-plugin-clipboard-manager",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "tauri-plugin-single-instance",
- "tauri-plugin-window-state",
- "tempfile",
- "tokio",
- "tracing",
- "trash",
- "walkdir",
- "winreg 0.52.0",
- "zip",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "solomd"
+name = "notademics"
 version = "4.11.1"
 description = "SoloMD — a lightweight, cross-platform Markdown + plain text editor"
 authors = ["zhitong"]
@@ -16,7 +16,7 @@ autobins = false
 # from [package].name) while Tauri's NSIS template was creating shortcuts
 # pointing to a different name, causing the Windows shortcut to break.
 [[bin]]
-name = "SoloMD"
+name = "Notademics"
 path = "src/main.rs"
 
 # v4.3.1 issue #73 — size-optimised release profile. Most of the Android

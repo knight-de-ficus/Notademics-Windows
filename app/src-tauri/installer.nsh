@@ -13,20 +13,20 @@
   WriteRegStr SHCTX "Software\Classes\Markdown Document\DefaultIcon" "" '"$INSTDIR\icons\file_icon.ico",0'
   WriteRegStr SHCTX "Software\Classes\Plain Text\DefaultIcon" "" '"$INSTDIR\icons\file_icon.ico",0'
 
-  ; Fallback: ensure the SoloMD.md / SoloMD.txt ProgIDs (if UserChoice or
+  ; Fallback: ensure the Notademics.md / Notademics.txt ProgIDs (if UserChoice or
   ; older installs point to them) also have the right icon + open command.
-  WriteRegStr SHCTX "Software\Classes\SoloMD.md" "" "Markdown Document"
-  WriteRegStr SHCTX "Software\Classes\SoloMD.md\DefaultIcon" "" '"$INSTDIR\icons\file_icon.ico",0'
-  WriteRegStr SHCTX "Software\Classes\SoloMD.md\shell\open\command" "" '"$INSTDIR\SoloMD.exe" "%1"'
-  WriteRegStr SHCTX "Software\Classes\SoloMD.txt" "" "Plain Text"
-  WriteRegStr SHCTX "Software\Classes\SoloMD.txt\DefaultIcon" "" '"$INSTDIR\icons\file_icon.ico",0'
-  WriteRegStr SHCTX "Software\Classes\SoloMD.txt\shell\open\command" "" '"$INSTDIR\SoloMD.exe" "%1"'
+  WriteRegStr SHCTX "Software\Classes\Notademics.md" "" "Markdown Document"
+  WriteRegStr SHCTX "Software\Classes\Notademics.md\DefaultIcon" "" '"$INSTDIR\icons\file_icon.ico",0'
+  WriteRegStr SHCTX "Software\Classes\Notademics.md\shell\open\command" "" '"$INSTDIR\Notademics.exe" "%1"'
+  WriteRegStr SHCTX "Software\Classes\Notademics.txt" "" "Plain Text"
+  WriteRegStr SHCTX "Software\Classes\Notademics.txt\DefaultIcon" "" '"$INSTDIR\icons\file_icon.ico",0'
+  WriteRegStr SHCTX "Software\Classes\Notademics.txt\shell\open\command" "" '"$INSTDIR\Notademics.exe" "%1"'
 
   ; Force Explorer to refresh icon cache (SHCNE_ASSOCCHANGED).
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 !macroend
 
 !macro NSIS_HOOK_POSTUNINSTALL
-  DeleteRegKey SHCTX "Software\Classes\SoloMD.md"
-  DeleteRegKey SHCTX "Software\Classes\SoloMD.txt"
+  DeleteRegKey SHCTX "Software\Classes\Notademics.md"
+  DeleteRegKey SHCTX "Software\Classes\Notademics.txt"
 !macroend

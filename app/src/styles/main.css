@@ -308,6 +308,13 @@ body,
   overflow: hidden;
 }
 
+.app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
 body {
   font-family: var(--font-ui);
   font-size: var(--ui-font-size, 13px);

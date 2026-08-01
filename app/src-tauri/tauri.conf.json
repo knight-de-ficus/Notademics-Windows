@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "SoloMD",
+  "productName": "Notademics",
   "version": "4.11.1",
-  "identifier": "app.solomd",
+  "identifier": "app.notademics",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
   "app": {
     "windows": [
       {
-        "title": "SoloMD",
+        "title": "Notademics",
         "width": 1200,
         "height": 800,
         "minWidth": 480,
@@ -34,7 +34,7 @@
       }
     }
   },
-  "mainBinaryName": "SoloMD",
+  "mainBinaryName": "Notademics",
   "bundle": {
     "active": true,
     "targets": "all",
@@ -87,7 +87,7 @@
       "resources/dicts/en_US.dic"
     ],
     "externalBin": [
-      "binaries/solomd-mcp"
+      "binaries/notademics-mcp"
     ]
   },
   "plugins": {}
