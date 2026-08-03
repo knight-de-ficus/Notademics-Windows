@@ -706,6 +706,51 @@ function numberedSectionHeadings(source: string): string {
 }
 
 /**
+ * 引用块标记的宽松化规则：只有 `> `（`>` 后跟空格/制表符）或 `> 内容`
+ * 才是引用块。`>` 后**没有空格**直接跟内容（`>abc`）、或 `>` 单独一行，
+ * 都转义为 `\>`，让它们渲染为普通文字而非引用块。
+ *
+ * 与 CommonMark/Typora 的严格行为（它们把 `>abc` 视为合法引用）不同，
+ * 这符合本应用的所见即所得编辑习惯：输入 `>` 还没输入空格时，不应提前
+ * 变成引用块。围栏代码块内的行不处理（fence-aware，与其他预处理一致）。
+ */
+function escapeBareQuoteMarkers(source: string): string {
+  const lines = source.split('\n');
+  const out: string[] = [];
+  let inFence = false;
+  let fenceChar = '';
+  const fenceRe = /^(\s*)(```+|~~~+)/;
+  for (const line of lines) {
+    const fm = fenceRe.exec(line);
+    if (fm) {
+      if (!inFence) {
+        inFence = true;
+        fenceChar = fm[2][0];
+        out.push(line);
+        continue;
+      }
+      if (fm[2][0] === fenceChar) {
+        inFence = false;
+        out.push(line);
+        continue;
+      }
+    }
+    if (inFence) {
+      out.push(line);
+      continue;
+    }
+    // 无空格 `>abc`（`>` 后既不是空白/制表符/`>`/行尾）或单独 `>`（整行
+    // 只有 `>`）→ 转义为 `\>`。`> `（带空格）、`>> a`（嵌套）保持合法。
+    if (/^>(?![ \t>]|$)/.test(line) || /^>$/.test(line)) {
+      out.push(line.replace(/^>/, '\\>'));
+    } else {
+      out.push(line);
+    }
+  }
+  return out.join('\n');
+}
+
+/**
  * Run the source through every leniency preprocessor (inline-HTML-block
  * unwrapping #71, malformed table-delimiter repair, list re-indent #132) that
  * makes AI/PDF-exported Markdown render like Typora/Obsidian. Both the HTML
@@ -717,7 +762,8 @@ function numberedSectionHeadings(source: string): string {
 export function preprocessMarkdown(source: string): string {
   let s = normalizeTableDelimiters(unwrapInlineHtmlBlocks(source || ''));
   if (autoNumberHeadings) s = numberedSectionHeadings(s);
-  return normalizeListIndent(s);
+  s = normalizeListIndent(s);
+  return escapeBareQuoteMarkers(s);
 }
 
 export function renderMarkdown(source: string, options?: { breaks?: boolean }): string {

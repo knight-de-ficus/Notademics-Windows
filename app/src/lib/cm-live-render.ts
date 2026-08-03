@@ -37,7 +37,7 @@
  */
 
 import { syntaxTree, HighlightStyle, syntaxHighlighting } from '@codemirror/language';
-import type { Range } from '@codemirror/state';
+import type { Range, Text } from '@codemirror/state';
 
 // Minimal structural view of a lezer `SyntaxNode`. `@lezer/common` is only a
 // transitive dependency (not in our package.json), so we describe just the
@@ -59,6 +59,8 @@ import {
 import { frozenDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard';
 import { tags as t } from '@lezer/highlight';
 import { isDragging, isDragEndTransaction } from './cm-drag-aware';
+import { liveEnterExtension } from './cm-live-enter';
+import { preciseSelection } from './cm-precise-selection';
 
 // ---------------------------------------------------------------------------
 // Marker nodes that we hide off-line. Brackets/parens for links and
@@ -72,7 +74,8 @@ const HIDDEN_MARK_NODES = new Set<string>([
   'StrikethroughMark', // `~~`
   'CodeMark',       // backticks for inline code AND fenced code
   'LinkMark',       // `[`, `]`, `(`, `)` around links
-  'QuoteMark',      // `>` at start of blockquote lines
+  // NOTE: QuoteMark (`>`) is intentionally NOT hidden — blockquote markers
+  // stay visible so the quote structure reads clearly while editing.
   'LinkTitle',      // optional title in `[label](url "title")`
   'CodeInfo',       // language tag after ``` — visually noisy off-line
 ]);
@@ -91,12 +94,6 @@ const emMark = Decoration.mark({ class: 'cm-md-em' });
 const strikeMark = Decoration.mark({ class: 'cm-md-strike' });
 const codeMark = Decoration.mark({ class: 'cm-md-code' });
 const linkMark = Decoration.mark({ class: 'cm-md-link' });
-
-// Block-level line decorations.
-const lineClass = (cls: string) => Decoration.line({ class: cls });
-const quoteLine = lineClass('cm-md-quote-line');
-const fencedLine = lineClass('cm-md-fenced-line');
-const headingLine = (level: number) => lineClass(`cm-md-heading-line cm-md-heading-line-${level}`);
 
 const hideDeco = Decoration.replace({});
 
@@ -185,9 +182,20 @@ function buildDecorations(view: EditorView): DecorationSet {
   // necessary because line and mark decorations have different sides.
   const ranges: Range<Decoration>[] = [];
 
-  const seenQuoteLines = new Set<number>();
-  const seenFencedLines = new Set<number>();
-  const seenHeadingLines = new Set<number>();
+  // Multiple line decorations on the SAME line would collide in
+  // `Decoration.set` (the later range silently replaces the earlier one),
+  // so every line-level class — heading / quote / fenced / paragraph-spacing
+  // — is collected here per line and emitted as ONE combined
+  // `Decoration.line({ class: 'a b c' })` at the end.
+  const lineClasses = new Map<number, string[]>();
+  const addLineClass = (lineFrom: number, cls: string) => {
+    const arr = lineClasses.get(lineFrom);
+    if (arr) {
+      if (!arr.includes(cls)) arr.push(cls);
+    } else {
+      lineClasses.set(lineFrom, [cls]);
+    }
+  };
 
   for (const { from, to } of view.visibleRanges) {
     tree.iterate({
@@ -203,7 +211,7 @@ function buildDecorations(view: EditorView): DecorationSet {
         ).number;
         const caretTouches = lineEndAtNode >= fromLine && lineAtNode <= toLine;
 
-        // ---- Marker hiding (off-line only) ----
+        // ---- Always-hidden markers (none currently; kept as extension point) ----
         if (HIDDEN_MARK_NODES.has(name)) {
           if (!caretTouches && nTo > nFrom) {
             // v4.3.5 #83 — for ATX heading marks (`#`, `##`, …) also hide
@@ -243,10 +251,7 @@ function buildDecorations(view: EditorView): DecorationSet {
         if (HEADING_LEVELS[name]) {
           const level = HEADING_LEVELS[name];
           const lineObj = view.state.doc.lineAt(nFrom);
-          if (!seenHeadingLines.has(lineObj.from)) {
-            seenHeadingLines.add(lineObj.from);
-            ranges.push(headingLine(level).range(lineObj.from));
-          }
+          addLineClass(lineObj.from, `cm-md-heading-line cm-md-heading-line-${level}`);
           if (nFrom < nTo) {
             ranges.push(
               headingClass(level).range(nFrom, Math.min(nTo, view.state.doc.length)),
@@ -282,16 +287,19 @@ function buildDecorations(view: EditorView): DecorationSet {
         }
 
         // ---- Blockquote line styling ----
+        // Only apply quote styling when the line has a valid `> ` marker
+        // (`>` followed by whitespace) — `>text` without space and a lone
+        // `>` at EOL are not blockquotes (rendered as plain text, see
+        // markdown.ts `escapeBareQuoteMarkers`).
         if (name === 'Blockquote') {
           const startLine = view.state.doc.lineAt(nFrom).number;
           const endLine = view.state.doc.lineAt(
             Math.min(nTo, view.state.doc.length),
           ).number;
           for (let ln = startLine; ln <= endLine; ln++) {
-            const lineObj = view.state.doc.line(ln);
-            if (!seenQuoteLines.has(lineObj.from)) {
-              seenQuoteLines.add(lineObj.from);
-              ranges.push(quoteLine.range(lineObj.from));
+            const t = view.state.doc.line(ln).text;
+            if (/^> /.test(t)) {
+              addLineClass(view.state.doc.line(ln).from, 'cm-md-quote-line');
             }
           }
           return;
@@ -304,11 +312,7 @@ function buildDecorations(view: EditorView): DecorationSet {
             Math.min(nTo, view.state.doc.length),
           ).number;
           for (let ln = startLine; ln <= endLine; ln++) {
-            const lineObj = view.state.doc.line(ln);
-            if (!seenFencedLines.has(lineObj.from)) {
-              seenFencedLines.add(lineObj.from);
-              ranges.push(fencedLine.range(lineObj.from));
-            }
+            addLineClass(view.state.doc.line(ln).from, 'cm-md-fenced-line');
           }
           return;
         }
@@ -345,14 +349,230 @@ function buildDecorations(view: EditorView): DecorationSet {
     });
   }
 
+  // ---- Paragraph blank-line folding (see addParagraphSpacing below) ----
+  addParagraphSpacing(view, addLineClass);
+
+  // Emit every line-level class as ONE combined line decoration per line
+  // (multiple line decorations on the same range would collide in
+  // `Decoration.set` — the later one silently replaces the earlier).
+  for (const [lineFrom, clsArr] of lineClasses) {
+    ranges.push(Decoration.line({ class: clsArr.join(' ') }).range(lineFrom));
+  }
+
   // sort = true so CM6 handles (from, side) ordering regardless of the
   // mixed line/mark/replace decorations we collected.
   return Decoration.set(ranges, true);
 }
 
+/**
+ * Wires the paragraph blank-line folding into a line-class collector.
+ * The pure computation lives in computeParagraphSpacing() (unit-tested).
+ */
+function addParagraphSpacing(
+  view: EditorView,
+  addLineClass: (lineFrom: number, cls: string) => void,
+) {
+  const doc = view.state.doc;
+  const codeLines = collectCodeBlockLines(syntaxTree(view.state), doc);
+  // Caret-aware folding: the line the caret sits on stays expanded; and
+  // during an actual (non-empty) selection folding is disabled entirely so
+  // drag-selecting never un-folds lines under the mouse.
+  const selMain = view.state.selection.main;
+  const selectionActive = view.state.selection.ranges.some((r) => !r.empty);
+  const caretLine = doc.lineAt(selMain.head).number;
+  for (const { from, to } of view.visibleRanges) {
+    const spacing = computeParagraphSpacing(
+      doc,
+      codeLines,
+      doc.lineAt(from).number,
+      doc.lineAt(to).number,
+      caretLine,
+      selectionActive,
+    );
+    for (const [ln, clsArr] of spacing) {
+      for (const cls of clsArr) addLineClass(doc.line(ln).from, cls);
+    }
+  }
+}
+
+/** Line numbers covered by fenced/indented code blocks (blank lines inside
+ *  them are exempt from folding). Pure — unit-tested. */
+export function collectCodeBlockLines(
+  tree: { iterate: (spec: { enter(node: { name: string; from: number; to: number }): void }) => void },
+  doc: Text,
+): Set<number> {
+  const codeLines = new Set<number>();
+  tree.iterate({
+    enter(node) {
+      const name = node.name;
+      if (name === 'FencedCode' || name === 'CodeBlock') {
+        const from = doc.lineAt(node.from).number;
+        const to = doc.lineAt(Math.min(node.to, doc.length)).number;
+        for (let ln = from; ln <= to; ln++) codeLines.add(ln);
+      }
+    },
+  });
+  return codeLines;
+}
+
+/**
+ * Paragraph blank-line folding for lines `startLine..endLine` (inclusive).
+ * Returns per-line class lists, e.g. `Map<lineNo, ['cm-md-blank-hidden']>`.
+ *
+ * Rules (n = number of consecutive structural blank lines; a structural blank
+ * is `^\s*$` or a quote-only line `^\s*>\s+$` — the `>` MUST be followed by
+ * whitespace; a bare `>` at EOL is plain text, not a quote/blank):
+ *
+ *   BETWEEN two content lines (prevContent && nextContent) — Typora-matched:
+ *     1. Split the run into segments by blank TYPE (quote `> ` vs plain);
+ *        the position counter RESETS at each segment boundary.
+ *     2. Within a segment keep EVEN positions (2,4,…), fold ODD (1,3,…).
+ *     3. The LAST blank of the run is always folded (hugs the next content).
+ *     Verified: 2 quotes→0, 4 quotes→1, 4q+1p→2 quotes, 3q+2p→1 quote,
+ *     1q+3p→1 plain, 3q+4p→1 quote+1 plain, plain 1/2/3/4→0/0/1/1.
+ *
+ *   TRAILING run (prevContent, no nextContent) at document end:
+ *     keep positions 0, 2, 4, … (the first visible line must stay for the
+ *     caret to land on at end-of-document).  count = ⌈n/2⌉.
+ *
+ *   LEADING run (no prevContent, nextContent) at document start:
+ *     folded entirely (no leading blank paragraph rows).
+ *
+ * Spacing (padding-bottom only, so CodeMirror measures it):
+ *   - content line followed by a blank line → `cm-md-para-gap` (padding P)
+ *   - content line followed by another content line → `cm-md-para-inline` (P/2)
+ *   - kept empty-paragraph line followed by a folded blank → `cm-md-para-gap`
+ *   - code-block interior lines get no classes
+ */
+export function computeParagraphSpacing(
+  doc: Text,
+  codeLines: ReadonlySet<number>,
+  startLine: number,
+  endLine: number,
+  caretLine = 0,
+  selectionActive = false,
+): Map<number, string[]> {
+  const out = new Map<number, string[]>();
+
+  // A blank line that the caret is resting on is NEVER folded (kept at full
+  // height) so the user sees where they are; any other blank in the run still
+  // folds per the rules below. During a selection (caretLine ignored) folding
+  // is skipped so a drag over folded blanks doesn't expand them mid-gesture.
+  const forceKeep = (lineNo: number): boolean =>
+    !selectionActive && lineNo === caretLine;
+  const add = (ln: number, cls: string) => {
+    const arr = out.get(ln);
+    if (arr) {
+      if (!arr.includes(cls)) arr.push(cls);
+    } else {
+      out.set(ln, [cls]);
+    }
+  };
+
+  const blank = (ln: number): boolean => {
+    if (ln < 1 || ln > doc.lines) return false;
+    if (codeLines.has(ln)) return false;
+    const t = doc.line(ln).text;
+    // A quote line counts as blank only when the `>` is followed by
+    // whitespace (`> `). A bare `>` at EOL is plain text (see markdown.ts
+    // `escapeBareQuoteMarkers`), NOT a structural blank.
+    return /^\s*$/.test(t) || /^\s*>\s+$/.test(t);
+  };
+  const content = (ln: number): boolean => {
+    if (ln < 1 || ln > doc.lines) return false;
+    return !blank(ln);
+  };
+
+  let ln = startLine;
+  while (ln <= endLine) {
+    if (blank(ln)) {
+      let runEnd = ln;
+      while (runEnd <= doc.lines && blank(runEnd)) runEnd++;
+      const runLen = runEnd - ln;
+      const prevContent = content(ln - 1);
+      const nextContent = content(runEnd);
+
+      if (prevContent && nextContent) {
+        // Between two content lines. Typora-matched rule (verified against
+        // a 29-scenario Typora matrix):
+        //   1. Split the run into type segments — quote blanks (`> `) vs
+        //      plain blanks. The position counter RESETS at a segment
+        //      boundary (no cross-block counting).
+        //   2. Within each segment, keep EVEN positions (2, 4, …), fold
+        //      ODD positions (1, 3, …).
+        //   3. The LAST blank of the whole run is always folded (it hugs
+        //      the following content line — Typora never shows it).
+        // Examples:
+        //   > aaa  > (1 fold)  > (2 keep)  > (3 fold)  (1 fold)  aaa
+        //   2 quote blanks only  → keep #2, but it's the run tail → 0
+        //   4 quote blanks only  → keep #2,#4, tail #4 folded → 1
+        //   4 quote + 1 plain    → quotes #2,#4 kept (2), plain tail → 2
+        let pos = 1;
+        let segType: 'quote' | 'plain' | null = null;
+        for (let k = 0; k < runLen; k++) {
+          const lineNo = ln + k;
+          const t = doc.line(lineNo).text;
+          const type: 'quote' | 'plain' = /^\s*>\s+$/.test(t) ? 'quote' : 'plain';
+          if (type !== segType) {
+            segType = type;
+            pos = 1;
+          }
+          const isRunTail = k === runLen - 1;
+          const kept = forceKeep(lineNo) || (!isRunTail && pos % 2 === 0);
+          add(lineNo, kept ? 'cm-md-blank-kept' : 'cm-md-blank-hidden');
+          if (kept) add(lineNo, 'cm-md-para-gap');
+          pos++;
+        }
+      } else if (prevContent) {
+        // Trailing run (content above, nothing below) — keep every other
+        // starting from pos 0.  count = ⌈n/2⌉.
+        const count = Math.ceil(runLen / 2);
+        for (let k = 0; k < runLen; k++) {
+          const lineNo = ln + k;
+          const kept = forceKeep(lineNo) || (k % 2 === 0 && k <= 2 * (count - 1));
+          add(lineNo, kept ? 'cm-md-blank-kept' : 'cm-md-blank-hidden');
+        }
+      } else {
+        // Leading run (or entire doc is blank) — fold all.
+        for (let k = 0; k < runLen; k++) {
+          const lineNo = ln + k;
+          const kept = forceKeep(lineNo);
+          add(lineNo, kept ? 'cm-md-blank-kept' : 'cm-md-blank-hidden');
+        }
+      }
+      ln = runEnd;
+    } else {
+      // Content line (heading / quote / list / plain text / code edge).
+      // Code-block lines — opening/closing fences AND interior (incl. its
+      // blank lines) — never participate in paragraph spacing: the fenced
+      // background already provides the visual separation.
+      if (codeLines.has(ln)) {
+        ln++;
+        continue;
+      }
+      const next = ln + 1;
+      if (next <= doc.lines && blank(next)) {
+        add(ln, 'cm-md-para-gap');
+      } else if (next <= doc.lines && content(next)) {
+        add(ln, 'cm-md-para-inline');
+      }
+      ln++;
+    }
+  }
+  return out;
+}
+
 const liveRenderPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
+    // Signature of the paragraph-spacing line classes currently applied.
+    // CodeMirror does NOT re-measure line heights when a decoration class
+    // changes (it can't know the class alters layout), yet our folding
+    // classes set heights/paddings that MUST be re-measured or clicks and
+    // scrolling drift away from what the user sees. When the signature
+    // changes we force a measure; the signature is cheap (viewport lines
+    // only) so normal typing does not pay for it.
+    paraSig = '';
 
     constructor(view: EditorView) {
       this.decorations = buildDecorations(view);
@@ -372,6 +592,14 @@ const liveRenderPlugin = ViewPlugin.fromClass(
       const dragEnded = u.transactions.some(isDragEndTransaction);
       const imeFlush = u.transactions.some(isImeSafeFlushTransaction);
       if (u.docChanged || u.viewportChanged || dragEnded || imeFlush) {
+        const sig = paragraphSpacingSignature(u.view);
+        if (sig !== this.paraSig) {
+          this.paraSig = sig;
+          // Re-measure line heights (0-height folded blanks, paragraph
+          // paddings) so posAtCoords / scrolling stay in sync with the
+          // rendered layout.
+          u.view.requestMeasure();
+        }
         this.decorations = buildDecorations(u.view);
         return;
       }
@@ -382,6 +610,30 @@ const liveRenderPlugin = ViewPlugin.fromClass(
   },
   { decorations: (v) => v.decorations }
 );
+
+/** Signature of the folding/spacing classes across the visible range. */
+function paragraphSpacingSignature(view: EditorView): string {
+  const doc = view.state.doc;
+  const codeLines = collectCodeBlockLines(syntaxTree(view.state), doc);
+  const selMain = view.state.selection.main;
+  const selectionActive = view.state.selection.ranges.some((r) => !r.empty);
+  const caretLine = doc.lineAt(selMain.head).number;
+  let sig = '';
+  for (const { from, to } of view.visibleRanges) {
+    const spacing = computeParagraphSpacing(
+      doc,
+      codeLines,
+      doc.lineAt(from).number,
+      doc.lineAt(to).number,
+      caretLine,
+      selectionActive,
+    );
+    for (const [ln, clsArr] of spacing) {
+      sig += ln + ':' + clsArr.join('+') + ';';
+    }
+  }
+  return sig;
+}
 
 // Rich syntax highlighting — same palette as cm-live-preview.ts but kept
 // here so live-edit can be used independently of the live-preview toggle.
@@ -484,9 +736,14 @@ const liveEditTheme = EditorView.theme({
   },
 
   // v4.7.1 — bullet glyph that replaces a `-`/`*`/`+` list marker off-line.
+  // `position: relative; z-index: 3` lifts the glyph ABOVE the selection
+  // layer (`.cm-selectionLayer` is z-index 2) so a cross-line selection's
+  // shadow never paints over the bullet — the highlight stays on the text.
   '.cm-md-bullet': {
     color: 'var(--md-list)',
     fontWeight: '700',
+    position: 'relative',
+    zIndex: '3',
   },
 
   // v4.7.1 — `---` / `***` / `___` rendered as a real rule off-line. The
@@ -502,11 +759,12 @@ const liveEditTheme = EditorView.theme({
   },
 
   '.cm-md-quote-line': {
-    borderLeft: '3px solid var(--border)',
-    paddingLeft: '12px',
     color: 'var(--md-quote)',
     fontStyle: 'italic',
     backgroundColor: 'var(--bg-elev, transparent)',
+    border: 'none',
+    padding: '0.12em 0em 0.12em 0.6em',
+    borderLeft: '3px solid var(--border)',
   },
 
   '.cm-md-fenced-line': {
@@ -515,14 +773,6 @@ const liveEditTheme = EditorView.theme({
   },
 
   // #82 / #44 — selection highlight inside code was invisible in live-edit.
-  // Inline `.cm-md-code` and `.cm-md-fenced-line` paint an opaque
-  // `--md-code-bg`, and CM6's `layer` extension writes inline
-  // `style="z-index: -2"` on `.cm-selectionLayer`, parking the selection
-  // BENEATH those backgrounds. `!important` beats the inline style so the
-  // selection layer sits above the code bg; 45% alpha keeps the code text
-  // readable through the highlight. (The same fix already lives in
-  // cm-live-preview.ts — the earlier patches only covered that mode, not
-  // this one, which is the WYSIWYG "live edit" the reporters actually use.)
   '.cm-selectionLayer': { zIndex: '2 !important' },
   '.cm-selectionBackground': {
     backgroundColor: 'rgba(255,159,64,0.45) !important',
@@ -545,6 +795,8 @@ export function liveEditExtension(blocks: any[] = []) {
     syntaxHighlighting(liveEditHighlightStyle),
     liveRenderPlugin,
     liveEditTheme,
+    liveEnterExtension(),
+    preciseSelection,
     ...blocks,
   ];
 }
@@ -581,4 +833,9 @@ export const LIVE_EDIT_CLASSES = [
   'cm-md-fenced-line',
   'cm-md-bullet',
   'cm-md-hr',
+  // Paragraph blank-line folding (v4.x) — see addParagraphSpacing().
+  'cm-md-blank-hidden',
+  'cm-md-blank-kept',
+  'cm-md-para-gap',
+  'cm-md-para-inline',
 ] as const;

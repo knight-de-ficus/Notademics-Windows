@@ -25,6 +25,11 @@ function tbName(p: string|null): string { if(!p) return 'Untitled'; return p.rep
 function dvName(c: string, p: string|null): string { const m=c?.match(/^#{1,6}[ \t]+(.{1,60})/m); const s=m?.[1]?.trim().replace(/[\\/:*?"<>|#]/g,'_').replace(/^\.+/,'').trim(); const e=p?(p.split('.').pop()||'md'):'md'; return s?`${s}.${e}`:`Untitled.${e}`; }
 function docDir(p: string|null): string|null { if(!p) return null; const x=p.replace(/\\/g,'/'); return x.substring(0,x.lastIndexOf('/')); }
 
+/** Safely call `getCurrentWindow()` — returns null outside Tauri (browser dev). */
+function safeCurrentWindow() {
+  try { return getCurrentWindow(); } catch { return null; }
+}
+
 async function addRecent(kind: 'file'|'folder', path: string) {
   invoke('add_recent_entry', { kind, path }).catch(() => {});
 }
@@ -45,15 +50,17 @@ export default function App() {
   const [isMain, setIsMain] = useState(false);
 
   useEffect(() => { if(!at){setHtml('');return;} const t=setTimeout(()=>setHtml(renderMarkdown(at.content)),250); return ()=>clearTimeout(t); }, [at?.content, at?.id]);
-  useEffect(() => { getCurrentWindow().setTitle(at?`${at.fileName} \u2014 Notademics`:'Notademics').catch(()=>{}); }, [at?.fileName, at?.id]);
+  useEffect(() => { safeCurrentWindow()?.setTitle(at?`${at.fileName} \u2014 Notademics`:'Notademics').catch(()=>{}); }, [at?.fileName, at?.id]);
   useEffect(() => { function h(e:Event){ editorRef.current?.scrollToLine((e as CustomEvent<number>).detail); } window.addEventListener('notademics:goto-line',h); return ()=>window.removeEventListener('notademics:goto-line',h); }, []);
 
   useEffect(() => {
-    setIsMain(getCurrentWindow().label==='main');
+    setIsMain(safeCurrentWindow()?.label==='main');
     const u: UnlistenFn[]=[];
-    listen<string>('solomd://menu',(e)=>menu(e.payload)).then(f=>u.push(f));
-    listen<string>('open-file',(e)=>openAlways(e.payload)).then(f=>u.push(f));
-    listen<{paths:string[]}>('tauri://drag-drop',(e)=>{if(e.payload.paths.length)openAlways(e.payload.paths[0]);}).then(f=>u.push(f));
+    try {
+      listen<string>('solomd://menu',(e)=>menu(e.payload)).then(f=>u.push(f)).catch(()=>{});
+      listen<string>('open-file',(e)=>openAlways(e.payload)).then(f=>u.push(f)).catch(()=>{});
+      listen<{paths:string[]}>('tauri://drag-drop',(e)=>{if(e.payload.paths.length)openAlways(e.payload.paths[0]);}).then(f=>u.push(f)).catch(()=>{});
+    } catch {}
     return ()=>u.forEach(f=>f());
   }, []);
 
@@ -79,7 +86,7 @@ export default function App() {
       case 'file.closeTab': reqClose(); break;
       case 'file.closeAllTabs': reqCloseAll(); break;
       case 'file.preferences': case 'view.settings': doSettings(); break;
-      case 'file.exit': getCurrentWindow().close().catch(()=>{}); break;
+      case 'file.exit': safeCurrentWindow()?.close().catch(()=>{}); break;
       case 'window.new': if(isMain) newWindow(); break;
       case 'view.toggleFileTree': setShowFt(v=>!v); break;
       case 'view.cycleView': cycle(); break;

@@ -188,10 +188,6 @@ const liveTheme = EditorView.theme({
   '.tok-meta, .cm-formatting, .ͼe': {
     color: 'var(--text-faint)',
   },
-  // CM6's `layer` extension writes inline `style="z-index: -2"` on
-  // `.cm-selectionLayer`, parking selection beneath the per-char
-  // backgrounds painted by `t.monospace`. Need `!important` to beat
-  // the inline style; 45% alpha keeps glyphs readable underneath.
   '.cm-selectionLayer': { zIndex: '2 !important' },
   '.cm-selectionBackground': {
     backgroundColor: 'rgba(255,159,64,0.45) !important',

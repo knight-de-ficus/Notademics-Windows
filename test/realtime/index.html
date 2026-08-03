@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live 实时渲染</title>
+<link rel="stylesheet" href="/vendor/katex.min.css">
+<style>
+  :root {
+    --accent: #0969da; --text: #1f2328; --text-muted: #59636e;
+    --border: #d1d9e0; --bg: #ffffff; --bg-hover: #f6f8fa;
+    --font-ui: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; display: flex; flex-direction: column;
+         font-family: var(--font-ui); color: var(--text); background: var(--bg); }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 16px; border-bottom: 1px solid var(--border);
+    background: var(--bg-hover); font-size: 13px;
+  }
+  header .file { font-weight: 600; font-family: var(--font-mono); }
+  header .status { color: var(--text-muted); flex: 1; }
+  header .status.dirty { color: #9a6700; }
+  header .status.saved { color: #1a7f37; }
+  header button {
+    border: 1px solid var(--border); background: #fff; border-radius: 6px;
+    padding: 4px 12px; font-size: 13px; cursor: pointer;
+  }
+  header button:hover { background: #fff; border-color: var(--accent); color: var(--accent); }
+  main { flex: 1; display: flex; min-height: 0; }
+  .pane { flex: 1; min-width: 0; overflow: hidden; }
+  .pane .pane-title {
+    padding: 6px 16px; font-size: 12px; color: var(--text-muted);
+    border-bottom: 1px solid var(--border); background: var(--bg-hover);
+  }
+  #editor { height: calc(100% - 31px); }
+  #editor .cm-editor { height: 100%; font-size: 15px; }
+  #editor .cm-scroller { overflow: auto; }
+  #editor .cm-content {
+    font-family: var(--font-ui); line-height: 1.7; padding: 16px 20px;
+    max-width: none;
+  }
+  #preview-scroll { height: calc(100% - 31px); overflow: auto; }
+  .preview-content {
+    max-width: 760px; margin: 0 auto; padding: 16px 32px 64px;
+    font-size: 15px; line-height: 1.7;
+  }
+  .preview-content h1, .preview-content h2, .preview-content h3,
+  .preview-content h4 { font-weight: 700; line-height: 1.25; margin: 1.4em 0 .5em; }
+  .preview-content h1 { font-size: 2em; } .preview-content h2 { font-size: 1.5em; }
+  .preview-content h3 { font-size: 1.2em; }
+  .preview-content p { margin: .8em 0; }
+  .preview-content a { color: var(--accent); text-decoration: none; }
+  .preview-content a:hover { text-decoration: underline; }
+  .preview-content code { font-family: var(--font-mono); font-size: .9em;
+    background: var(--bg-hover); padding: .15em .4em; border-radius: 4px; }
+  .preview-content pre { font-family: var(--font-mono); background: var(--bg-hover);
+    padding: 14px 16px; border-radius: 6px; overflow-x: auto; }
+  .preview-content pre code { background: transparent; padding: 0; }
+  .preview-content blockquote { border-left: 3px solid var(--accent);
+    margin: 1em 0; padding: .2em 1em; color: var(--text-muted); }
+  .preview-content ul, .preview-content ol { padding-left: 1.6em; }
+  .preview-content table { border-collapse: collapse; margin: 1em 0; }
+  .preview-content th, .preview-content td { border: 1px solid var(--border); padding: 6px 12px; }
+  .preview-content hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+  .preview-content img { max-width: 100%; border-radius: 4px; }
+  .preview-content .task-list-item { list-style: none; }
+  .preview-content .task-list-item-checkbox { margin-right: .5em; }
+  /* highlight.js — GitHub 浅色 */
+  .hljs { display: block; color: #1f2328; background: transparent; }
+  .hljs-comment, .hljs-quote { color: #6a737d; font-style: italic; }
+  .hljs-keyword, .hljs-selector-tag, .hljs-doctag, .hljs-literal { color: #cf222e; }
+  .hljs-string, .hljs-regexp, .hljs-template-variable, .hljs-addition { color: #0a3069; }
+  .hljs-number, .hljs-symbol, .hljs-bullet { color: #0550ae; }
+  .hljs-title, .hljs-section { color: #8250df; font-weight: 600; }
+  .hljs-attr, .hljs-variable, .hljs-template-tag { color: #953800; }
+  .hljs-built_in, .hljs-type { color: #8250df; }
+  .hljs-meta { color: #953800; }
+  /* ---- 空行折叠（与 app/src/styles/main.css 一致）---- */
+  .cm-editor { --md-para-gap: 1rem; --md-inline-gap: 0.5rem; }
+  .cm-editor .cm-line.cm-md-blank-hidden {
+    height: 0 !important; min-height: 0 !important; line-height: 0 !important;
+    margin: 0 !important; padding: 0 !important; overflow: hidden;
+  }
+  .cm-editor .cm-line.cm-md-blank-hidden:first-child {
+    height: auto !important; min-height: auto !important; line-height: normal !important;
+  }
+  .cm-editor .cm-line.cm-md-blank-kept { height: auto; min-height: 0; }
+  .cm-editor .cm-line.cm-md-para-gap { padding-bottom: var(--md-para-gap); }
+  .cm-editor .cm-line.cm-md-para-inline { padding-bottom: var(--md-inline-gap); }
+  /* 引用块样式 */
+  .cm-editor .cm-line.cm-md-quote-line {
+    border-left: 3px solid var(--border); padding-left: 12px;
+    color: var(--text-muted); font-style: italic;
+  }
+</style>
+</head>
+<body>
+<header>
+  <span class="file" id="doc-name">…</span>
+  <span class="status" id="status">加载中…</span>
+  <button id="save-btn" title="Ctrl+S">保存</button>
+</header>
+<main>
+  <div class="pane">
+    <div class="pane-title">Live 编辑器（真实 Live 管线：行内标记 / 块折叠 / 任务列表 / Mermaid）</div>
+    <div id="editor"></div>
+  </div>
+  <div class="pane" style="border-left:1px solid var(--border)">
+    <div class="pane-title">实时预览（renderMarkdown 输出）</div>
+    <div id="preview-scroll"><div class="preview-content" id="preview"></div></div>
+  </div>
+</main>
+
+<script type="module">
+  import { createLiveEditor, renderPreview } from '/bundle.js';
+
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $('status');
+  let dirty = false;
+  let current = '';
+
+  function setStatus(msg, kind = '') {
+    statusEl.textContent = msg;
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  // ---- 预览渲染（debounce 200ms，与 App.tsx 250ms 同思路）----
+  let previewTimer = null;
+  function schedulePreview() {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(renderPreviewNow, 200);
+  }
+  function renderPreviewNow() {
+    $('preview').innerHTML = renderPreview(current);
+  }
+
+  // ---- 编辑器 ----
+  const editor = createLiveEditor($('editor'), '', (md) => {
+    current = md;
+    dirty = true;
+    setStatus('未保存修改（Ctrl+S 保存）', 'dirty');
+    schedulePreview();
+  });
+
+  // ---- 文档加载 ----
+  async function loadDoc() {
+    try {
+      const r = await fetch('/doc');
+      if (!r.ok) throw new Error(await r.text());
+      const md = await r.text();
+      editor.setDoc(md);
+      current = md;
+      dirty = false;
+      renderPreviewNow();
+      const name = decodeURIComponent(location.pathname.split('/').pop() || '') || 'doc.md';
+      $('doc-name').textContent = name;
+      setStatus('已加载，编辑或改文件实时更新');
+    } catch (e) {
+      setStatus('加载失败: ' + e.message);
+    }
+  }
+
+  // ---- 保存 ----
+  async function save() {
+    try {
+      const r = await fetch('/save', { method: 'POST', body: current });
+      if (!r.ok) throw new Error(await r.text());
+      dirty = false;
+      setStatus('已保存 ' + new Date().toLocaleTimeString(), 'saved');
+    } catch (e) {
+      setStatus('保存失败: ' + e.message);
+    }
+  }
+  $('save-btn').addEventListener('click', save);
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(); }
+  });
+
+  // ---- SSE：外部修改 md 文件 → 自动同步进编辑器 ----
+  let reloadTimer = null;
+  const es = new EventSource('/events');
+  es.onmessage = (e) => {
+    if (e.data !== 'changed') return;
+    clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(async () => {
+      try {
+        const r = await fetch('/doc');
+        if (!r.ok) return;
+        const md = await r.text();
+        if (dirty) {
+          setStatus('⚠ 文件已被外部修改，但编辑器有未保存内容，未覆盖（请先保存）');
+          return;
+        }
+        if (md === current) return;
+        editor.setDoc(md);
+        current = md;
+        renderPreviewNow();
+        setStatus('已同步外部修改 ' + new Date().toLocaleTimeString(), 'saved');
+      } catch { /* ignore */ }
+    }, 150);
+  };
+  es.onerror = () => setStatus('SSE 连接中断，重连中…');
+
+  loadDoc();
+</script>
+</body>
+</html>

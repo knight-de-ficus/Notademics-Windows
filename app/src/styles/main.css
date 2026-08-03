@@ -549,13 +549,92 @@ body.solomd-printing {
 .cm-editor .cm-md-heading-line-4 { font-size:1.1em; font-weight:600; }
 .cm-editor .cm-md-heading-line-5 { font-weight:600; }
 .cm-editor .cm-md-heading-line-6 { font-weight:600; color:var(--text-muted); }
+/* No underline on headings: @codemirror/language's defaultHighlightStyle maps
+   `tags.heading` to `text-decoration: underline` (Editor.tsx enables it
+   globally). The heading text carries the explicit .cm-md-h1..h6 classes
+   (cm-live-render.ts headingClass), so this higher-specificity rule cancels
+   the underline while keeping the default style's bold/color out. */
+.cm-editor .cm-md-h1,
+.cm-editor .cm-md-h2,
+.cm-editor .cm-md-h3,
+.cm-editor .cm-md-h4,
+.cm-editor .cm-md-h5,
+.cm-editor .cm-md-h6 {
+  text-decoration: none;
+}
 .cm-editor .cm-md-strong { font-weight:700; }
 .cm-editor .cm-md-em { font-style:italic; }
 .cm-editor .cm-md-code { font-family:var(--font-mono); font-size:.9em; background:var(--bg-hover); padding:.15em .4em; border-radius:4px; }
-.cm-editor .cm-md-quote-line { color:var(--text-muted); border-left:3px solid var(--accent); padding-left:.6em; }
+.cm-editor .cm-md-quote-line {
+  color: var(--text-muted);
+  border-left: 3px solid var(--accent);
+  padding-left: .6em;
+}
 .cm-editor .cm-md-link { color:var(--accent); text-decoration:none; }
 .cm-editor .cm-md-strike { text-decoration:line-through; color:var(--text-muted); }
 .cm-editor .cm-md-list-marker { color:var(--md-list); }
+
+/* ============================================================
+ * Paragraph blank-line folding (live edit).
+ *
+ * Markdown mandates a single blank line between paragraphs. In live edit
+ * we fold runs of blank lines so only every OTHER blank line survives
+ * (positions 2, 4, 6… become "empty paragraph" lines at normal line
+ * height), and the rest collapse to zero height. The spacing those
+ * collapsed lines used to take is provided by PADDING on the neighbouring
+ * content lines instead (NOT margin — CodeMirror's height map measures
+ * `rect.height`, which excludes margins, so margins would leave clicks
+ * and scrolling misaligned; padding is measured and keeps the layout in
+ * sync). A collapsed blank line then produces exactly the paragraph gap P,
+ * and two content lines with NO blank line between them (same paragraph)
+ * get half that gap.
+ *
+ *   --md-para-gap:    paragraph gap (one collapsed blank line)   = P
+ *   --md-inline-gap:  in-paragraph line gap (adjacent content)   = P/2
+ * Values are rem-based so they stay constant even on heading lines whose
+ * font-size (and thus 1em) is much larger than body text.
+ * ============================================================ */
+.cm-editor {
+  --md-para-gap: 1rem;
+  --md-inline-gap: 0.5rem;
+}
+/* Blank line that must NOT occupy space. Kept in the document (caret can
+   still rest there), but visually zero-height: no element, no selectable
+   highlight (a 0-height selection paints nothing). EXCEPT the first line
+   of the document — CodeMirror derives its default line height by
+   measuring the FIRST `.cm-line`; if that line were 0-height the whole
+   editor would collapse. A leading blank line therefore stays a normal
+   (empty) line, which doubles as the top-of-document whitespace. */
+.cm-editor .cm-line.cm-md-blank-hidden {
+  height: 0 !important;
+  min-height: 0 !important;
+  line-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.cm-editor .cm-line.cm-md-blank-hidden:first-child {
+  height: auto !important;
+  min-height: auto !important;
+  line-height: normal !important;
+}
+/* Blank line kept as an "empty paragraph" (positions 2, 4, 6… of a run):
+   rendered at normal line height, spaced from neighbours like a paragraph. */
+.cm-editor .cm-line.cm-md-blank-kept {
+  height: auto;
+  min-height: 0;
+}
+/* Content line whose NEXT line is a (folded) blank line → paragraph gap.
+   Padding (not margin) so CodeMirror measures the spacing and clicks stay
+   aligned with what the user sees. */
+.cm-editor .cm-line.cm-md-para-gap {
+  padding-bottom: var(--md-para-gap);
+}
+/* Content line whose next line is another content line (same paragraph):
+   half the paragraph gap ("line gap halves when there is no blank line"). */
+.cm-editor .cm-line.cm-md-para-inline {
+  padding-bottom: var(--md-inline-gap);
+}
 
 /* Preview content — non-scoped rules for markdown-it HTML */
 .preview-content {

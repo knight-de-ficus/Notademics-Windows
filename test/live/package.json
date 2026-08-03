@@ -1,0 +1,10 @@
+{
+  "name": "notademics-live-render-test",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Isolated test env for the Live (WYSIWYG) markdown render pipeline. Does NOT touch app/ — its own node_modules only.",
+  "dependencies": {
+    "jsdom": "^24.1.0"
+  }
+}
