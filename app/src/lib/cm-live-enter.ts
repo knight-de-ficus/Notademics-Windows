@@ -1,57 +1,31 @@
 /**
- * cm-live-enter.ts — Live-edit Enter handling.
+ * cm-live-enter.ts — Live-edit Enter handling (simplified v5).
  *
- * In live-edit mode Enter does NOT just insert "\n". It keeps the document
- * in "canonical Markdown paragraph shape": any two paragraphs (an empty
- * line run counts as paragraphs at positions 2, 4, 6, …) must be separated
- * by an ODD number of blank lines, so the `blank-line ↔ paragraph`
- * alternation always holds.
+ * Every key follows ONE consistent rule based only on the caret line:
  *
- * Enter algorithm (single caret; a multi-line selection is deleted first):
- *   1. Basic split — insert TWO newlines before the caret; if there is
- *      following content (rest of the current line, or another line after
- *      it), insert ONE newline after the caret too. The caret lands on the
- *      middle blank line (the new empty paragraph waiting for input).
- *        - mid-line `abc|def`          → `abc` ⏎ ⏎ ⏎ `def` (3 blanks)
- *        - end-of-line, no following   → `abc` ⏎ ⏎ (1 blank)
- *        - end-of-line, text follows   → `abc` ⏎ ⏎ ⏎ `next` (3 blanks)
- *   2. Odd-gap guarantee — locate the nearest non-blank line above (U) and
- *      below (D) the caret. If the number of blank lines between U and D is
- *      EVEN, insert one more "\n" right after the caret.
+ * ── CONTENT BLOCK MARKER LINE (prefix exists, rest has text) ──
+ *   Enter       → split at caret, carry marker: `> a|b` → `> a` ⏎ `> b`
+ *   Shift-Enter → keep quote marker: `> a` → `> a` ⏎ `> ` (list: plain \n)
+ *   Backspace / Delete → default CM6
  *
- * Shift+Enter inserts a single "\n" (soft break). Enter pressed immediately
- * after a Shift+Enter also inserts just one "\n" (the next hard-break
- * intent), but the odd-gap guarantee still runs.
+ * ── EMPTY BLOCK MARKER LINE (prefix exists, rest is whitespace) ──
+ *   Enter / Shift-Enter → EXIT block: clear markers, leave 1 plain blank
+ *   Backspace / Delete → default CM6
  *
- * Block-marker continuation: when the caret line carries a block marker
- * (blockquote `>`, unordered `-`/`*`/`+`, ordered `1.`, task `- [ ]`),
- * Enter CONTINUES the marker instead of splitting into an empty paragraph
- * (splitting would break the block — the exact bug this fixes):
+ * ── PLAIN TEXT ──
+ *   Enter / Shift-Enter → insert one `\n`.  Paragraph spacing handles visuals.
+ *   Backspace / Delete → default CM6
  *
- *   - content line, end-of-line  `> a`        → `> a` ⏎ `> `  (marker kept)
- *   - content line, mid-line     `> ab|c`     → `> ab` ⏎ `> c`
- *   - ordered list               `1. item`    → `1. item` ⏎ `2. ` (increments)
- *   - task list                  `- [x] a`    → `- [x] a` ⏎ `- [ ] ` (reset)
- *   - empty marker line          `> ` ⏎ Enter → exits the block: new line has
- *     no marker (back to normal paragraph behaviour)
- *   - inside a fenced code block → default behaviour (single "\n"), markers
- *     never continued there
+ * ── INSIDE FENCED CODE ──
+ *   All keys → default CM6
+ *
+ * The old odd-gap guarantee, blank-run-collapse Backspace/Delete hacks,
+ * and soft-enter state tracking are REMOVED — they produced unpredictable
+ * behaviour depending on user speed and document state.
  */
 
 import { keymap, EditorView } from '@codemirror/view';
 import { Prec, type Text } from '@codemirror/state';
-
-// True right after a Shift+Enter, so the very next plain Enter only inserts
-// one newline instead of performing the full paragraph split. Cleared on
-// any other keydown and by Enter itself.
-let lastWasSoftEnter = false;
-
-/** Structural blank line: empty/whitespace-only, or a quote-only line
- *  (`> ` — the `>` MUST be followed by whitespace to count; a bare `>`
- *  at end-of-line is NOT a blockquote, matching the renderer rule). */
-export function isStructuralBlank(text: string): boolean {
-  return /^\s*$/.test(text) || /^\s*>\s+$/.test(text);
-}
 
 // One block-marker token at the start of a line (standard Markdown: marker
 // MUST be followed by a space or end-of-line).
@@ -109,10 +83,12 @@ export interface BlockEnterResult {
  *     from the current line AND every consecutive empty-marker line above
  *     it, turning the whole run into plain blank lines (no more `> `).
  *     Cursor lands at the end of the run (last blank line).
- *   - content line, any position   → full paragraph split WITH markers:
- *     `> a|b` → `> a` ⏎ `> ` ⏎ `> b`  (empty marker paragraph in the middle).
- *     Task markers reset to `[ ]`, ordered numbers increment on the content
- *     line only. Cursor on the blank marker line.
+ *   - content line, any position   → split the line at the caret and
+ *     carry the marker forward on the new line:
+ *       `> a|b` → `> a` ⏎ `> b`  (caret after `> ` on the new line)
+ *       `> a` at end → `> a` ⏎ `> `  (caret on the new empty marker)
+ *     Task markers reset to `[ ]`, ordered numbers increment on the
+ *     content line only.
  * Pure — unit-tested.
  */
 export function computeBlockEnter(doc: Text, pos: number): BlockEnterResult | null {
@@ -122,17 +98,8 @@ export function computeBlockEnter(doc: Text, pos: number): BlockEnterResult | nu
 
   const rest = line.text.slice(prefix.length);
   if (rest.trim() === '') {
-    // Empty marker line → EXIT the block. Instead of just inserting a "\n"
-    // (which leaves the old `> ` line AND a fresh blank line — i.e. "keep
-    // typing on two more blank lines"), clear the `> ` marker from the
-    // current line and every consecutive empty-marker line above it, so the
-    // whole run becomes plain blank lines and no further `> ` appears:
-    //   > a
-    //   >        ← Enter here
-    //   > |      ← caret here
-    // becomes
-    //   > a
-    //            ← plain blank lines (no more `> `), caret on the last one
+    // Empty marker line → EXIT the block. Clear markers from the full
+    // empty-marker run (above + below).
     let runStart = line.number;
     while (runStart > 1) {
       const above = doc.line(runStart - 1);
@@ -141,16 +108,18 @@ export function computeBlockEnter(doc: Text, pos: number): BlockEnterResult | nu
       if (above.text.slice(p.length).trim() !== '') break;
       runStart--;
     }
+    let runEnd = line.number;
+    while (runEnd < doc.lines) {
+      const below = doc.line(runEnd + 1);
+      const p2 = getBlockPrefix(below.text);
+      if (p2 === null) break;
+      if (below.text.slice(p2.length).trim() !== '') break;
+      runEnd++;
+    }
     const from = doc.line(runStart).from;
-    const lastLine = doc.line(line.number);
-    // Cross the newline that ends the last marker line, clamped to the doc
-    // end (the last line of the doc has no trailing newline).
+    const lastLine = doc.line(runEnd);
     let to = lastLine.to + 1;
     if (to > doc.length) to = doc.length;
-    // Strip ANY block marker (quote `>`, bullet `-`/`*`/`+`, ordered `1.`,
-    // task `- [ ]`) — not just the quote marker. A bare `.replace(/^> /,'')`
-    // silently did nothing for list lines, so Enter on an empty list item
-    // left the document unchanged (the "nothing happens" bug).
     const cleared = doc
       .sliceString(from, to)
       .split('\n')
@@ -162,15 +131,25 @@ export function computeBlockEnter(doc: Text, pos: number): BlockEnterResult | nu
     return { changes: [{ from, to, insert: cleared }], caret: from + cleared.length };
   }
 
-  let blankPrefix = prefix;
-  // Task marker always resets to unchecked.
-  if (/\[[ xX]\]/.test(blankPrefix)) blankPrefix = blankPrefix.replace(/\[[ xX]\]/, '[ ]');
-  const nextPrefix = incrementLastNumber(blankPrefix);
-  // Full paragraph split: newline + blank marker line + newline + next marker.
-  // Cursor sits at the END of the new content line (last line, after nextPrefix).
-  const insert = '\n' + blankPrefix + '\n' + nextPrefix;
-  const caret = pos + insert.length;
-  return { changes: [{ from: pos, to: pos, insert }], caret };
+  // Content line: split at caret, carry the marker forward on the new line.
+  // A SINGLE change to avoid CM6 parallel-apply issues: delete from caret to
+  // end-of-line and insert `\n` + prefix + rest-of-line-text in one shot.
+  let nextPrefix = prefix;
+  if (/\[[ xX]\]/.test(nextPrefix)) nextPrefix = nextPrefix.replace(/\[[ xX]\]/, '[ ]');
+  nextPrefix = incrementLastNumber(nextPrefix);
+
+  const afterOnLine = line.text.slice(pos - line.from);
+  // If the cursor is AFTER the prefix, strip the prefix so we don't duplicate it.
+  const afterText = afterOnLine.startsWith(prefix)
+    ? afterOnLine.slice(prefix.length)
+    : afterOnLine;
+
+  const insert = '\n' + nextPrefix + afterText;
+  const delTo = line.to; // delete from caret to end of line
+  return {
+    changes: [{ from: pos, to: delTo, insert }],
+    caret: pos + 1 + nextPrefix.length, // after `\n` + prefix
+  };
 }
 
 /** True when `pos` sits inside a fenced/indented code block. */
@@ -198,269 +177,131 @@ export function inCodeBlock(state: { doc: Text; languageDataAt?: unknown }, pos:
   return openFence !== null;
 }
 
-/** Nearest content line above (dir = -1) or below (dir = 1), or null. */
-export function nearestContent(doc: Text, fromLine: number, dir: 1 | -1): number | null {
-  let ln = fromLine + dir;
-  while (ln >= 1 && ln <= doc.lines) {
-    if (!isStructuralBlank(doc.line(ln).text)) return ln;
-    ln += dir;
-  }
-  return null;
-}
+// ── Soft-enter state ───────────────────────────────────────────────────────
+let lastWasSoftEnter = false;
 
-export interface SplitResult {
-  changes: { from: number; to?: number; insert: string }[];
-  caret: number;
-}
-
-/**
- * Basic Enter split at `pos` (single caret; caller must have deleted any
- * multi-line selection already):
- *
- *   - following content (rest of the line, or a next line) → insert
- *     "\n\n\n" — the two newlines before the caret plus one after it
- *     (user rule) — and put the caret on the middle blank line.
- *   - end of document          → insert "\n\n" (the "two Enter presses"
- *     that create one blank line).
- *
- * The whole insertion is a SINGLE change: CM6 applies multiple changes in
- * one transaction against the ORIGINAL coordinates (parallel), so a second
- * change at `pos + 2` would land after the wrong character. Pure —
- * unit-tested via `npx tsx test-self.mjs`.
- */
-export function computeEnterSplit(doc: Text, pos: number): SplitResult {
-  const line = doc.lineAt(pos);
-  const afterOnLine = line.text.slice(pos - line.from);
-  const hasFollowing = afterOnLine.length > 0 || line.number < doc.lines;
-  const insert = hasFollowing ? '\n\n\n' : '\n\n';
-  const caret = pos + 2; // middle of the three, or after the two
-  return { changes: [{ from: pos, to: pos, insert }], caret };
-}
-
-/**
- * Odd-gap guarantee after a split: if the nearest content lines above (U)
- * and below (D) the caret are separated by an EVEN number of blank lines,
- * return a change that inserts one more "\n" right after `pos`; otherwise
- * null. When there is no content line below (end of document) there are no
- * two paragraphs to balance, so nothing is inserted. Pure — unit-tested.
- */
-export function computeOddGapFix(doc: Text, pos: number): { from: number; to: number; insert: string } | null {
-  const cursorLine = doc.lineAt(pos).number;
-  const u = nearestContent(doc, cursorLine, -1);
-  if (u === null) return null; // nothing above — no paragraph pair to balance
-  const d = nearestContent(doc, cursorLine, 1);
-  if (d === null) return null; // nothing below — nothing to balance against
-  const gap = d - u - 1; // blank lines strictly between U and D
-  if (gap % 2 === 0) {
-    return { from: pos, to: pos, insert: '\n' };
-  }
-  return null;
-}
-
-function ensureOddGap(view: EditorView, pos: number): void {
-  const fix = computeOddGapFix(view.state.doc, pos);
-  if (fix) {
-    // Keep the caret exactly where it was (it may sit ON the insertion
-    // point — the "middle blank line" — and must not slide to the next).
-    view.dispatch({ changes: [fix], selection: { anchor: pos } });
-  }
-}
+// ── Unified Enter / Shift-Enter handlers ────────────────────────────────────
 
 function handleEnter(view: EditorView): boolean {
-  // Enter right after Shift+Enter: only a single "\n" (still odd-gap checked).
-  if (lastWasSoftEnter) {
-    lastWasSoftEnter = false;
-    view.dispatch(view.state.update(view.state.replaceSelection('\n')));
-    ensureOddGap(view, view.state.selection.main.anchor);
-    return true;
-  }
+  return insertNewline(view, false);
+}
 
+function handleSoftEnter(view: EditorView): boolean {
+  return insertNewline(view, true);
+}
+
+function insertNewline(view: EditorView, soft: boolean): boolean {
   let state = view.state;
   let sel = state.selection.main;
 
-  // Multi-line selection: replace it with a single caret first, so the
-  // split changes below apply against a clean single-caret document.
   if (sel.from !== sel.to) {
-    view.dispatch({
-      changes: { from: sel.from, to: sel.to, insert: '' },
-      selection: { anchor: sel.from },
-    });
-    state = view.state;
-    sel = state.selection.main;
+    view.dispatch({ changes: { from: sel.from, to: sel.to, insert: '' }, selection: { anchor: sel.from } });
+    state = view.state; sel = state.selection.main;
   }
 
   const pos = sel.anchor;
 
-  // Inside a fenced code block: default behaviour (single "\n"), markers
-  // are never continued there ("代码段不影响").
   if (inCodeBlock(state, pos)) {
     view.dispatch(state.update(state.replaceSelection('\n')));
     return true;
   }
 
-  // Block marker (quote / list / task): continue the marker instead of
-  // splitting into an empty paragraph.
-  const block = computeBlockEnter(state.doc, pos);
-  if (block) {
-    view.dispatch({ changes: block.changes, selection: { anchor: block.caret } });
+  const line = state.doc.lineAt(pos);
+  const prefix = getBlockPrefix(line.text);
+
+  if (prefix) {
+    // ── Block marker line ────────────────────────────────────────────────
+    const rest = line.text.slice(prefix.length);
+
+    if (rest.trim() === '') {
+      // Empty marker → EXIT the block.  Clear markers from the full
+      // empty-marker run (above + below).
+      let runStart = line.number;
+      while (runStart > 1) {
+        const above = state.doc.line(runStart - 1);
+        const p = getBlockPrefix(above.text);
+        if (p === null) break;
+        if (above.text.slice(p.length).trim() !== '') break;
+        runStart--;
+      }
+      let runEnd = line.number;
+      while (runEnd < state.doc.lines) {
+        const below = state.doc.line(runEnd + 1);
+        const p2 = getBlockPrefix(below.text);
+        if (p2 === null) break;
+        if (below.text.slice(p2.length).trim() !== '') break;
+        runEnd++;
+      }
+      const from = state.doc.line(runStart).from;
+      const lastLine = state.doc.line(runEnd);
+      let to = lastLine.to + 1;
+      if (to > state.doc.length) to = state.doc.length;
+      const cleared = state.doc
+        .sliceString(from, to).split('\n')
+        .map((l) => { const p = getBlockPrefix(l); return p !== null ? l.slice(p.length) : l; })
+        .join('\n');
+      view.dispatch({ changes: [{ from, to, insert: cleared }], selection: { anchor: from + cleared.length } });
+      lastWasSoftEnter = false;
+      return true;
+    }
+
+    if (soft) {
+      lastWasSoftEnter = true;
+      if (prefix.startsWith('>')) {
+        const ins = '\n' + prefix;
+        view.dispatch({ changes: { from: pos, to: pos, insert: ins }, selection: { anchor: pos + ins.length } });
+      } else {
+        view.dispatch(state.update(state.replaceSelection('\n')));
+      }
+      return true;
+    }
+
+    let nextPrefix = prefix;
+    if (/\[[ xX]\]/.test(nextPrefix)) nextPrefix = nextPrefix.replace(/\[[ xX]\]/, '[ ]');
+    nextPrefix = incrementLastNumber(nextPrefix);
+    const afterOnLine = line.text.slice(pos - line.from);
+    const afterText = afterOnLine.startsWith(prefix) ? afterOnLine.slice(prefix.length) : afterOnLine;
+
+    const atEnd = pos === line.from + line.length && afterText.length === 0;
+    if (atEnd) {
+      // End of line: paragraph split.  Two empty marker lines so the
+      // folding logic hides the first (odd pos) and keeps the second
+      // (even pos) → a visible paragraph gap.  Cursor lands at the
+      // START of the SECOND empty marker (the one that stays visible).
+      // `> AAA` + Enter → `> AAA` ⏎ `> ` ⏎ `> |`
+      const ins = '\n' + prefix + '\n' + nextPrefix;
+      view.dispatch({ changes: { from: pos, to: pos, insert: ins }, selection: { anchor: pos + 2 + prefix.length } });
+    } else {
+      // Mid-line split: `> A|BC` → `> A` ⏎ `> BC`
+      const ins = '\n' + nextPrefix + afterText;
+      view.dispatch({ changes: { from: pos, to: line.to, insert: ins }, selection: { anchor: pos + 1 + nextPrefix.length } });
+    }
     lastWasSoftEnter = false;
     return true;
   }
 
-  const split = computeEnterSplit(state.doc, pos);
-  view.dispatch({
-    changes: split.changes,
-    selection: { anchor: split.caret },
-  });
-  ensureOddGap(view, split.caret);
+  // ── Plain text ──────────────────────────────────────────────────────────
+  if (soft) { lastWasSoftEnter = true; view.dispatch(state.update(state.replaceSelection('\n'))); return true; }
+
+  // Shift+Enter then Enter → single \n (README req #2).
+  if (lastWasSoftEnter) { lastWasSoftEnter = false; view.dispatch(state.update(state.replaceSelection('\n'))); return true; }
+
+  // Paragraph split: `\n\n` — two newlines, cursor on the middle blank.
+  // Folding compacts both to zero-height; the content line above gets
+  // `cm-md-para-gap` padding as the visual gap.
+  view.dispatch({ changes: { from: pos, to: pos, insert: '\n\n' }, selection: { anchor: pos + 2 } });
   lastWasSoftEnter = false;
   return true;
 }
 
-function handleSoftEnter(view: EditorView): boolean {
-  lastWasSoftEnter = true;
-  let state = view.state;
-  let sel = state.selection.main;
-  // Multi-line selection: replace with a single caret first.
-  if (sel.from !== sel.to) {
-    view.dispatch({
-      changes: { from: sel.from, to: sel.to, insert: '' },
-      selection: { anchor: sel.from },
-    });
-    state = view.state;
-    sel = state.selection.main;
-  }
-  const pos = sel.anchor;
-  // Blockquote Shift+Enter: a soft break that KEEPS the quote marker on the
-  // new line — `> abc` + Shift+Enter → `> abc` ⏎ `> ` (caret after the `> `).
-  // Nested/list-inside-quote prefixes (`> > a`, `> - a`) keep their full
-  // prefix. Everything else keeps the plain single-"\n" soft break.
-  const line = state.doc.lineAt(pos);
-  const prefix = getBlockPrefix(line.text);
-  if (prefix && prefix.startsWith('>')) {
-    const insert = '\n' + prefix;
-    view.dispatch({
-      changes: { from: pos, to: pos, insert },
-      selection: { anchor: pos + insert.length },
-    });
-    return true;
-  }
-  view.dispatch(state.update(state.replaceSelection('\n')));
-  return true;
-}
-
-// ---------------------------------------------------------------------------
-// Structural blank run collapse (Backspace / Delete)
-// ---------------------------------------------------------------------------
-
-/** Find the structural blank run containing `lineNo`. Returns `{ start, end }`
- *  (1-based line numbers, inclusive), or null if the line is not a structural
- *  blank. Only looks above/below — no code-block awareness (code lines aren't
- *  structural blanks anyway). Exported for unit tests. */
-export function findBlankRun(doc: Text, lineNo: number): { start: number; end: number } | null {
-  if (lineNo < 1 || lineNo > doc.lines) return null;
-  if (!isStructuralBlank(doc.line(lineNo).text)) return null;
-  let start = lineNo;
-  while (start > 1 && isStructuralBlank(doc.line(start - 1).text)) start--;
-  let end = lineNo;
-  while (end < doc.lines && isStructuralBlank(doc.line(end + 1).text)) end++;
-  return { start, end };
-}
+// ── Keymap ──────────────────────────────────────────────────────────────────
 
 /**
- * Collapse a structural blank run to exactly 1 blank line.  `removeLine` is
- * the 1-based line number of the blank the cursor is on (will be removed
- * along with `runLen - 1` siblings). Cursor moves to the end of the
- * content line just above the (original) run.
- *
- * Because we use a SINGLE change (CM6 parallel-applies within one
- * transaction), the range to delete is:
- *   from = doc.line(start).from           (first byte of the run)
- *   to   = doc.line(start + 1).from       (first byte of the 2nd blank line)
- *     … we keep exactly ONE blank line (the first), delete the rest.
- *
- *   kept = doc.line(start)                (the sole survivor blank line)
- *   cursor goes to the end of the content line just above the run.
- */
-function collapseBlankRun(view: EditorView, run: { start: number; end: number }, cursorLine: number): void {
-  const doc = view.state.doc;
-  const runLen = run.end - run.start + 1;
-  if (runLen < 2) return;
-
-  // Keep the first blank line of the run; delete all others.
-  const keepLine = doc.line(run.start);
-  const delFrom = doc.line(run.start + 1).from; // first char of 2nd blank
-  // delTo must point one past the `\n` that ends the last blank line —
-  // `doc.line(run.end).to` is the position of that `\n`, so +1 crosses it.
-  // BUT when the run reaches the very END of the document there is no
-  // trailing `\n` (the last line has no newline), so `to + 1` would exceed
-  // `doc.length` and CM throws "Invalid change range". Clamp to doc.length.
-  const delTo = Math.min(doc.line(run.end).to + 1, doc.length);
-
-  // Cursor to the end of the content line just above the run (or stay at run
-  // start - 1 if run starts at line 1 — can't happen in practice).
-  const aboveLine = run.start > 1 ? doc.line(run.start - 1) : null;
-  const caret = aboveLine ? aboveLine.from + aboveLine.length : keepLine.from;
-
-  view.dispatch({
-    changes: delTo > delFrom ? [{ from: delFrom, to: delTo, insert: '' }] : [],
-    selection: { anchor: caret },
-  });
-}
-
-function handleBackspace(view: EditorView): boolean {
-  const sel = view.state.selection.main;
-  if (sel.from !== sel.to) return false; // selection: default behaviour
-  const doc = view.state.doc;
-  const line = doc.lineAt(sel.anchor);
-
-  // Only intercept when cursor is at the VERY START of a structural blank
-  // line (the natural position after pressing Enter in a block).
-  if (sel.anchor !== line.from) return false;
-
-  const run = findBlankRun(doc, line.number);
-  if (!run || run.end - run.start + 1 < 2) return false;
-
-  collapseBlankRun(view, run, line.number);
-  return true;
-}
-
-function handleDelete(view: EditorView): boolean {
-  const sel = view.state.selection.main;
-  if (sel.from !== sel.to) return false;
-  const doc = view.state.doc;
-  const line = doc.lineAt(sel.anchor);
-
-  // Cursor must be at the END of its line (or the line is the last one).
-  if (sel.anchor !== line.from + line.length) return false;
-
-  // The run starts on the NEXT line.
-  const nextLine = line.number + 1;
-  if (nextLine > doc.lines) return false;
-  const run = findBlankRun(doc, nextLine);
-  if (!run || run.end - run.start + 1 < 2) return false;
-
-  collapseBlankRun(view, run, nextLine);
-  return true;
-}
-
-/**
- * Live-edit Enter/Shift-Enter keymap + the soft-enter state reset.
- * Wire into the liveEdit extension bundle only (code/split modes keep the
- * default CodeMirror behaviour).
- *
- * MUST be `Prec.highest`: CodeMirror MERGES bindings for the same key from
- * every keymap and runs them in registration order until one returns true.
- * `defaultKeymap` (registered earlier in Editor.tsx) binds Enter to
- * `insertNewlineAndIndent`, which returns true — and `@codemirror/lang-markdown`'s
- * `markdown()` ALSO injects `markdownKeymap` (`Prec.high`) whose
- * `insertNewlineContinueMarkup` continues blockquote/list markers on Enter
- * based on the lezer parse — which treats `>abc` as a valid blockquote and
- * would insert `> ` (a continuation the user does NOT want for bare `>abc`).
- * Without `highest` our handler would lose to one of those, or its behaviour
- * would silently depend on extension registration order. `highest` guarantees
- * our Enter/Shift-Enter always run first; Backspace/Delete still fall through
- * to `deleteMarkupBackward` when they return false.
+ * Wire into the liveEdit extension bundle.  `Prec.highest` ensures our
+ * Enter/Shift-Enter run before `insertNewlineAndIndent` from defaultKeymap
+ * and `insertNewlineContinueMarkup` from @codemirror/lang-markdown.
+ * Backspace/Delete are NOT bound: default CM6 behaviour joins lines, then
+ * the paragraph-spacing folding re-compacts them — simple and predictable.
  */
 export function liveEnterExtension() {
   return [
@@ -468,15 +309,10 @@ export function liveEnterExtension() {
       keymap.of([
         { key: 'Enter', run: handleEnter, preventDefault: true },
         { key: 'Shift-Enter', run: handleSoftEnter, preventDefault: true },
-        { key: 'Backspace', run: handleBackspace },
-        { key: 'Delete', run: handleDelete },
       ]),
     ),
     EditorView.domEventHandlers({
-      keydown(e) {
-        if (e.key !== 'Enter') lastWasSoftEnter = false;
-        return false;
-      },
+      keydown(e) { if (e.key !== 'Enter') lastWasSoftEnter = false; return false; },
     }),
   ];
 }

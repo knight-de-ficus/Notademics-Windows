@@ -10,6 +10,16 @@ import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 import { oneDark } from '@codemirror/theme-one-dark';
 import { vim } from '@replit/codemirror-vim';
 import { liveEditExtension } from '../lib/cm-live-render';
+import { liveBlocksExtension } from '../lib/cm-live-blocks';
+import type { BoardThemeTokens } from '../lib/tldraw-board';
+
+export interface EditorBlocksContext {
+  getImageRoot?: () => string | null;
+  getFilePath?: () => string | undefined;
+  getBoardTheme?: () => BoardThemeTokens;
+  getTabId?: () => string;
+  onBoardEdit?: (boardId: string, snapshotJson: string) => void;
+}
 
 const liveEditCompartment = new Compartment();
 const lineNumbersCompartment = new Compartment();
@@ -23,6 +33,7 @@ interface EditorProps {
   onChange: (content: string) => void;
   onBlur: () => void;
   onSave: () => void;
+  blocksContext?: EditorBlocksContext;
 }
 
 export interface EditorHandle {
@@ -31,7 +42,7 @@ export interface EditorHandle {
 }
 
 const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
-  { content, filePath, language, showLiveEdit, showLineNumbers, onChange, onBlur, onSave },
+  { content, filePath, language, showLiveEdit, showLineNumbers, onChange, onBlur, onSave, blocksContext },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,6 +77,19 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
       },
     });
 
+    const blocks = [];
+    if (blocksContext && showLiveEdit && language === 'markdown') {
+      try {
+        blocks.push(liveBlocksExtension({
+          getImageRoot: blocksContext.getImageRoot,
+          getFilePath: blocksContext.getFilePath,
+          getBoardTheme: blocksContext.getBoardTheme,
+          getTabId: blocksContext.getTabId,
+          onBoardEdit: blocksContext.onBoardEdit,
+        }));
+      } catch (_) { /* live-blocks unavailable */ }
+    }
+
     const extensions: any[] = [
       lineNumbersCompartment.of(showLineNumbers ? lineNumbers() : []),
       highlightActiveLine(),
@@ -79,7 +103,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
         ...historyKeymap,
         { key: 'Mod-s', run: () => { onSave(); return true; }, preventDefault: true },
       ]),
-      liveEditCompartment.of(showLiveEdit && language === 'markdown' ? liveEditExtension([]) : []),
+      liveEditCompartment.of(showLiveEdit && language === 'markdown' ? liveEditExtension(blocks) : []),
       EditorView.updateListener.of((update) => { if (update.docChanged) onChange(update.state.doc.toString()); }),
       EditorView.domEventHandlers({ blur: () => onBlur() }),
     ];
@@ -95,12 +119,24 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
   }, []);
 
   useEffect(() => {
+    const blocks = [];
+    if (blocksContext && showLiveEdit && language === 'markdown') {
+      try {
+        blocks.push(liveBlocksExtension({
+          getImageRoot: blocksContext.getImageRoot,
+          getFilePath: blocksContext.getFilePath,
+          getBoardTheme: blocksContext.getBoardTheme,
+          getTabId: blocksContext.getTabId,
+          onBoardEdit: blocksContext.onBoardEdit,
+        }));
+      } catch (_) {}
+    }
     viewRef.current?.dispatch({
       effects: liveEditCompartment.reconfigure(
-        showLiveEdit && language === 'markdown' ? liveEditExtension([]) : [],
+        showLiveEdit && language === 'markdown' ? liveEditExtension(blocks) : [],
       ),
     });
-  }, [showLiveEdit, language]);
+  }, [showLiveEdit, language, blocksContext]);
 
   useEffect(() => {
     viewRef.current?.dispatch({

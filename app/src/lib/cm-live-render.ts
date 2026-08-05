@@ -374,12 +374,12 @@ function addParagraphSpacing(
 ) {
   const doc = view.state.doc;
   const codeLines = collectCodeBlockLines(syntaxTree(view.state), doc);
-  // Caret-aware folding: the line the caret sits on stays expanded; and
-  // during an actual (non-empty) selection folding is disabled entirely so
-  // drag-selecting never un-folds lines under the mouse.
-  const selMain = view.state.selection.main;
+  // The line the caret sits on is NEVER folded (kept at full height) so
+  // the user sees where they are — this is the visual answer to "where is
+  // my cursor after Enter?".  During a selection the caretLine hint is
+  // ignored (folding stays consistent while dragging).
   const selectionActive = view.state.selection.ranges.some((r) => !r.empty);
-  const caretLine = doc.lineAt(selMain.head).number;
+  const caretLine = selectionActive ? 0 : doc.lineAt(view.state.selection.main.head).number;
   for (const { from, to } of view.visibleRanges) {
     const spacing = computeParagraphSpacing(
       doc,
@@ -387,7 +387,6 @@ function addParagraphSpacing(
       doc.lineAt(from).number,
       doc.lineAt(to).number,
       caretLine,
-      selectionActive,
     );
     for (const [ln, clsArr] of spacing) {
       for (const cls of clsArr) addLineClass(doc.line(ln).from, cls);
@@ -450,16 +449,13 @@ export function computeParagraphSpacing(
   startLine: number,
   endLine: number,
   caretLine = 0,
-  selectionActive = false,
 ): Map<number, string[]> {
   const out = new Map<number, string[]>();
 
-  // A blank line that the caret is resting on is NEVER folded (kept at full
-  // height) so the user sees where they are; any other blank in the run still
-  // folds per the rules below. During a selection (caretLine ignored) folding
-  // is skipped so a drag over folded blanks doesn't expand them mid-gesture.
-  const forceKeep = (lineNo: number): boolean =>
-    !selectionActive && lineNo === caretLine;
+  // The line the caret sits on is NEVER folded so the cursor is visible.
+  // During a selection, forceKeep does nothing → folding stays consistent.
+  const forceKeep = (lineNo: number): boolean => lineNo === caretLine;
+
   const add = (ln: number, cls: string) => {
     const arr = out.get(ln);
     if (arr) {
@@ -524,20 +520,16 @@ export function computeParagraphSpacing(
           pos++;
         }
       } else if (prevContent) {
-        // Trailing run (content above, nothing below) — keep every other
-        // starting from pos 0.  count = ⌈n/2⌉.
-        const count = Math.ceil(runLen / 2);
+        // Trailing run — fold all except cursor-on-block-marker.
         for (let k = 0; k < runLen; k++) {
           const lineNo = ln + k;
-          const kept = forceKeep(lineNo) || (k % 2 === 0 && k <= 2 * (count - 1));
+          const kept = forceKeep(lineNo);
           add(lineNo, kept ? 'cm-md-blank-kept' : 'cm-md-blank-hidden');
         }
       } else {
         // Leading run (or entire doc is blank) — fold all.
         for (let k = 0; k < runLen; k++) {
-          const lineNo = ln + k;
-          const kept = forceKeep(lineNo);
-          add(lineNo, kept ? 'cm-md-blank-kept' : 'cm-md-blank-hidden');
+          add(ln + k, 'cm-md-blank-hidden');
         }
       }
       ln = runEnd;
@@ -615,9 +607,6 @@ const liveRenderPlugin = ViewPlugin.fromClass(
 function paragraphSpacingSignature(view: EditorView): string {
   const doc = view.state.doc;
   const codeLines = collectCodeBlockLines(syntaxTree(view.state), doc);
-  const selMain = view.state.selection.main;
-  const selectionActive = view.state.selection.ranges.some((r) => !r.empty);
-  const caretLine = doc.lineAt(selMain.head).number;
   let sig = '';
   for (const { from, to } of view.visibleRanges) {
     const spacing = computeParagraphSpacing(
@@ -625,8 +614,6 @@ function paragraphSpacingSignature(view: EditorView): string {
       codeLines,
       doc.lineAt(from).number,
       doc.lineAt(to).number,
-      caretLine,
-      selectionActive,
     );
     for (const [ln, clsArr] of spacing) {
       sig += ln + ':' + clsArr.join('+') + ';';
