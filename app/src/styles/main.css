@@ -1,307 +1,85 @@
-/* SoloMD brand styles + theme variables */
-
-/* v4.6 design-token layer. Imported FIRST so main.css + the 8 named themes
- * cascade after it and win where they must. See styles/tokens.css. */
-@import "./tokens.css";
-
+/* ============================================================
+   Notademics — 全局样式与主题变量
+   ============================================================ */
 :root {
-  /* v4.3.0 issue #78 — tell native form controls (most importantly
-     <select>) to render in the LIGHT palette by default. Without this,
-     webkit2gtk on KDE6 / Linux delegates select rendering to the system
-     theme, which on user's Plasma 6 dark setup painted the selected
-     text in a near-invisible color over our dark UI background. macOS
-     / Windows webviews honor `color-scheme` too and switch their form
-     widget palettes accordingly. Dark themes override this below. */
-  color-scheme: light;
-
-  /* brand */
-  --brand-bg: #000000;
-  --brand-fg: #ffffff;
-  --brand-accent: #ff9f40;
-
-  /* light theme (default) — v4.6 warm-neutral surfaces (plan §2.4).
-     --bg / --bg-elev / --border / --text / --text-muted are seeded in
-     tokens.css; re-stated here so the cascade order stays explicit and
-     legible. --bg-hover / --bg-active / --text-faint stay SoloMD-tuned. */
+  /* 主题变量（light 默认） */
   --bg: #ffffff;
-  --bg-elev: #f7f6f3;
-  --bg-hover: #f0eee8;
-  --bg-active: #ebe9e2;
-  --border: #e9e9e7;
-  --text: #37352f;
-  --text-muted: #787774;
-  --text-faint: #b4b4b4;
-  --accent: #ff9f40;
-  --accent-fg: #1a1a1a;
-  --danger: #d64545;
+  --bg-alt: #f7f7f5;
+  --bg-hover: #efefe9;
+  --bg-active: #e6e6df;
+  --text: #2c2c2c;
+  --text-dim: #8a8a85;
+  --border: #e4e4de;
+  --accent: #4a7dbd;
+  --accent-text: #ffffff;
+  --danger: #c05555;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
-  /* v4.6 F2 — type-section accent palette (types-as-lenses). Six fixed
-     hues so a type's `color:` key tints its sidebar section consistently
-     across themes. Light values here; dark overrides below. */
-  --type-orange: #d9831f;
-  --type-red: #d64545;
-  --type-purple: #8b5cd6;
-  --type-blue: #2f7fd4;
-  --type-green: #3a9d4e;
-  --type-yellow: #c9a227;
+  /* 字体 */
+  --font-sans: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "Cascadia Code", Consolas, "Courier New", monospace;
 
-  /* Markdown element colors (light) */
-  --md-h1: #1a1a1a;
-  --md-h2: #232323;
-  --md-h3: #2f2f2f;
-  --md-h4: #3a3a3a;
-  --md-h5: #4a4a4a;
-  --md-h6: #6a6a6a;
-  --md-strong: #1a1a1a;
-  --md-em: #444444;
-  --md-link: #ff9f40;
-  --md-url: #c97a20;
-  --md-code: #c0392b;
-  --md-code-bg: #f3efe7;
-  --md-quote: #6a6a6a;
-  --md-list: #c97a20;
-  --md-hr: #c0bdb3;
-
-  /* Code block syntax (light) — gentle, not garish */
-  --syn-keyword: #a626a4;
-  --syn-string: #50a14f;
-  --syn-number: #986801;
-  --syn-comment: #a0a1a7;
-  --syn-function: #4078f2;
-  --syn-variable: #383a42;
-  --syn-type: #c18401;
-  --syn-property: #e45649;
-  --syn-operator: #0184bc;
-
-  /* System font stacks: Windows → Microsoft YaHei, macOS → PingFang SC,
-     Linux → Noto Sans CJK (via sans-serif fallback).  "SoloMD CJK" is a
-     legacy last-resort slot (its @font-face was removed in v5 — the 43 KB
-     base64 LXGW WenKai blocked WebView2 CJK rendering). */
-  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "PingFang SC", "PingFang TC", "Hiragino Sans GB", "Heiti SC",
-    "Microsoft YaHei", "Inter", Roboto, "Helvetica Neue", sans-serif,
-    "SoloMD CJK", "Apple Color Emoji", "Segoe UI Emoji",
-    "Noto Color Emoji";
-  --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Menlo",
-    "Consolas", "Fira Code", "Source Code Pro", "DejaVu Sans Mono",
-    "Liberation Mono", "Ubuntu Mono", "Noto Sans Mono",
-    "PingFang SC", "Hiragino Sans GB", monospace, "SoloMD CJK",
-    "Apple Color Emoji", "Segoe UI Emoji";
-
-  --titlebar-h: 36px;
-  --tabbar-h: 34px;
-  --statusbar-h: 24px;
+  --editor-width: 860px;
 }
 
 :root[data-theme="dark"] {
-  color-scheme: dark;
-  /* v4.6 warm-neutral dark surfaces (plan §2.4) — warm black, not pure #000 */
-  --bg: #1f1e1b;
-  --bg-elev: #23221f;
-  --bg-hover: #2a2a2a;
-  --bg-active: #333333;
-  --border: #34322d;
-  --text: #e6e1d8;
-  --text-muted: #b8b1a6;
-  --text-faint: #7f776d;
-  --accent: #ffa54d;
-  --accent-fg: #1a1a1a;
+  --bg: #1e1f22;
+  --bg-alt: #26272b;
+  --bg-hover: #2e2f34;
+  --bg-active: #36373d;
+  --text: #d8d8d3;
+  --text-dim: #8b8b86;
+  --border: #3a3b40;
+  --accent: #6d9bd1;
+  --accent-text: #101214;
+  --danger: #d07474;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 
-  /* v4.6 F2 — type-section accent palette (dark, slightly lifted for
-     contrast on the dark sidebar background). */
-  --type-orange: #f0a64a;
-  --type-red: #e86d6d;
-  --type-purple: #b18cf0;
-  --type-blue: #6bb0f0;
-  --type-green: #6cc77f;
-  --type-yellow: #e0c350;
-
-  /* Markdown element colors (dark) */
-  --md-h1: #ffffff;
-  --md-h2: #f0f0ed;
-  --md-h3: #e2e2dc;
-  --md-h4: #cccccc;
-  --md-h5: #a8a8a8;
-  --md-h6: #888888;
-  --md-strong: #ffffff;
-  --md-em: #d8d8d8;
-  --md-link: #ff9f40;
-  --md-url: #ffb874;
-  --md-code: #ff9f9f;
-  --md-code-bg: #2a2a2a;
-  --md-quote: #888888;
-  --md-list: #ff9f40;
-  --md-hr: #444444;
-
-  /* Code block syntax (dark) */
-  --syn-keyword: #c678dd;
-  --syn-string: #98c379;
-  --syn-number: #d19a66;
-  --syn-comment: #5c6370;
-  --syn-function: #61afef;
-  --syn-variable: #e06c75;
-  --syn-type: #e5c07b;
-  --syn-property: #e06c75;
-  --syn-operator: #56b6c2;
-}
-
-/* ---- Nord ---- */
-:root[data-theme="nord"] {
-  color-scheme: dark;
-  --bg: #2e3440;
-  --bg-elev: #3b4252;
-  --bg-hover: #434c5e;
-  --bg-active: #4c566a;
-  --border: #4c566a;
-  --text: #eceff4;
-  --text-muted: #d8dee9;
-  --text-faint: #616e88;
-  --accent: #88c0d0;
-  --accent-fg: #2e3440;
-  --md-h1: #eceff4; --md-h2: #e5e9f0; --md-h3: #d8dee9;
-  --md-h4: #c8ced8; --md-h5: #a8b0c0; --md-h6: #8890a0;
-  --md-strong: #eceff4; --md-em: #d8dee9; --md-link: #88c0d0;
-  --md-url: #5e81ac; --md-code: #bf616a; --md-code-bg: #3b4252;
-  --md-quote: #616e88; --md-list: #88c0d0; --md-hr: #4c566a;
-  --syn-keyword: #81a1c1; --syn-string: #a3be8c; --syn-number: #b48ead;
-  --syn-comment: #616e88; --syn-function: #88c0d0; --syn-variable: #d8dee9;
-  --syn-type: #8fbcbb; --syn-property: #88c0d0; --syn-operator: #81a1c1;
-}
-
-/* ---- Solarized Light ---- */
-:root[data-theme="solarized-light"] {
-  --bg: #fdf6e3;
-  --bg-elev: #eee8d5;
-  --bg-hover: #e8e1cb;
-  --bg-active: #ddd6c1;
-  --border: #d3cbb7;
-  --text: #657b83;
-  --text-muted: #839496;
-  --text-faint: #93a1a1;
-  --accent: #268bd2;
-  --accent-fg: #fdf6e3;
-  --md-h1: #073642; --md-h2: #586e75; --md-h3: #657b83;
-  --md-h4: #839496; --md-h5: #93a1a1; --md-h6: #93a1a1;
-  --md-strong: #073642; --md-em: #586e75; --md-link: #268bd2;
-  --md-url: #2aa198; --md-code: #d33682; --md-code-bg: #eee8d5;
-  --md-quote: #93a1a1; --md-list: #cb4b16; --md-hr: #d3cbb7;
-  --syn-keyword: #859900; --syn-string: #2aa198; --syn-number: #d33682;
-  --syn-comment: #93a1a1; --syn-function: #268bd2; --syn-variable: #657b83;
-  --syn-type: #b58900; --syn-property: #268bd2; --syn-operator: #657b83;
-}
-
-/* ---- Solarized Dark ---- */
-:root[data-theme="solarized-dark"] {
-  color-scheme: dark;
-  --bg: #002b36;
-  --bg-elev: #073642;
-  --bg-hover: #0a4050;
-  --bg-active: #0d4f5e;
-  --border: #0a4050;
-  --text: #839496;
-  --text-muted: #657b83;
-  --text-faint: #586e75;
-  --accent: #268bd2;
-  --accent-fg: #fdf6e3;
-  --md-h1: #93a1a1; --md-h2: #839496; --md-h3: #657b83;
-  --md-h4: #586e75; --md-h5: #586e75; --md-h6: #586e75;
-  --md-strong: #93a1a1; --md-em: #839496; --md-link: #268bd2;
-  --md-url: #2aa198; --md-code: #d33682; --md-code-bg: #073642;
-  --md-quote: #586e75; --md-list: #cb4b16; --md-hr: #0a4050;
-  --syn-keyword: #859900; --syn-string: #2aa198; --syn-number: #d33682;
-  --syn-comment: #586e75; --syn-function: #268bd2; --syn-variable: #839496;
-  --syn-type: #b58900; --syn-property: #268bd2; --syn-operator: #839496;
-}
-
-/* ---- Monokai ---- */
-:root[data-theme="monokai"] {
-  color-scheme: dark;
-  --bg: #272822;
-  --bg-elev: #3e3d32;
-  --bg-hover: #49483e;
-  --bg-active: #575648;
-  --border: #49483e;
-  --text: #f8f8f2;
-  --text-muted: #a6a68a;
-  --text-faint: #75715e;
-  --accent: #f92672;
-  --accent-fg: #ffffff;
-  --md-h1: #f8f8f2; --md-h2: #f8f8f2; --md-h3: #e8e8d2;
-  --md-h4: #a6a68a; --md-h5: #a6a68a; --md-h6: #75715e;
-  --md-strong: #f8f8f2; --md-em: #e6db74; --md-link: #66d9ef;
-  --md-url: #a6e22e; --md-code: #f92672; --md-code-bg: #3e3d32;
-  --md-quote: #75715e; --md-list: #a6e22e; --md-hr: #49483e;
-  --syn-keyword: #f92672; --syn-string: #e6db74; --syn-number: #ae81ff;
-  --syn-comment: #75715e; --syn-function: #a6e22e; --syn-variable: #f8f8f2;
-  --syn-type: #66d9ef; --syn-property: #a6e22e; --syn-operator: #f92672;
-}
-
-/* ---- GitHub Light ---- */
-:root[data-theme="github-light"] {
-  --bg: #ffffff;
-  --bg-elev: #f6f8fa;
-  --bg-hover: #eef0f2;
-  --bg-active: #e1e4e8;
-  --border: #d0d7de;
-  --text: #24292e;
-  --text-muted: #586069;
-  --text-faint: #8b949e;
-  --accent: #0366d6;
-  --accent-fg: #ffffff;
-  --md-h1: #24292e; --md-h2: #24292e; --md-h3: #586069;
-  --md-h4: #6a737d; --md-h5: #8b949e; --md-h6: #8b949e;
-  --md-strong: #24292e; --md-em: #24292e; --md-link: #0366d6;
-  --md-url: #0366d6; --md-code: #d73a49; --md-code-bg: #f6f8fa;
-  --md-quote: #6a737d; --md-list: #e36209; --md-hr: #d0d7de;
-  --syn-keyword: #d73a49; --syn-string: #032f62; --syn-number: #005cc5;
-  --syn-comment: #6a737d; --syn-function: #6f42c1; --syn-variable: #24292e;
-  --syn-type: #e36209; --syn-property: #005cc5; --syn-operator: #d73a49;
-}
-
-/* ---- Dracula ---- */
-:root[data-theme="dracula"] {
-  color-scheme: dark;
-  --bg: #282a36;
-  --bg-elev: #44475a;
-  --bg-hover: #4e5172;
-  --bg-active: #5a5d8a;
-  --border: #44475a;
-  --text: #f8f8f2;
-  --text-muted: #bfbfdc;
-  --text-faint: #6272a4;
-  --accent: #bd93f9;
-  --accent-fg: #282a36;
-  --md-h1: #f8f8f2; --md-h2: #f8f8f2; --md-h3: #bfbfdc;
-  --md-h4: #bfbfdc; --md-h5: #6272a4; --md-h6: #6272a4;
-  --md-strong: #f8f8f2; --md-em: #f1fa8c; --md-link: #8be9fd;
-  --md-url: #50fa7b; --md-code: #ff79c6; --md-code-bg: #44475a;
-  --md-quote: #6272a4; --md-list: #50fa7b; --md-hr: #44475a;
-  --syn-keyword: #ff79c6; --syn-string: #f1fa8c; --syn-number: #bd93f9;
-  --syn-comment: #6272a4; --syn-function: #50fa7b; --syn-variable: #f8f8f2;
-  --syn-type: #8be9fd; --syn-property: #50fa7b; --syn-operator: #ff79c6;
+  /* Muya 引擎变量（暗色） */
+  --theme-color: rgb(109 155 209 / 100%);
+  --highlight-color: rgb(109 155 209 / 40%);
+  --selection-color: rgb(109 155 209 / 30%);
+  --editor-color: #d8d8d3;
+  --editor-color-80: #c8c8c3;
+  --editor-color-50: #8b8b86;
+  --editor-color-30: #5a5a56;
+  --editor-color-10: #3a3b40;
+  --editor-color-04: #2a2b2f;
+  --editor-bg-color: rgb(30 31 34 / 100%);
+  --delete-color: #d07474;
+  --icon-color: #9a9a95;
+  --code-block-bg-color: rgb(0 0 0 / 25%);
+  --table-border-color: #3a3b40;
+  --input-bg-color: rgb(255 255 255 / 6%);
+  --button-font-color: var(--editor-color);
+  --button-bg-color: #2e2f34;
+  --button-border: 1px solid #3a3b40;
+  --button-bg-color-hover: linear-gradient(#36373d, #2e2f34);
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html,
 body,
 #app {
-  margin: 0;
-  padding: 0;
-  /* #125 — use 100% (not 100vw/100vh). The app-wide zoom sets
-     `documentElement.style.zoom`; `vw`/`vh` do NOT divide by zoom, so at
-     zoom 1.3 the root rendered ~30% wider than the window — pushing
-     right-anchored chrome (e.g. the reading-mode ✕) off-screen and making the
-     view shake as it overflowed. `100%` resolves against the real (zoomed)
-     viewport, so the layout always fits. Verified in Chromium: 100vw@1.3 →
-     scrollWidth 1872 vs window 1440 (overflow); 100%@1.3 → 1440 (fits). */
   height: 100%;
   width: 100%;
   overflow: hidden;
 }
 
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 应用骨架 ---------- */
 .app-root {
   display: flex;
   flex-direction: column;
@@ -309,361 +87,403 @@ body,
   width: 100%;
 }
 
-body {
-  font-family: var(--font-ui);
-  font-size: var(--ui-font-size, 13px);
-  color: var(--text);
-  background: var(--bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.app-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
 }
 
-button {
-  font: inherit;
-  color: inherit;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background 0.12s;
+/* ---------- 工具栏 ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 8px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+  user-select: none;
 }
-button:hover {
+
+.toolbar .spacer {
+  flex: 1;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tool-btn:hover {
   background: var(--bg-hover);
 }
-button:active {
-  background: var(--bg-active);
-}
-button:disabled {
+
+.tool-btn:disabled {
   opacity: 0.4;
-  cursor: not-allowed;
+  cursor: default;
 }
 
+.tool-btn.active {
+  background: var(--bg-active);
+}
+
+/* ---------- 文件树 ---------- */
+.file-tree {
+  height: 100%;
+  overflow-y: auto;
+  padding: 6px 4px;
+  font-size: 13px;
+}
+
+.file-tree .tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.file-tree .tree-item:hover {
+  background: var(--bg-hover);
+}
+
+.file-tree .tree-item.active {
+  background: var(--bg-active);
+}
+
+.file-tree .tree-item .icon {
+  flex: 0 0 auto;
+  width: 16px;
+  text-align: center;
+  color: var(--text-dim);
+}
+
+.file-tree .tree-children {
+  margin-left: 14px;
+}
+
+.file-tree .tree-root-title {
+  padding: 6px 8px 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+/* ---------- 标签栏 ---------- */
+.tab-bar {
+  display: flex;
+  align-items: stretch;
+  height: 34px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex: 0 0 auto;
+}
+
+.tab-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  max-width: 200px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-dim);
+  background: transparent;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: var(--bg-hover);
+}
+
+.tab.active {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.tab .tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab .tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.tab .tab-close:hover {
+  background: var(--bg-active);
+  color: var(--text);
+}
+
+.tab .dirty-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+
+/* ---------- 编辑区 ---------- */
+.editor-host {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.editor-host .muya-container {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+/* 源码模式 textarea */
+.source-textarea {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 16px 24px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--text);
+  tab-size: 4;
+}
+
+/* 预览区 */
+.preview-host {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px 32px;
+  background: var(--bg);
+}
+
+.preview-host .markdown-body {
+  max-width: var(--editor-width);
+  margin: 0 auto;
+}
+
+/* ---------- 状态栏 ---------- */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 26px;
+  padding: 0 12px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+.status-bar .spacer {
+  flex: 1;
+}
+
+.status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.status-item:hover {
+  color: var(--text);
+}
+
+/* ---------- 查找条 ---------- */
+.find-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+.find-bar input {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  font-size: 13px;
+  min-width: 160px;
+}
+
+.find-bar input:focus {
+  border-color: var(--accent);
+}
+
+.find-bar .count {
+  color: var(--text-dim);
+  min-width: 48px;
+  text-align: center;
+}
+
+/* ---------- 首页 / 欢迎 ---------- */
+.home-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text-dim);
+}
+
+.home-page .home-title {
+  font-size: 22px;
+  color: var(--text);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+.home-page .home-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.home-page .home-btn {
+  padding: 8px 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-alt);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.home-page .home-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+/* ---------- 未保存对话框 ---------- */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  min-width: 340px;
+  max-width: 460px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.modal h3 {
+  font-size: 15px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.modal p {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  word-break: break-all;
+}
+
+.modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal .btn {
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg-alt);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.modal .btn:hover {
+  background: var(--bg-hover);
+}
+
+.modal .btn.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.modal .btn.danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+/* ---------- 滚动条 ---------- */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-active);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 5px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-faint);
-}
-
-/* ============================================================
- * iPad / touch-device responsive overrides.
- * Uses `@media (pointer: coarse)` to detect touch devices.
- * Only safe global rules here — component-specific overrides
- * go in the component's own <style scoped> block.
- * ============================================================ */
-
-@media (pointer: coarse) {
-  /* Hide desktop window titlebar on iOS */
-  .titlebar { display: none !important; }
-
-  /* Larger editor text on touch */
-  .cm-editor .cm-content {
-    font-size: 16px !important;
-    padding: 16px 20px;
-  }
-
-  /* iOS-friendly select/range inputs */
-  select, input[type="range"] {
-    min-height: 44px;
-    font-size: 15px;
-  }
-  input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-  }
-
-  /* Toolbar: horizontal scroll on touch so all 30+ buttons remain
-     reachable even at iPad-portrait widths. Desktop intentionally
-     does NOT set this (see Toolbar.vue's .toolbar comment) because
-     overflow-x cascades to overflow-y, truncating .dropdown__menu
-     items that anchor downward (Insert / Export / Copy / etc.).
-     On touch we accept that compromise — dropdowns mostly anchor
-     down anyway and a slightly-clipped popover beats unreachable
-     buttons. Hide the scrollbar (overscan via swipe is the affordance). */
-  .toolbar {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none; /* Firefox */
-  }
-  .toolbar::-webkit-scrollbar {
-    display: none; /* WebKit (iOS Safari + Tauri's WKWebView) */
-  }
-}
-
-/* Markdown extension styles (front-matter, task list, mark, footnotes) */
-.md-frontmatter {
-  margin: 0 0 1rem;
-  padding: 0.6rem 0.9rem;
-  border-left: 3px solid var(--accent);
-  background: var(--bg-hover);
-  font-size: 0.85rem;
-  border-radius: 0 4px 4px 0;
-}
-.md-frontmatter dl {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  column-gap: 0.9rem;
-  row-gap: 0.25rem;
-  margin: 0;
-}
-.md-frontmatter dt {
-  font-weight: 600;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.85em;
-}
-.md-frontmatter dd {
-  margin: 0;
-  color: var(--text);
-}
-.md-frontmatter--raw {
-  white-space: pre-wrap;
-  font-family: var(--font-mono);
-}
-
-.contains-task-list {
-  list-style: none;
-  padding-left: 1.25rem;
-}
-.task-list-item {
-  position: relative;
-}
-.task-list-item-checkbox {
-  margin-right: 0.45rem;
-  transform: translateY(2px);
-  cursor: default;
-  accent-color: var(--accent);
-}
-
-mark {
-  background: rgba(255, 159, 64, 0.28);
-  color: inherit;
-  padding: 0 0.18em;
-  border-radius: 2px;
-}
-
-.footnote-ref a {
-  text-decoration: none;
-  font-size: 0.78em;
-  vertical-align: super;
-  color: var(--accent);
-}
-.footnotes {
-  margin-top: 2.2rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.88rem;
-  color: var(--text-muted);
-}
-.footnotes-list {
-  padding-left: 1.4rem;
-}
-.footnote-backref {
-  text-decoration: none;
-  margin-left: 0.3em;
-  color: var(--accent);
-}
-
-/* Print: hide the app shell and show the #solomd-print-overlay instead. */
-@media print {
-  body.solomd-printing #app {
-    display: none !important;
-  }
-  body.solomd-printing #solomd-print-overlay {
-    display: block !important;
-    position: static !important;
-  }
-  /* #178: paper can't scroll — always wrap code lines in print/PDF so
-   * anything wider than the page isn't silently cut off. Applies
-   * regardless of the on-screen codeBlockWrap setting. */
-  body.solomd-printing .solomd-print-content pre {
-    white-space: pre-wrap !important;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    overflow-x: visible !important;
-  }
-}
-/* On-screen the overlay must be invisible — @media print flips it. */
-#solomd-print-overlay {
-  display: none;
-}
-body.solomd-printing {
-  background: white !important;
-  color: black !important;
-}
-.solomd-print-content {
-  max-width: none !important;
-  padding: 0 !important;
-  color: black !important;
-  font-family: var(--font-ui, sans-serif);
-}
-
-/* Right sidebar pane close button (issue #6 / #52 / #55).
-   Shared across BacklinksPanel, TagsPanel, HistoryPanel, AgentPanel. */
-.rs-pane-close {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  width: 22px;
-  height: 22px;
-  font-size: 16px;
-  line-height: 1;
-  color: var(--text-faint);
-  cursor: pointer;
-  margin-left: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-}
-.rs-pane-close:hover {
-  background: var(--bg-hover, rgba(255, 159, 64, 0.12));
-  color: var(--text);
-  border-color: var(--border);
-}
-
-/* ============================================================
- * Live-edit (CodeMirror WYSIWYG) + Preview shared styles.
- * These mirror the original Preview.vue non-scoped <style> block.
- * ============================================================ */
-
-.cm-editor .cm-md-heading-line-1 { font-size:2em; font-weight:700; }
-.cm-editor .cm-md-heading-line-2 { font-size:1.5em; font-weight:700; }
-.cm-editor .cm-md-heading-line-3 { font-size:1.2em; font-weight:600; }
-.cm-editor .cm-md-heading-line-4 { font-size:1.1em; font-weight:600; }
-.cm-editor .cm-md-heading-line-5 { font-weight:600; }
-.cm-editor .cm-md-heading-line-6 { font-weight:600; color:var(--text-muted); }
-/* No underline on headings: @codemirror/language's defaultHighlightStyle maps
-   `tags.heading` to `text-decoration: underline` (Editor.tsx enables it
-   globally). The heading text carries the explicit .cm-md-h1..h6 classes
-   (cm-live-render.ts headingClass), so this higher-specificity rule cancels
-   the underline while keeping the default style's bold/color out. */
-.cm-editor .cm-md-h1,
-.cm-editor .cm-md-h2,
-.cm-editor .cm-md-h3,
-.cm-editor .cm-md-h4,
-.cm-editor .cm-md-h5,
-.cm-editor .cm-md-h6 {
-  text-decoration: none;
-}
-.cm-editor .cm-md-strong { font-weight:700; }
-.cm-editor .cm-md-em { font-style:italic; }
-.cm-editor .cm-md-code { font-family:var(--font-mono); font-size:.9em; background:var(--bg-hover); padding:.15em .4em; border-radius:4px; }
-.cm-editor .cm-md-quote-line {
-  color: var(--text-muted);
-  border-left: 3px solid var(--accent);
-  padding-left: .6em;
-}
-.cm-editor .cm-md-link { color:var(--accent); text-decoration:none; }
-.cm-editor .cm-md-strike { text-decoration:line-through; color:var(--text-muted); }
-.cm-editor .cm-md-list-marker { color:var(--md-list); }
-
-/* ============================================================
- * Paragraph blank-line folding (live edit).
- *
- * Markdown mandates a single blank line between paragraphs. In live edit
- * we fold runs of blank lines so only every OTHER blank line survives
- * (positions 2, 4, 6… become "empty paragraph" lines at normal line
- * height), and the rest collapse to zero height. The spacing those
- * collapsed lines used to take is provided by PADDING on the neighbouring
- * content lines instead (NOT margin — CodeMirror's height map measures
- * `rect.height`, which excludes margins, so margins would leave clicks
- * and scrolling misaligned; padding is measured and keeps the layout in
- * sync). A collapsed blank line then produces exactly the paragraph gap P,
- * and two content lines with NO blank line between them (same paragraph)
- * get half that gap.
- *
- *   --md-para-gap:    paragraph gap (one collapsed blank line)   = P
- *   --md-inline-gap:  in-paragraph line gap (adjacent content)   = P/2
- * Values are rem-based so they stay constant even on heading lines whose
- * font-size (and thus 1em) is much larger than body text.
- * ============================================================ */
-.cm-editor {
-  --md-para-gap: 1rem;
-  --md-inline-gap: 0.5rem;
-}
-/* Blank line that must NOT occupy space. Kept in the document (caret can
-   still rest there), but visually zero-height: no element, no selectable
-   highlight (a 0-height selection paints nothing). EXCEPT the first line
-   of the document — CodeMirror derives its default line height by
-   measuring the FIRST `.cm-line`; if that line were 0-height the whole
-   editor would collapse. A leading blank line therefore stays a normal
-   (empty) line, which doubles as the top-of-document whitespace. */
-.cm-editor .cm-line.cm-md-blank-hidden {
-  height: 0 !important;
-  min-height: 0 !important;
-  line-height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden;
-}
-/* When the caret lands on a folded blank line, expand it to full height
-   so the cursor is visible and the CJK IME compositor can position itself
-   correctly.  This is the visual answer to "where is my cursor after Enter?" */
-.cm-editor .cm-line.cm-activeLine.cm-md-blank-hidden {
-  height: auto !important;
-  min-height: auto !important;
-  line-height: normal !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  overflow: visible !important;
-}
-.cm-editor .cm-line.cm-md-blank-hidden:first-child {
-  height: auto !important;
-  min-height: auto !important;
-  line-height: normal !important;
-}
-/* Blank line kept as an "empty paragraph" (positions 2, 4, 6… of a run):
-   rendered at normal line height, spaced from neighbours like a paragraph. */
-.cm-editor .cm-line.cm-md-blank-kept {
-  height: auto;
-  min-height: 0;
-}
-/* Content line whose NEXT line is a (folded) blank line → paragraph gap.
-   Padding (not margin) so CodeMirror measures the spacing and clicks stay
-   aligned with what the user sees. */
-.cm-editor .cm-line.cm-md-para-gap {
-  padding-bottom: var(--md-para-gap);
-}
-/* Content line whose next line is another content line (same paragraph):
-   half the paragraph gap ("line gap halves when there is no blank line"). */
-.cm-editor .cm-line.cm-md-para-inline {
-  padding-bottom: var(--md-inline-gap);
-}
-
-/* Preview content — non-scoped rules for markdown-it HTML */
-.preview-content {
-  max-width:var(--preview-max-width, 760px);
-  margin:0 auto;
-  padding:28px 36px 64px;
-  color:var(--text);
-  font-family:var(--content-font-family, var(--font-ui));
-  font-size:var(--content-font-size, 15px);
-  line-height:1.7;
-}
-.preview-content h1,.preview-content h2,.preview-content h3,.preview-content h4 { font-weight:700; line-height:1.25; margin:1.6em 0 .5em; }
-.preview-content h1 { font-size:2em; }
-.preview-content h2 { font-size:1.5em; }
-.preview-content h3 { font-size:1.2em; }
-.preview-content p { margin:.8em 0; }
-.preview-content a { color:var(--accent); text-decoration:none; }
-.preview-content a:hover { text-decoration:underline; }
-.preview-content code { font-family:var(--font-mono); font-size:.9em; background:var(--bg-hover); padding:.15em .4em; border-radius:4px; }
-.preview-content pre { font-family:var(--font-mono); background:var(--bg-hover); padding:14px 16px; border-radius:6px; overflow-x:auto; }
-.preview-content pre code { background:transparent; padding:0; }
-.preview-content blockquote { border-left:3px solid var(--accent); margin:1em 0; padding:.2em 1em; color:var(--text-muted); }
-.preview-content ul,.preview-content ol { padding-left:1.6em; }
-.preview-content table { border-collapse:collapse; margin:1em 0; }
-.preview-content th,.preview-content td { border:1px solid var(--border); padding:6px 12px; }
-.preview-content hr { border:none; border-top:1px solid var(--border); margin:2em 0; }
-.preview-content img { max-width:100%; border-radius:4px; }

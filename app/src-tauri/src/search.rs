@@ -1,101 +1,90 @@
-//! Global recursive search across a directory tree.
-//!
-//! Walks `root` (following the caller-controlled path) and returns every line
-//! in every text-ish file that contains `query` (case-insensitive substring
-//! match), capped at `max_results`. Hidden directories and a small deny-list
-//! of heavy build/VCS directories are skipped.
-//!
-//! This module is intentionally self-contained: register the command from
-//! `lib.rs` with `mod search;` and add `search::search_in_dir` to the
-//! `invoke_handler!` list.
+// 文件夹内文本搜索 —— 对齐 marktext ipc/ripgrep 的能力（简化实现：
+// walkdir 遍历 + 按行匹配，返回 路径/行号/行内容，供侧边栏搜索展示）。
 
-use serde::{Deserialize, Serialize};
-use std::fs;
+use serde::Serialize;
 use walkdir::WalkDir;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SearchHit {
-    pub file: String,
-    pub line: usize,
-    pub snippet: String,
+#[derive(Serialize)]
+pub struct SearchMatch {
+    pub path: String,
+    pub line: u32,
+    pub content: String,
 }
 
-/// File extensions we are willing to open and scan. Anything else is skipped
-/// without even opening the file, so binary assets won't slow the walker.
-const ALLOWED_EXT: &[&str] = &["md", "markdown", "mdown", "mkd", "txt"];
+fn build_matcher(query: &str, is_regexp: bool, is_case_sensitive: bool, is_whole_word: bool) -> Result<Box<dyn Fn(&str) -> bool>, String> {
+    if is_regexp {
+        let re = regex_lite::Regex::new(query).map_err(|e| format!("invalid regex: {e}"))?;
+        let re = re;
+        return Ok(Box::new(move |line: &str| {
+            if is_whole_word {
+                re.find(line).map_or(false, |m| {
+                    let s = m.start();
+                    let e = m.end();
+                    let before_ok = s == 0 || !line[..s].chars().last().map_or(false, |c| c.is_alphanumeric());
+                    let after_ok = e >= line.len() || !line[e..].chars().next().map_or(false, |c| c.is_alphanumeric());
+                    before_ok && after_ok
+                })
+            } else {
+                re.is_match(line)
+            }
+        }));
+    }
+    let needle = if is_case_sensitive { query.to_string() } else { query.to_lowercase() };
+    return Ok(Box::new(move |line: &str| {
+        let hay = if is_case_sensitive { line.to_string() } else { line.to_lowercase() };
+        if is_whole_word {
+            hay.split(|c: char| !c.is_alphanumeric() && c != '_').any(|w| w == needle)
+        } else {
+            hay.contains(&needle)
+        }
+    }));
+}
 
-/// Directory names that should never be descended into. We match by name
-/// (not full path), which is enough for the usual suspects.
-const SKIP_DIRS: &[&str] = &["node_modules", "target", ".git", "dist"];
-
+/// 在目录内搜索文本。max_results 限制返回条数（默认 200）。
 #[tauri::command]
-pub async fn search_in_dir(
-    root: String,
+pub fn search_in_folder(
     query: String,
-    max_results: usize,
-) -> Result<Vec<SearchHit>, String> {
-    tauri::async_runtime::spawn_blocking(move || search_in_dir_inner(root, query, max_results))
-        .await
-        .map_err(|e| format!("join: {e}"))?
-}
-
-pub fn search_in_dir_inner(
-    root: String,
-    query: String,
-    max_results: usize,
-) -> Result<Vec<SearchHit>, String> {
+    path: String,
+    is_regexp: bool,
+    is_case_sensitive: bool,
+    is_whole_word: bool,
+    max_results: Option<usize>,
+) -> Result<Vec<SearchMatch>, String> {
     if query.is_empty() {
         return Ok(vec![]);
     }
-    let needle = query.to_lowercase();
-    let mut hits: Vec<SearchHit> = Vec::new();
+    let matcher = build_matcher(&query, is_regexp, is_case_sensitive, is_whole_word)?;
+    let limit = max_results.unwrap_or(200);
+    let mut results: Vec<SearchMatch> = Vec::new();
+    let mut exceeded = false;
 
-    let walker = WalkDir::new(&root).follow_links(false).into_iter();
-    for entry in walker.filter_entry(|e| {
-        let name = e.file_name().to_string_lossy();
-        // Skip dotfiles/dotdirs and the explicit deny-list.
-        !name.starts_with('.') && !SKIP_DIRS.iter().any(|d| name == *d)
-    }) {
-        if hits.len() >= max_results {
-            break;
-        }
-        let entry = match entry {
-            Ok(e) => e,
-            Err(_) => continue,
-        };
+    for entry in WalkDir::new(&path).follow_links(false).into_iter().filter_map(|e| e.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
-        let path = entry.path();
-        let ext = path
-            .extension()
-            .and_then(|s| s.to_str())
-            .map(|s| s.to_ascii_lowercase());
-        if !ext
-            .map(|e| ALLOWED_EXT.contains(&e.as_str()))
-            .unwrap_or(false)
-        {
+        // 跳过常见缓存与二进制目录
+        let p = entry.path();
+        let rel = p.to_string_lossy().to_string();
+        if rel.contains("node_modules") || rel.contains("\\.git\\") || rel.contains("/.git/") || rel.contains("\\target\\") {
             continue;
         }
-        let content = match fs::read_to_string(path) {
-            Ok(c) => c,
-            Err(_) => continue,
-        };
-        for (i, line) in content.lines().enumerate() {
-            if hits.len() >= max_results {
-                break;
-            }
-            if line.to_lowercase().contains(&needle) {
-                // Cap snippet length so a single giant line can't blow up the IPC payload.
-                let snippet: String = line.chars().take(200).collect();
-                hits.push(SearchHit {
-                    file: path.to_string_lossy().to_string(),
-                    line: i + 1,
-                    snippet,
+        let Ok(content) = std::fs::read_to_string(p) else { continue };
+        for (idx, line) in content.lines().enumerate() {
+            if matcher(line) {
+                results.push(SearchMatch {
+                    path: rel.clone(),
+                    line: (idx + 1) as u32,
+                    content: line.to_string(),
                 });
+                if results.len() >= limit {
+                    exceeded = true;
+                    break;
+                }
             }
         }
+        if exceeded {
+            break;
+        }
     }
-
-    Ok(hits)
+    Ok(results)
 }
