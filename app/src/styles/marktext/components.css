@@ -1,0 +1,3760 @@
+﻿/* index.vue */
+
+.about-dialog el-row,
+.about-dialog el-col {
+  display: block;
+}
+
+.about-dialog img.logo {
+  width: 80px;
+  height: 80px;
+  display: inherit;
+  margin: 0 auto;
+}
+
+.about-dialog .title,
+.about-dialog .text {
+  min-height: 32px;
+  text-align: center;
+}
+
+.about-dialog .title {
+  color: var(--floatFontColor);
+}
+
+.about-dialog .text {
+  color: var(--floatFontColor);
+}
+
+/* index.vue */
+
+/* Hide scrollbar for this dialog */
+::-webkit-scrollbar {
+  display: none;
+}
+
+.search-wrapper {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 500px;
+  height: auto;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px;
+  margin: 0 auto;
+  margin-top: 8px;
+  box-sizing: border-box;
+  color: var(--editorColor);
+  background: var(--floatBgColor);
+  border: 1px solid var(--floatBorderColor);
+  border-radius: 4px;
+  box-shadow: 0 3px 8px 3px var(--floatShadow);
+  z-index: 10000;
+}
+.input-wrapper {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--inputBgColor);
+  background: var(--inputBgColor);
+  border-radius: 3px;
+}
+input.search {
+  width: 100%;
+  height: 30px;
+  margin: 0 10px;
+  font-size: 14px;
+  color: var(--editorColor);
+  background: transparent;
+  outline: none;
+  border: none;
+}
+.cpt-loading {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 50px;
+  padding: 0;
+  margin: 8px 0 0 0;
+  box-sizing: border-box;
+}
+ul.commands {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 300px;
+  padding: 0;
+  margin: 8px 0 0 0;
+  box-sizing: border-box;
+  list-style: none;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+ul.commands li {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 100%;
+  height: 35px;
+  padding: 0 8px;
+  font-size: 14px;
+  line-height: 35px;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+ul.commands li:hover {
+  background: var(--floatHoverColor);
+  opacity: 0.9;
+}
+ul.commands li.active {
+  background: var(--floatHoverColor);
+}
+ul.commands li span {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+ul.commands li span.shortcut {
+  font-size: 12px;
+  line-height: 20px;
+}
+ul.commands li span.shortcut > kbd {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 7px;
+  min-width: 10px;
+  text-align: center;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--editorColor);
+  background: var(--floatBgColor);
+  border: 1px solid var(--floatBorderColor);
+  border-radius: 4px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
+/* index.vue */
+
+.command-palette .cpt-loading .loader {
+  margin-top: 20px;
+}
+
+.command-palette .el-dialog,
+.command-palette .el-dialog.ag-dialog-table {
+  box-shadow: none !important;
+  border: none !important;
+  background: none !important;
+}
+.command-palette .el-dialog__header {
+  margin-bottom: 20px;
+  padding: 0 !important;
+}
+.command-palette .el-dialog__body {
+  display: none !important;
+}
+
+/* editor.vue */
+
+/* ... existing style ... */
+.editor-wrapper {
+  height: 100%;
+  position: relative;
+  /* Contain the editor's z-indexed children (e.g. the math/diagram preview
+     popups at z-index 10000) in their own stacking context so they cannot
+     paint above modal dialogs rendered outside the editor. */
+  isolation: isolate;
+  flex: 1;
+  color: var(--editorColor);
+}
+
+.ag-insert-table-dialog {
+  & .el-form--inline {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+  & .el-form--inline .el-form-item {
+    margin-right: 0;
+  }
+  & .el-input-number {
+    width: 100px;
+    min-width: 0;
+  }
+  & .el-button {
+    font-size: 13px;
+    width: 70px;
+  }
+}
+
+.editor-wrapper.source {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  /* `z-index: -1` only hides the editor visually; `document.elementsFromPoint`
+     ignores stacking, so muya's mousemove-driven float tools (front button/menu,
+     table drag/column toolbars, preview toolbar) still re-trigger over the source
+     editor. Drop the subtree from hit-testing too so they cannot (#4731). */
+  pointer-events: none;
+}
+
+.editor-component {
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  cursor: default;
+  overflow-anchor: none !important;
+}
+
+.editor-component .mu-container {
+  padding-top: 20px;
+  padding-bottom: 100vh;
+}
+
+.typewriter .editor-component {
+  padding-top: calc(50vh - 136px);
+  padding-bottom: calc(50vh - 54px);
+}
+
+.image-viewer {
+  position: fixed;
+  backdrop-filter: blur(5px);
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 11;
+  & .icon-close {
+    z-index: 1000;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    display: block;
+    color: #efefef;
+    & svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+.image-viewer > div {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  overflow: hidden;
+}
+
+/* index.vue */
+
+.editor-with-tabs {
+  position: relative;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+  background: var(--editorBgColor);
+  & > .container {
+    flex: 1;
+    overflow: hidden;
+  }
+}
+
+/* notifications.vue */
+
+.editor-notifications {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  max-height: 100px;
+  margin-top: 4px;
+  background: var(--notificationPrimaryBg);
+  color: var(--notificationPrimaryColor);
+  padding: 8px 10px;
+  user-select: none;
+  overflow: hidden;
+  &.warn {
+    background: var(--notificationWarningBg);
+    color: var(--notificationWarningColor);
+  }
+  &.crit {
+    background: var(--notificationErrorBg);
+    color: var(--notificationErrorColor);
+  }
+}
+.msg {
+  font-size: 13px;
+  flex: 1;
+}
+.controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  & > div {
+    display: flex;
+    flex-direction: row;
+  }
+  & .inline-button:not(:last-child) {
+    margin-right: 3px;
+  }
+  & .inline-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  & .inline-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* sourceCode.vue */
+
+.source-code {
+  height: calc(100vh - var(--titleBarHeight));
+  box-sizing: border-box;
+  overflow: auto;
+}
+.source-code .CodeMirror {
+  height: auto;
+  margin: 50px auto;
+  max-width: var(--editorAreaWidth);
+  background: transparent;
+}
+.source-code .CodeMirror-gutters {
+  border-right: none;
+  background-color: transparent;
+}
+.source-code .CodeMirror-activeline-background,
+.source-code .CodeMirror-activeline-gutter {
+  background: var(--floatHoverColor);
+}
+
+/* tabs.vue */
+
+.close-icon {
+  cursor: pointer;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.close-icon:hover {
+  color: var(--focusColor);
+}
+
+.editor-tabs {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  height: 28px;
+  user-select: none;
+  box-shadow: 0px 0px 9px 2px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  &:hover > .new-file {
+    opacity: 1 !important;
+  }
+}
+.scrollable-tabs {
+  flex: 0 1 auto;
+  height: 28px;
+  overflow: hidden;
+}
+.tabs-container {
+  min-width: min-content;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 28px;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  overflow-y: hidden;
+  z-index: 2;
+  &::-webkit-scrollbar:horizontal {
+    display: none;
+  }
+  & > li {
+    transition: all 0.15s ease-in-out;
+    position: relative;
+    padding: 0 8px;
+    color: var(--editorColor50);
+    font-size: 12px;
+    line-height: 28px;
+    height: 28px;
+    max-width: 280px;
+    display: flex;
+    align-items: center;
+    &[aria-grabbed='true'] {
+      color: var(--editorColor30) !important;
+    }
+    & > .close-icon {
+      opacity: 0;
+    }
+    &:focus {
+      outline: none;
+    }
+    &:hover {
+      background: var(--floatBgColor) !important;
+    }
+    &:hover > .close-icon {
+      opacity: 1;
+    }
+    &:hover > .unsaved-dot {
+      display: none;
+    }
+    & > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 3px;
+    }
+    & > .unsaved-dot {
+      display: none;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--themeColor);
+      flex-shrink: 0;
+    }
+  }
+  & > li.unsaved:not(.active) {
+    & > .close-icon {
+      opacity: 0;
+    }
+    & > .unsaved-dot {
+      display: block;
+    }
+    &:hover > .close-icon {
+      opacity: 1;
+    }
+    &:hover > .unsaved-dot {
+      display: none;
+    }
+  }
+  & > li.active {
+    background: var(--itemBgColor);
+    z-index: 3;
+    &:after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      height: 2px;
+      background: var(--themeColor);
+    }
+    & > .close-icon {
+      opacity: 1;
+    }
+    & > .unsaved-dot {
+      display: none;
+    }
+  }
+}
+.editor-tabs > .new-file {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-right: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  cursor: pointer;
+  color: var(--editorColor50);
+  opacity: 0;
+  &.always-visible {
+    opacity: 1;
+  }
+}
+
+.editor-tabs > .new-file:hover {
+  transition: all 0.15s ease-in-out;
+  & > svg {
+    fill: var(--focusColor);
+  }
+}
+
+/* dragula effects */
+.gu-mirror {
+  position: fixed !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+  opacity: 0.8;
+  cursor: grabbing;
+}
+.gu-hide {
+  display: none !important;
+}
+.gu-unselectable {
+  user-select: none !important;
+}
+.gu-transit {
+  opacity: 0.2;
+}
+
+/* index.vue */
+
+.print-settings-dialog {
+  user-select: none;
+}
+.row {
+  margin-bottom: 8px;
+}
+.description {
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.label {
+  margin-bottom: 5px;
+}
+.label ~ div {
+  margin-right: 20px;
+}
+.text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.button-controlls {
+  margin-top: 8px;
+  text-align: right;
+}
+
+.button-controlls .button-primary {
+  font-size: 14px;
+}
+
+.el-tab-pane section:first-child {
+  margin-top: 0;
+}
+
+/* index.vue */
+
+.print-settings-dialog #pane-header .pref-text-box-item .el-input {
+  width: 90% !important;
+}
+
+.print-settings-dialog .el-dialog__body {
+  padding: 0 20px 20px 20px;
+}
+.print-settings-dialog .pref-select-item .el-select {
+  width: 240px;
+}
+.print-settings-dialog .el-tabs__content {
+  max-height: 350px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.print-settings-dialog .el-tabs__content::-webkit-scrollbar:vertical {
+  width: 5px;
+}
+
+.el-input-number {
+  & div {
+    background: var(--inputBgColor);
+  }
+  & input {
+    border: none !important;
+  }
+}
+
+/* index.vue */
+
+.drop-container {
+  border-radius: 5px;
+  color: var(--sideBarColor);
+  border: 1px dashed var(--sideBarTextColor);
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+  & div,
+  & p {
+    text-align: center;
+  }
+  &.active {
+    border: 1px dashed var(--themeColor);
+    background-color: var(--itemBgColor);
+  }
+}
+.img-wrapper {
+  width: 50px;
+  height: 70px;
+  margin: 40px auto 0 auto;
+  & img {
+    width: 100%;
+    height: 100%;
+  }
+}
+.file-list {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  & div {
+    width: 70px;
+    height: 70px;
+    border: 1px solid var(--sideBarTextColor);
+    border-radius: 3px;
+    text-align: center;
+    font-size: 18px;
+    line-height: 70px;
+    color: var(--sideBarTitleColor);
+  }
+}
+
+/* index.vue */
+
+.cpt-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+.loader {
+  width: 100%;
+  text-align: center;
+}
+
+.loader span {
+  position: absolute;
+  display: inline-block;
+  border-radius: 50%;
+  animation: 3s infinite linear;
+}
+.loader span:nth-child(1) {
+  background: var(--themeColor);
+  animation: kiri 1.2s infinite linear;
+}
+.loader span:nth-child(2) {
+  z-index: 100;
+  background: var(--highlightColor);
+}
+.loader span:nth-child(3) {
+  background: var(--selectionColor);
+  animation: kanan 1.2s infinite linear;
+}
+
+@keyframes kanan {
+  0% {
+    transform: translateX(20px);
+  }
+
+  50% {
+    transform: translateX(-20px);
+  }
+
+  100% {
+    z-index: 200;
+
+    transform: translateX(20px);
+  }
+}
+
+@keyframes kiri {
+  0% {
+    z-index: 200;
+
+    transform: translateX(-20px);
+  }
+  50% {
+    transform: translateX(20px);
+  }
+  100% {
+    transform: translateX(-20px);
+  }
+}
+
+/* index.vue */
+
+/* React empty states. The original Vue components relied on Element UI for
+   centering and button styling; their React replacements use native elements. */
+.recent-files {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--editorColor);
+  background: var(--editorBgColor);
+}
+
+.typewriter-greeting {
+  min-height: 36px;
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 300;
+  letter-spacing: .04em;
+  color: var(--editorColor);
+}
+
+.typewriter-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -.12em;
+  background: var(--themeColor);
+  animation: typewriter-blink .8s steps(1) infinite;
+}
+
+@keyframes typewriter-blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typewriter-caret { animation: none; }
+}
+
+.editor-with-tabs > .tabs {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  background: var(--editorBgColor);
+  border-bottom: 1px solid var(--editorColor10);
+}
+
+.editor-with-tabs > .tabs > .tab {
+  flex: 0 1 220px;
+  min-width: 96px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border-right: 1px solid var(--editorColor10);
+  color: var(--editorColor50);
+  cursor: pointer;
+  user-select: none;
+}
+
+.editor-with-tabs > .tabs > .tab.active {
+  color: var(--editorColor);
+  background: var(--editorBgColor);
+}
+
+.editor-with-tabs > .tabs .tab-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-with-tabs > .tabs .tab-close {
+  flex: 0 0 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  opacity: .55;
+}
+
+.editor-with-tabs > .tabs .tab:hover .tab-close,
+.editor-with-tabs > .tabs .tab-close:hover {
+  opacity: 1;
+}
+
+.editor-with-tabs > .tabs .tab-close:hover {
+  background: var(--editorColor10);
+}
+
+.editor-with-tabs > .tabs .tab-unsaved {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--themeColor);
+}
+
+.editor-with-tabs > .tabs > .tab-add {
+  flex: 0 0 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.editor-middle.has-editor-background {
+  position: relative;
+  isolation: isolate;
+}
+
+.editor-middle.has-editor-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--editor-background-image);
+  background-position: var(--editor-background-position, center);
+  background-size: var(--editor-background-size, cover);
+  background-repeat: var(--editor-background-repeat, no-repeat);
+  opacity: var(--editor-background-opacity, .2);
+}
+
+.editor-middle.has-editor-background > * {
+  position: relative;
+  z-index: 1;
+}
+
+.has-editor-background .editor-with-tabs,
+.has-editor-background .editor,
+.has-editor-background .editor-component,
+.has-editor-background .muya-editor-container,
+.has-editor-background .mu-container,
+.has-editor-background .recent-files {
+  background-color: transparent !important;
+}
+
+.recent-new-file,
+.tree-open-folder {
+  min-height: 32px;
+  padding: 6px 18px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font: inherit;
+  color: var(--buttonPrimaryFontColor);
+  background: var(--buttonPrimaryBgColor);
+  cursor: pointer;
+}
+
+.recent-new-file:hover,
+.tree-open-folder:hover {
+  color: var(--buttonPrimaryFontColorHover);
+  background: var(--buttonPrimaryBgColorHover);
+}
+
+.tree-empty {
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--sideBarColor);
+}
+
+.recent-files-projects {
+  background: var(--editorBgColor);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  & .centered-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--editorColor);
+    & .el-button {
+      margin-top: 20px;
+    }
+    & .el-button.is-text.is-has-bg {
+      background-color: var(--buttonPrimaryBgColor);
+      color: var(--buttonPrimaryFontColor);
+      border-color: transparent;
+    }
+    & .el-button.is-text.is-has-bg:hover,
+    & .el-button.is-text.is-has-bg:focus {
+      background-color: var(--buttonPrimaryBgColorHover);
+      color: var(--buttonPrimaryFontColorHover);
+    }
+  }
+}
+
+/* index.vue */
+
+.rename .el-dialog__header {
+  box-sizing: border-box;
+}
+.rename .el-dialog__body {
+  display: none;
+}
+
+/* index.vue */
+
+.search-wrapper {
+  margin-top: 8px;
+  z-index: 10000;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 410px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: none;
+  border: none;
+  border-radius: 3px;
+  margin: 0;
+  padding: 0 8px;
+
+  & .input-wrapper {
+    display: flex;
+    width: 100%;
+    & input {
+      background: transparent;
+    }
+  }
+}
+.search {
+  width: 100%;
+  height: 30px;
+  outline: none;
+  border: none;
+  font-size: 14px;
+  padding: 0 8px;
+  margin: 0 10px;
+  color: var(--sideBarColor);
+}
+.search-wrapper svg {
+  cursor: pointer;
+  margin: 0 5px;
+  width: 30px;
+  height: 30px;
+  color: var(--iconColor);
+  transition: all 0.3s ease-in-out;
+}
+.search-wrapper svg:hover {
+  color: var(--themeColor);
+}
+
+/* index.vue */
+
+.search-bar {
+  position: absolute;
+  width: 400px;
+  padding: 0;
+  top: 0;
+  right: 20px;
+  border-radius: 3px;
+  box-shadow: var(--floatShadow);
+  background: var(--floatBgColor);
+  display: flex;
+  flex-direction: row;
+}
+.search-bar .left-arrow {
+  width: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.search-bar .left-arrow:hover {
+  background: var(--floatHoverColor);
+}
+.search-bar .left-arrow svg {
+  height: 12px;
+  width: 12px;
+}
+.search-bar .left-arrow .arrow-right {
+  transform: rotate(-90deg);
+}
+
+.search-bar .right-controls {
+  flex: 1;
+}
+.search,
+.replace {
+  height: 28px;
+  display: flex;
+  padding: 4px 10px 0 4px;
+  margin-bottom: 5px;
+}
+
+.search-bar .button {
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  height: 28px;
+  width: 28px;
+  text-align: center;
+  padding: 5px;
+  display: inline-block;
+  font-weight: 500;
+  color: var(--sideBarIconColor);
+  &.left {
+    margin-right: 10px;
+  }
+  &.right {
+    margin-left: 10px;
+  }
+}
+.button.active {
+  color: var(--themeColor);
+}
+.search-bar .button > svg {
+  width: 16px;
+  height: 16px;
+}
+.search-bar .button:active {
+  opacity: 0.5;
+}
+.input-wrapper {
+  display: flex;
+  flex: 1;
+  position: relative;
+  border: 1px solid var(--inputBgColor);
+  background: var(--inputBgColor);
+  border-radius: 3px;
+  overflow: visible;
+}
+.input-wrapper.error {
+  border: 1px solid var(--notificationErrorBg);
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.input-wrapper .controls {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 12px;
+  display: flex;
+  color: var(--sideBarTitleColor);
+  & > span.search-result {
+    height: 20px;
+    margin-right: 5px;
+    line-height: 17px;
+  }
+  & > span:not(.search-result) {
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    margin-left: 2px;
+    margin-right: 2px;
+    &:hover {
+      color: var(--sideBarIconColor);
+    }
+    & > svg {
+      fill: var(--sideBarIconColor);
+      &:hover {
+        fill: var(--highlightThemeColor);
+      }
+    }
+    &.active svg {
+      fill: var(--highlightThemeColor);
+    }
+  }
+}
+
+.input-wrapper .error-msg {
+  position: absolute;
+  top: 27px;
+  width: calc(100% + 2px);
+  height: 28px;
+  left: -1px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  background: var(--notificationErrorBg);
+  line-height: 28px;
+  color: #ffffff;
+  font-size: 14px;
+  z-index: 1;
+}
+
+.input-wrapper input {
+  flex: 1;
+  padding: 0 8px;
+  height: 26px;
+  outline: none;
+  border: none;
+  box-sizing: border-box;
+  font-size: 14px;
+  color: var(--editorColor);
+  padding: 0 8px;
+  background: transparent;
+}
+
+/* icon.vue */
+
+.file-icon {
+  flex-shrink: 0;
+  margin-right: 5px;
+}
+
+/* index.vue */
+
+.side-bar {
+  display: flex;
+  flex-shrink: 0;
+  flex-grow: 0;
+  width: 280px;
+  height: 100vh;
+  min-width: 220px;
+  position: relative;
+  color: var(--sideBarColor);
+  user-select: none;
+  background: var(--sideBarBgColor);
+  border-right: 1px solid var(--itemBgColor);
+}
+
+.side-bar .left-column svg {
+  color: var(--iconColor);
+}
+
+.left-column {
+  height: 100%;
+  width: 45px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 28px;
+  box-sizing: border-box;
+}
+
+.left-column > ul {
+  opacity: 1;
+}
+
+.left-column ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.left-column ul > li {
+  width: 45px;
+  height: 45px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  cursor: pointer;
+}
+
+.left-column ul > li > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--sideBarIconColor);
+  opacity: 1;
+  transition: transform 0.25s ease-in-out;
+}
+
+.left-column ul > li.active > svg {
+  color: var(--themeColor);
+}
+
+.side-bar:hover .left-column ul li svg {
+  opacity: 1;
+}
+
+.right-column {
+  flex: 1;
+  width: calc(100% - 50px);
+  overflow: hidden;
+}
+
+.drag-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: 3px;
+  cursor: col-resize;
+}
+
+.drag-bar:hover {
+  border-right: 2px solid var(--iconColor);
+}
+
+/* search.vue */
+
+.side-bar-search {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.search-wrapper {
+  display: flex;
+  margin: 37px 8px 10px 8px;
+  padding: 0 6px;
+  border-radius: 4px;
+  height: 28px;
+  border: 1px solid var(--floatBorderColor);
+  background: var(--inputBgColor);
+  box-sizing: border-box;
+  align-items: center;
+  & > input {
+    color: var(--sideBarColor);
+    background: transparent;
+    height: 100%;
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0;
+    font-size: 13px;
+    width: 50%;
+  }
+  & > .controls {
+    display: flex;
+    flex-shrink: 0;
+    margin-top: 0;
+    & > span {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      margin-left: 0;
+      margin-right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      &:hover {
+        color: var(--sideBarIconColor);
+      }
+      & > svg {
+        width: 14px;
+        height: 14px;
+        fill: var(--sideBarIconColor);
+        &:hover {
+          fill: var(--highlightThemeColor);
+        }
+      }
+      &.active svg {
+        fill: var(--highlightThemeColor);
+      }
+    }
+  }
+
+  & > svg {
+    cursor: pointer;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    &:hover {
+      color: var(--sideBarIconColor);
+    }
+  }
+}
+.cancel-area {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.search-message-section {
+  overflow-wrap: break-word;
+}
+.search-result-info,
+.search-message-section {
+  padding-left: 15px;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: var(--sideBarColor);
+}
+.empty,
+.search-result {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  &::-webkit-scrollbar:vertical {
+    width: 8px;
+  }
+}
+.empty {
+  font-size: 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding-bottom: 100px;
+  & .no-data {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+  & .no-data .el-button {
+    margin-top: 20px;
+  }
+  & .no-data .el-button.is-text.is-has-bg {
+    background-color: var(--buttonPrimaryBgColor);
+    color: var(--buttonPrimaryFontColor);
+    border-color: transparent;
+  }
+  & .no-data .el-button.is-text.is-has-bg:hover,
+  & .no-data .el-button.is-text.is-has-bg:focus {
+    background-color: var(--buttonPrimaryBgColorHover);
+    color: var(--buttonPrimaryFontColorHover);
+  }
+}
+
+/* searchResultItem.vue */
+
+.search-result-item {
+  position: relative;
+  user-select: none;
+  padding: 0 10px 8px 10px;
+  color: var(--sideBarColor);
+  font-size: 14px;
+}
+.search-result-item > .search-result {
+  display: flex;
+  align-items: center;
+}
+.search-result-item > .search-result > svg:first-child {
+  margin-right: 3px;
+}
+.search-result-item > .search-result > .file-info {
+  flex: 1;
+  overflow: hidden;
+}
+.search-result-item .title .filename {
+  font-size: 12px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-right: 8px;
+}
+.search-result-item .matches ul {
+  padding-left: 0;
+  list-style-type: none;
+}
+.search-result-item .matches ul li {
+  display: block;
+  padding: 2px 16px;
+  padding-right: 0;
+  cursor: pointer;
+  /* Hide space between inline spans */
+  font-size: 0;
+}
+.search-result-item .matches ul li .highlight {
+  background: var(--highlightColor);
+  line-height: 16px;
+  height: 16px;
+  display: inline-block;
+  color: var(--sideBarTextColor);
+  border-radius: 1px;
+}
+.search-result-item .matches ul li:hover {
+  background: var(--sideBarItemHoverBgColor);
+}
+.search-result-item .matches ul li span {
+  font-size: 13px;
+  white-space: pre;
+}
+.search-result-item .matches .button {
+  width: 130px;
+  margin: 0 auto;
+  text-align: center;
+}
+.search-result-item.active {
+  font-weight: 600;
+}
+.search-result-item.active .title {
+  color: var(--themeColor);
+}
+.search-result-item.active::before {
+  height: 100%;
+}
+.title {
+  display: flex;
+  align-items: center;
+  color: var(--sideBarTextColor);
+}
+.title .filename {
+  flex: 1;
+}
+.title .filename .extension {
+  color: var(--sideBarTextColor);
+  font-size: 12px;
+}
+.title .match-count {
+  display: inline-block;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: var(--itemBgColor);
+  color: var(--sideBarTextColor);
+}
+
+.folder-path {
+  font-size: 12px;
+}
+
+.folder-path > span,
+.matches {
+  width: 100%;
+  margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--sideBarTextColor);
+}
+
+.icon-arrow {
+  transition: transform 0.25s ease-out;
+  transform: rotate(90deg);
+  color: var(--sideBarTextColor);
+  cursor: pointer;
+}
+.icon-arrow.fold {
+  transform: rotate(0);
+}
+
+/* toc.vue */
+
+.side-bar-toc {
+  height: calc(100% - 35px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-bar-toc .title {
+  color: var(--sideBarTitleColor);
+  font-weight: 600;
+  font-size: 16px;
+  margin: 37px 0 10px 0;
+  padding-left: 25px;
+}
+
+.side-bar-toc .el-tree-node {
+  margin-top: 8px;
+}
+
+.side-bar-toc .el-tree {
+  background: transparent;
+  color: var(--sideBarColor);
+}
+
+.side-bar-toc .el-tree-node:focus > .el-tree-node__content {
+  background-color: var(--sideBarItemHoverBgColor);
+}
+
+.side-bar-toc .el-tree-node__content:hover {
+  background: var(--sideBarItemHoverBgColor);
+}
+
+.side-bar-toc > li {
+  font-size: 14px;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+.side-bar-toc-overflow {
+  overflow: auto;
+}
+.side-bar-toc-wordwrap {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.side-bar-toc-wordwrap .el-tree-node__content {
+  white-space: normal;
+  height: auto;
+  min-height: 26px;
+}
+
+/* tree.vue */
+
+.list-item {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.2s;
+}
+.list-enter, .list-leave-to
+  /* .list-leave-active for below version 2.1.8 */ {
+  opacity: 0;
+  transform: translateX(-50px);
+}
+.tree-view {
+  font-size: 14px;
+  color: var(--sideBarColor);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.tree-view > .title {
+  height: 35px;
+  line-height: 35px;
+  padding: 0 15px;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: row-reverse;
+}
+
+.icon-arrow {
+  margin-right: 5px;
+  transition: transform 0.25s ease-out;
+  transform: rotate(90deg);
+  color: var(--sideBarTextColor);
+  cursor: pointer;
+}
+
+.icon-arrow.fold {
+  transform: rotate(0);
+}
+
+.opened-files > .title,
+.project-tree > .title {
+  height: 30px;
+  line-height: 30px;
+  font-size: 14px;
+}
+
+.opened-files .title {
+  padding-right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.opened-files .title > span {
+  flex: 1;
+}
+
+.opened-files .title > a {
+  display: none;
+  text-decoration: none;
+  color: var(--sideBarColor);
+  margin-left: 8px;
+}
+.opened-files div.title:hover > a,
+.opened-files div.title > a:hover {
+  display: block;
+}
+
+.opened-files div.title:hover > a:hover,
+.opened-files div.title > a:hover:hover {
+  color: var(--highlightThemeColor);
+}
+.opened-files {
+  display: flex;
+  flex-direction: column;
+}
+.default-cursor {
+  cursor: pointer;
+}
+.opened-files .opened-files-list {
+  max-height: 112px;
+  overflow: auto;
+  flex: 1;
+}
+
+.opened-files .opened-files-list::-webkit-scrollbar:vertical {
+  width: 8px;
+}
+
+.project-tree {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  flex: 1;
+}
+
+.project-tree > .title {
+  padding-right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.project-tree > .title > span {
+  flex: 1;
+  user-select: none;
+}
+
+.project-tree > .title > a {
+  pointer-events: auto;
+  cursor: pointer;
+  margin-left: 8px;
+  color: var(--sideBarIconColor);
+  opacity: 0;
+}
+
+.project-tree > .title > a:hover {
+  color: var(--highlightThemeColor);
+}
+
+.project-tree > .title > a.active {
+  color: var(--highlightThemeColor);
+}
+
+.project-tree > .tree-wrapper {
+  overflow: auto;
+  flex: 1;
+}
+
+.project-tree > .tree-wrapper::-webkit-scrollbar:vertical {
+  width: 8px;
+}
+.project-tree div.title:hover > a {
+  opacity: 1;
+}
+.open-project {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: 100px;
+}
+
+.open-project .centered-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.open-project .el-button {
+  margin-top: 20px;
+}
+.open-project .el-button.is-text.is-has-bg,
+.empty-project .el-button.is-text.is-has-bg {
+  background-color: var(--buttonPrimaryBgColor);
+  color: var(--buttonPrimaryFontColor);
+  border-color: transparent;
+}
+.open-project .el-button.is-text.is-has-bg:hover,
+.open-project .el-button.is-text.is-has-bg:focus,
+.empty-project .el-button.is-text.is-has-bg:hover,
+.empty-project .el-button.is-text.is-has-bg:focus {
+  background-color: var(--buttonPrimaryBgColorHover);
+  color: var(--buttonPrimaryFontColorHover);
+}
+.new-input {
+  outline: none;
+  height: 22px;
+  margin: 5px 0;
+  padding: 0 6px;
+  color: var(--sideBarColor);
+  border: 1px solid var(--floatBorderColor);
+  background: var(--inputBgColor);
+  width: calc(100% - 45px);
+  border-radius: 3px;
+}
+.tree-wrapper {
+  position: relative;
+}
+.empty-project {
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  padding-top: 40px;
+  align-items: center;
+  color: var(--sideBarTextColor);
+  & button {
+    margin-top: 10px;
+  }
+}
+
+.empty-project > a {
+  color: var(--highlightThemeColor);
+  text-align: center;
+  margin-top: 15px;
+  text-decoration: none;
+}
+.bold {
+  font-weight: 600;
+}
+
+/* treeFile.vue */
+
+.side-bar-file {
+  display: flex;
+  position: relative;
+  align-items: center;
+  cursor: default;
+  user-select: none;
+  height: 30px;
+  box-sizing: border-box;
+  padding-right: 15px;
+  &:hover {
+    background: var(--sideBarItemHoverBgColor);
+  }
+  & > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    display: block;
+    left: 0;
+    background: var(--themeColor);
+    width: 2px;
+    height: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.2s ease;
+  }
+}
+.side-bar-file.current::before {
+  height: 100%;
+}
+.side-bar-file.current > span {
+  color: var(--themeColor);
+}
+.side-bar-file.active > span {
+  color: var(--sideBarTitleColor);
+}
+input.rename {
+  height: 22px;
+  outline: none;
+  margin: 5px 0;
+  padding: 0 8px;
+  color: var(--sideBarColor);
+  border: 1px solid var(--floatBorderColor);
+  background: var(--floatBorderColor);
+  width: 100%;
+  border-radius: 3px;
+}
+
+/* treeFolder.vue */
+
+.side-bar-folder {
+  & > .folder-name {
+    cursor: default;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    padding-right: 15px;
+    & > .icon-arrow {
+      flex-shrink: 0;
+      color: var(--sideBarIconColor);
+      margin-right: 5px;
+      transition: transform 0.25s ease-out;
+      transform: rotate(90deg);
+    }
+    & > .icon-arrow.fold {
+      transform: rotate(0);
+    }
+    &:hover {
+      background: var(--sideBarItemHoverBgColor);
+    }
+  }
+}
+.new-input,
+input.rename {
+  outline: none;
+  height: 22px;
+  margin: 5px 0;
+  padding: 0 6px;
+  color: var(--sideBarColor);
+  border: 1px solid var(--floatBorderColor);
+  background: var(--floatBorderColor);
+  width: 70%;
+  border-radius: 3px;
+}
+
+/* treeOpenedTab.vue */
+
+.opened-file {
+  display: flex;
+  user-select: none;
+  height: 28px;
+  line-height: 28px;
+  padding-left: 35px;
+  position: relative;
+  color: var(--sideBarColor);
+  & > .close-icon {
+    display: none;
+    position: absolute;
+    top: 9px;
+    left: 10px;
+    cursor: pointer;
+  }
+  &:hover > .close-icon {
+    display: inline-flex;
+  }
+  &:hover {
+    background: var(--sideBarItemHoverBgColor);
+  }
+  & > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+.opened-file.active {
+  color: var(--highlightThemeColor);
+}
+.unsaved.opened-file::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--highlightThemeColor);
+  position: absolute;
+  top: 11px;
+  left: 12px;
+}
+.unsaved.opened-file:hover::before {
+  content: none;
+}
+
+/* index.vue */
+
+.title-bar-editor-bg {
+  height: var(--titleBarHeight);
+  background: var(--editorBgColor);
+  position: relative;
+  left: 0;
+  top: 0;
+  right: 0;
+}
+.title-bar {
+  -webkit-app-region: drag;
+  user-select: none;
+  background: transparent;
+  height: var(--titleBarHeight);
+  box-sizing: border-box;
+  color: var(--editorColor50);
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  transition: color 0.4s ease-in-out;
+  cursor: default;
+}
+.active {
+  color: var(--editorColor);
+}
+img {
+  height: 90%;
+  margin-top: 1px;
+  vertical-align: top;
+}
+.title {
+  padding: 0 142px;
+  height: 100%;
+  line-height: var(--titleBarHeight);
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.25s ease-in-out;
+  & .filename {
+    transition: all 0.25s ease-in-out;
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 1px;
+    width: 100%;
+    z-index: 1;
+    -webkit-app-region: no-drag;
+  }
+}
+div.title > span {
+  /* Workaround for GH#339 */
+  display: block;
+  direction: rtl;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.title-bar .title .filename.isOsx:hover {
+  color: var(--themeColor);
+}
+
+.active .save-dot {
+  margin-right: 0.25rem;
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border-radius: 50%;
+  background: var(--highlightThemeColor);
+  opacity: 0.7;
+  visibility: hidden;
+}
+.active .save-dot.show {
+  visibility: visible;
+}
+.title:hover {
+  color: var(sideBarTitleColor);
+}
+
+.left-toolbar {
+  padding: 0 10px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 118px; /* + 2*10px padding*/
+  display: flex;
+  flex-direction: row;
+}
+.right-toolbar {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 138px;
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  & .item {
+    margin-right: 10px;
+  }
+}
+
+.word-count {
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--editorColor30);
+  text-align: center;
+  line-height: 24px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  transition: all 0.25s ease-in-out;
+  & > .text-center-vertical {
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+  &:hover > span {
+    background: var(--sideBarBgColor);
+    color: var(--sideBarTitleColor);
+  }
+}
+
+.title-no-drag {
+  -webkit-app-region: no-drag;
+}
+/* frameless window controls */
+.frameless-titlebar-button {
+  position: relative;
+  display: block;
+  width: 46px;
+  height: var(--titleBarHeight);
+}
+.frameless-titlebar-button > div {
+  position: absolute;
+  display: inline-flex;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+.frameless-titlebar-menu {
+  color: var(--sideBarColor);
+}
+.frameless-titlebar-close:hover {
+  background-color: rgb(228, 79, 79);
+}
+.frameless-titlebar-minimize:hover,
+.frameless-titlebar-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.frameless-titlebar-button svg {
+  fill: #000000;
+}
+.frameless-titlebar-close:hover svg {
+  fill: #ffffff;
+}
+
+.text-center-vertical {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: normal;
+}
+
+/* index.vue */
+
+.title-item {
+  height: 28px;
+  line-height: 28px;
+  & .front {
+    opacity: 0.7;
+  }
+  & .text {
+    margin-left: 10px;
+  }
+}
+
+/* app.vue */
+
+.editor-placeholder,
+.editor-container {
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.editor-container .hide {
+  z-index: -1;
+  opacity: 0;
+  position: absolute;
+  left: -10000px;
+}
+.editor-placeholder {
+  background: var(--editorBgColor);
+}
+.editor-middle {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100vh;
+  position: relative;
+  & > .editor {
+    flex: 1;
+  }
+}
+
+/* preference.vue */
+
+.pref-container {
+  --prefSideBarWidth: 220px;
+
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  background: var(--editorBgColor);
+
+  & h1,
+  & h2,
+  & h3,
+  & h4,
+  & h5,
+  & h6 {
+    color: var(--editorColor);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  & h4 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  & h5 {
+    font-size: 15px;
+  }
+
+  & h6 {
+    font-size: 15px;
+  }
+
+  & .notes {
+    display: block;
+    margin: 8px 0 0;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--editorColor80);
+  }
+
+  & .pref-content {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: calc(100vw - var(--prefSideBarWidth));
+    & .title-bar {
+      width: 100%;
+      height: var(--titleBarHeight);
+      position: fixed;
+      top: 0;
+      right: 0;
+      -webkit-app-region: drag;
+    }
+    & .pref-setting {
+      padding: 50px 40px;
+      padding-top: var(--titleBarHeight);
+      flex: 1;
+      height: calc(100vh - var(--titleBarHeight));
+      overflow: auto;
+    }
+    & span,
+    & div,
+    & h1,
+    & h2,
+    & h3,
+    & h4,
+    & h5,
+    & h6 {
+      user-select: none;
+    }
+  }
+  & .pref-content.frameless .pref-setting {
+    /* Move the scrollbar below the titlebar */
+    margin-top: var(--titleBarHeight);
+    padding-top: 0;
+  }
+}
+
+/* titlebar.vue */
+
+.title-bar {
+  -webkit-app-region: drag;
+  user-select: none;
+  background: transparent;
+  height: var(--titleBarHeight);
+  box-sizing: border-box;
+  color: var(--editorColor50);
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  transition: color 0.4s ease-in-out;
+  cursor: default;
+}
+
+.frameless-titlebar-button {
+  position: absolute;
+  display: block;
+  top: 0;
+  right: 0;
+  width: 46px;
+  height: var(--titleBarHeight);
+  -webkit-app-region: no-drag;
+}
+
+.frameless-titlebar-button > div {
+  position: absolute;
+  display: inline-flex;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.frameless-titlebar-close:hover {
+  background-color: rgb(228, 79, 79);
+}
+
+.frameless-titlebar-button svg {
+  fill: #000000;
+}
+
+.frameless-titlebar-close:hover svg {
+  fill: #ffffff;
+}
+
+/* index.vue */
+
+.pref-switch-item {
+  font-size: 14px;
+  user-select: none;
+  margin: 12px 0;
+  color: var(--editorColor);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  & .description {
+    & svg {
+      margin-left: 4px;
+      cursor: pointer;
+      opacity: 0.7;
+      color: var(--iconColor);
+    }
+    & svg:hover {
+      color: var(--themeColor);
+    }
+    & > .notes {
+      display: inline;
+      margin: 0 0 0 8px;
+    }
+  }
+}
+
+span.el-switch__core::after {
+  top: 3px;
+  left: 7px;
+  width: 10px;
+  height: 10px;
+}
+
+.el-switch .el-switch__core {
+  border: 2px solid var(--iconColor);
+  background: transparent;
+  box-sizing: border-box;
+}
+
+span.el-switch__label {
+  color: var(--editorColor50);
+}
+
+.el-switch:not(.is-checked) .el-switch__core::after {
+  background: var(--iconColor);
+}
+
+.el-switch.is-checked .el-switch__core {
+  border-color: var(--themeColor);
+  background-color: var(--themeColor);
+}
+
+/* index.vue */
+
+.pref-compound-item {
+  font-size: 14px;
+  user-select: none;
+  margin: 32px 0;
+  color: var(--editorColor);
+
+  & .pref-compound-head h6.title {
+    padding-bottom: 6px;
+  }
+
+  & .pref-compound-body {
+    padding: 0;
+    margin-top: -4px;
+  }
+
+  & .description {
+    margin-bottom: 10px;
+    & i {
+      cursor: pointer;
+      opacity: 0.7;
+      color: var(--iconColor);
+    }
+    & i:hover {
+      color: var(--themeColor);
+    }
+  }
+}
+
+/* index.vue */
+
+.el-autocomplete-suggestion {
+  border: 1px solid var(--floatBorderColor);
+  background-color: var(--floatBgColor);
+}
+.el-popper[x-placement^='top'] .popper__arrow {
+  border-top-color: var(--floatBorderColor);
+}
+.el-popper[x-placement^='bottom'] .popper__arrow {
+  border-bottom-color: var(--floatBorderColor);
+}
+.el-popper[x-placement^='top'] .popper__arrow::after {
+  border-top-color: var(--floatBgColor);
+}
+.el-popper[x-placement^='bottom'] .popper__arrow::after {
+  border-bottom-color: var(--floatBgColor);
+}
+
+.el-autocomplete-suggestion li {
+  color: var(--editorColor);
+}
+.el-autocomplete-suggestion li.highlighted,
+.el-autocomplete-suggestion li:hover {
+  background: var(--floatHoverColor);
+}
+
+.pref-font-input-item {
+  margin: 12px 0;
+  font-size: 14px;
+  color: var(--editorColor);
+  & .font-autocomplete {
+    width: 100%;
+  }
+  & input.el-input__inner {
+    height: 30px;
+    background: transparent;
+    color: var(--editorColor);
+    border-color: var(--editorColor10);
+  }
+  & .el-input.is-active .el-input__inner,
+  & .el-input__inner:focus {
+    border-color: var(--themeColor);
+  }
+  & .el-input__icon,
+  & .el-input__inner {
+    line-height: 30px;
+  }
+}
+.pref-font-input-item .description {
+  margin-bottom: 10px;
+  & svg {
+    cursor: pointer;
+    opacity: 0.7;
+    color: var(--iconColor);
+  }
+  & svg:hover {
+    color: var(--themeColor);
+  }
+}
+.pref-font-input-item .font-autocomplete-popper {
+  li {
+    line-height: normal;
+    padding: 7px;
+    .value {
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .link {
+      font-size: 12px;
+      color: #b4b4b4;
+    }
+  }
+}
+
+/* index.vue */
+
+.pref-range-item {
+  margin: 12px 0;
+  font-size: 14px;
+  color: var(--editorColor);
+  width: 100%;
+  & .value {
+    text-align: right;
+    font-style: italic;
+    float: right;
+  }
+  & .el-slider {
+    width: 100%;
+  }
+  & .el-slider__runway,
+  & .el-slider__bar {
+    height: 4px;
+  }
+  & .el-slider__button {
+    width: 12px;
+    height: 12px;
+  }
+  & .el-slider__button-wrapper {
+    width: 20px;
+    height: 20px;
+    top: -9px;
+  }
+}
+.pref-select-item .description {
+  margin-bottom: 10px;
+
+  & .value {
+    color: var(--editorColor80);
+  }
+  & svg {
+    cursor: pointer;
+    opacity: 0.7;
+    color: var(--iconColor);
+  }
+  & svg:hover {
+    color: var(--themeColor);
+  }
+}
+
+/* index.vue */
+
+.pref-select-item {
+  margin: 12px 0;
+  font-size: 14px;
+  color: var(--editorColor);
+  & .el-select {
+    width: 100%;
+  }
+  & div {
+    background: transparent;
+    color: var(--editorColor);
+    border-color: var(--editorColor10);
+  }
+  & input.el-input__inner {
+    height: 30px;
+    background: transparent;
+    color: var(--editorColor);
+    border-color: var(--editorColor10);
+  }
+  & .el-input__icon,
+  & .el-input__inner {
+    line-height: 30px;
+  }
+}
+.pref-select-item .description {
+  margin-bottom: 10px;
+  & svg {
+    margin-left: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    color: var(--iconColor);
+  }
+  & svg:hover {
+    color: var(--themeColor);
+  }
+}
+li.el-select-dropdown__item {
+  color: var(--editorColor);
+  height: 30px;
+}
+li.el-select-dropdown__item.hover,
+li.el-select-dropdown__item:hover {
+  background: var(--floatHoverColor);
+}
+li.el-select-dropdown__item.selected,
+li.el-select-dropdown__item.is-selected {
+  color: var(--themeColor);
+  background: var(--themeColor10);
+}
+div.el-select-dropdown {
+  background: var(--floatBgColor);
+  border-color: var(--floatBorderColor);
+  & .popper__arrow {
+    display: none;
+  }
+}
+.el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--themeColor) inset;
+}
+
+/* index.vue */
+
+.pref-separator {
+  margin: 12px 0;
+  height: 2px;
+  background: var(--editorColor04);
+}
+
+/* index.vue */
+
+.pref-text-box-item {
+  font-size: 14px;
+  user-select: none;
+  margin: 12px 0;
+  color: var(--editorColor);
+  width: 100%;
+  & div {
+    background: transparent;
+    color: var(--editorColor);
+    border-color: var(--editorColor10);
+  }
+  & input.el-input__inner {
+    height: 30px;
+    background: transparent;
+    border: none;
+    padding-right: 15px;
+    &::placeholder {
+      color: var(--editorColor30);
+    }
+  }
+  & .input {
+    width: 100%;
+  }
+  & .el-input.is-active .el-input__inner,
+  & .el-input__inner:focus {
+    border-color: var(--themeColor);
+  }
+  & .el-input__icon,
+  & .el-input__inner {
+    line-height: 30px;
+  }
+  & .description {
+    margin-bottom: 10px;
+  }
+  & svg {
+    margin-left: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    color: var(--iconColor);
+  }
+  & svg:hover {
+    color: var(--themeColor);
+  }
+}
+.pref-text-box-item .el-input.error input {
+  color: #f56c6c;
+}
+
+/* index.vue */
+
+.pref-editor .image-ctrl {
+  font-size: 14px;
+  user-select: none;
+  margin: 20px 0;
+  color: var(--editorColor);
+}
+
+.pref-editor .image-ctrl label {
+  display: block;
+  margin: 20px 0;
+}
+
+/* index.vue */
+
+.pref-general .startup-action-ctrl div {
+  display: flex;
+  align-items: center;
+}
+.pref-general .startup-action-ctrl {
+  font-size: 14px;
+  user-select: none;
+  color: var(--editorColor);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.pref-general .startup-action-ctrl .el-button--small {
+  margin-left: 10px;
+}
+
+.pref-general .startup-action-ctrl label {
+  margin: 5px 0;
+}
+
+/* index.vue */
+
+.pref-image {
+  & .image-ctrl {
+    font-size: 14px;
+    margin: 20px 0;
+    color: var(--editorColor);
+    & label {
+      display: block;
+      margin: 20px 0;
+    }
+  }
+}
+
+/* index.vue */
+
+.image-folder .footnote {
+  font-size: 13px;
+  & code {
+    font-size: 13px;
+  }
+}
+
+/* index.vue */
+
+.pref-image-uploader {
+  color: var(--editorColor);
+  font-size: 14px;
+}
+
+.pref-image-uploader .current-uploader {
+  margin: 20px 0;
+}
+
+.pref-image-uploader .warning {
+  color: var(--deleteColor);
+}
+
+.pref-image-uploader .link {
+  color: var(--themeColor);
+  cursor: pointer;
+}
+
+.pref-image-uploader .link .link-icon {
+  margin-left: 2px;
+  vertical-align: -2px;
+  opacity: 0.7;
+  color: var(--iconColor);
+}
+.pref-image-uploader .link .link-icon:hover {
+  color: var(--themeColor);
+}
+
+.pref-image-uploader .detection-status {
+  margin: 15px 0;
+  padding: 15px;
+  border: 1px solid var(--editorColor30);
+  border-radius: 6px;
+  background: var(--floatBgColor);
+}
+
+.pref-image-uploader .detection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.pref-image-uploader .detection-status h6 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--editorColor);
+}
+
+.pref-image-uploader .retest-button {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.pref-image-uploader .status-info {
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.pref-image-uploader .status-info.success {
+  background: var(--successBgColor, #f0f9ff);
+  color: var(--successColor, #059669);
+  border: 1px solid var(--successColor, #059669);
+}
+
+.pref-image-uploader .status-info.warning {
+  background: var(--warningBgColor, #fffbeb);
+  color: var(--warningColor, #d97706);
+  border: 1px solid var(--warningColor, #d97706);
+}
+
+.pref-image-uploader .status-text {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.pref-image-uploader .detection-time {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: normal;
+}
+
+.pref-image-uploader .detection-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pref-image-uploader .standalone-refresh-button {
+  background: none;
+  border: 1px solid var(--editorColor30, #ddd);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  color: var(--editorColor70, #666);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  min-width: 28px;
+  height: 28px;
+}
+
+.pref-image-uploader .standalone-refresh-button:hover {
+  background-color: var(--editorColor10, #f0f0f0);
+  color: var(--themeColor, #007acc);
+  border-color: var(--themeColor, #007acc);
+}
+
+.pref-image-uploader .standalone-refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pref-image-uploader .standalone-refresh-button:disabled:hover {
+  background: none;
+  color: var(--editorColor70, #666);
+  border-color: var(--editorColor30, #ddd);
+}
+
+.pref-image-uploader .detection-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pref-image-uploader .detection-animation-container {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.pref-image-uploader .loading-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--themeColor, #007acc);
+  border-radius: 50%;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.pref-image-uploader .loading-dot.animate {
+  opacity: 1;
+}
+
+.pref-image-uploader .refresh-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  color: var(--editorColor70, #666);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pref-image-uploader .refresh-button:hover {
+  background-color: var(--editorColor10, #f0f0f0);
+  color: var(--themeColor, #007acc);
+}
+
+.pref-image-uploader .refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pref-image-uploader .refresh-button:disabled:hover {
+  background: none;
+  color: var(--editorColor70, #666);
+}
+
+.pref-image-uploader .initial-button {
+  background: none;
+  border: none;
+  cursor: default;
+  padding: 4px;
+  border-radius: 3px;
+  color: var(--editorColor70, #666);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.pref-image-uploader .initial-button:hover {
+  background-color: var(--editorColor10, #f0f0f0);
+  color: var(--themeColor, #007acc);
+}
+
+.pref-image-uploader .status-indicator {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pref-image-uploader .status-indicator.status-success {
+  color: var(--successColor, #059669);
+}
+
+.pref-image-uploader .status-indicator.status-error {
+  color: var(--deleteColor, #dc3545);
+}
+
+.pref-image-uploader .status-indicator.status-not-found {
+  color: var(--editorColor70, #666);
+}
+
+.pref-image-uploader .status-indicator:hover {
+  background-color: var(--editorColor10, #f0f0f0);
+}
+
+.pref-image-uploader .success-time {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: normal;
+  color: var(--successColor, #059669);
+}
+
+.pref-image-uploader .detection-status-indicator {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pref-image-uploader .detecting-indicator {
+  color: var(--themeColor);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.pref-image-uploader .auto-detection-info {
+  color: var(--editorColor70);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pref-image-uploader .install-commands {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--floatBgColor);
+  border-radius: 6px;
+  border-left: 4px solid var(--warningColor, #ffc107);
+}
+
+.pref-image-uploader .install-title {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--editorColor);
+  font-size: 13px;
+}
+
+.pref-image-uploader .install-options {
+  margin-bottom: 12px;
+}
+
+.pref-image-uploader .install-option {
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pref-image-uploader .install-option strong {
+  min-width: 50px;
+  font-size: 12px;
+  color: var(--editorColor70);
+}
+
+.pref-image-uploader .install-command {
+  background-color: var(--editorColor10);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  color: var(--editorColor);
+  border: 1px solid var(--editorColor20);
+  user-select: all;
+}
+
+.pref-image-uploader .install-link {
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+.pref-image-uploader .usage-guide {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: var(--floatBgColor);
+  border-radius: 6px;
+  border-left: 4px solid var(--themeColor);
+}
+
+.pref-image-uploader .usage-title {
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: var(--editorColor);
+  font-size: 14px;
+}
+
+.pref-image-uploader .usage-content {
+  margin-bottom: 12px;
+}
+
+.pref-image-uploader .usage-step {
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.pref-image-uploader .usage-step strong {
+  color: var(--editorColor);
+  font-size: 13px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.pref-image-uploader .usage-description {
+  font-size: 12px;
+  color: var(--editorColor70);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.pref-image-uploader .usage-command {
+  background-color: var(--editorColor10);
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  color: var(--editorColor);
+  border: 1px solid var(--editorColor20);
+  user-select: all;
+  display: inline-block;
+}
+
+.pref-image-uploader .usage-link {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.pref-image-uploader .debug-info {
+  margin-top: 15px;
+}
+
+.pref-image-uploader .debug-info summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--editorColor70);
+  margin-bottom: 8px;
+}
+
+.pref-image-uploader .debug-info pre {
+  background: var(--codeBgColor, #f8f9fa);
+  border: 1px solid var(--editorColor20);
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--editorColor);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.pref-image-uploader .description {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.pref-image-uploader .form-group {
+  margin: 20px 0 0 0;
+}
+
+.pref-image-uploader .label {
+  margin-bottom: 10px;
+}
+
+.pref-image-uploader .el-input__inner {
+  background: transparent;
+}
+
+.pref-image-uploader .el-button.btn-reset,
+.pref-image-uploader .button-group {
+  margin-top: 30px;
+}
+
+
+/* index.vue */
+
+.pref-keybindings {
+  & .keyboard-debug,
+  & .keybindings {
+    font-size: 14px;
+    margin: 20px 0;
+    color: var(--editorColor);
+    & .link {
+      cursor: pointer;
+    }
+  }
+  & .keybindings > div.text {
+    margin-bottom: 10px;
+  }
+  & .link {
+    color: var(--themeColor);
+    cursor: pointer;
+    & .link-icon {
+      margin-left: 2px;
+      vertical-align: -2px;
+      opacity: 0.7;
+      color: var(--iconColor);
+    }
+    & .link-icon:hover {
+      color: var(--themeColor);
+    }
+  }
+  & button.el-button {
+    font-size: 13px;
+  }
+}
+.el-table,
+.el-table__expanded-cell {
+  background: var(--editorBgColor);
+}
+.el-table button {
+  padding: 2px 2px;
+  margin: 4px 0px;
+  color: var(--themeColor);
+  background: none;
+  border: none;
+}
+.el-table button:not(:last-child) {
+  margin-right: 4px;
+}
+.el-table button:hover,
+.el-table button:active {
+  opacity: 0.9;
+  background: none;
+}
+
+/* index.vue */
+
+.pref-keybindings .el-table table {
+  margin: 0;
+  border: none;
+}
+.pref-keybindings .el-table th,
+.pref-keybindings .el-table tr {
+  background: var(--editorBgColor) !important;
+}
+/* Element Plus colours table text with its own --el-text-color-regular grey,
+   which the app never themes — so the list rendered as low-contrast grey on
+   every theme (≈2.3:1 on dark themes, well below WCAG AA). Use the theme's own
+   editor text colour so the bindings stay readable everywhere (#3937). */
+.pref-keybindings .el-table,
+.pref-keybindings .el-table th.el-table__cell,
+.pref-keybindings .el-table td.el-table__cell {
+  color: var(--editorColor);
+}
+.pref-keybindings .el-table th.el-table__cell.is-leaf,
+.pref-keybindings .el-table th,
+.pref-keybindings .el-table td {
+  border: none;
+}
+.pref-keybindings .el-table th.el-table__cell.is-leaf:last-child,
+.pref-keybindings .el-table th:last-child,
+.pref-keybindings .el-table td:last-child {
+  border-right: 1px solid var(--tableBorderColor);
+}
+.pref-keybindings .el-table--border::after,
+.pref-keybindings .el-table--group::after,
+.pref-keybindings .el-table::before,
+.pref-keybindings .el-table__fixed-right::before,
+.pref-keybindings .el-table__fixed::before {
+  background: var(--tableBorderColor);
+}
+/* Element Plus paints the hovered row via --el-table-row-hover-bg-color, which
+   defaults to the light --el-fill-color-light — a near-white bar that hides the
+   theme-coloured text on dark themes. Point it at the theme's own selection
+   colour so hovered rows stay readable on every theme (follow-up to #3937). */
+.pref-keybindings .el-table {
+  --el-table-row-hover-bg-color: var(--selectionColor);
+}
+.pref-keybindings .el-table .el-table__cell {
+  padding: 2px 0;
+  margin: 0;
+}
+.pref-keybindings .el-table,
+.pref-keybindings .el-table .el-table__inner-wrapper,
+.pref-keybindings .el-table .el-table__body-wrapper,
+.pref-keybindings .el-table .el-scrollbar,
+.pref-keybindings .el-table .el-scrollbar__wrap,
+.pref-keybindings .el-table .el-scrollbar__view {
+  height: auto !important;
+  max-height: none !important;
+}
+.pref-keybindings .el-table .el-scrollbar__wrap {
+  overflow: visible !important;
+}
+.pref-keybindings .el-table .el-scrollbar__bar {
+  display: none !important;
+}
+
+/* key-input-dialog.vue */
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.key-input-wrapper {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 500px;
+  height: auto;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px;
+  margin: 0 auto;
+  margin-top: 8px;
+  box-sizing: border-box;
+  color: var(--editorColor);
+  background: var(--floatBgColor);
+  border: 1px solid var(--floatBorderColor);
+  border-radius: 4px;
+  box-shadow: 0 3px 8px 3px var(--floatShadow);
+  z-index: 10000;
+}
+.input-wrapper {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--inputBgColor);
+  background: var(--inputBgColor);
+  border-radius: 3px;
+}
+input.input-textbox {
+  width: 100%;
+  height: 30px;
+  margin: 0 10px;
+  font-size: 14px;
+  color: var(--editorColor);
+  background: transparent;
+  outline: none;
+  border: none;
+}
+.footer {
+  font-size: 13px;
+  text-align: center;
+  & .description {
+    margin-top: 2px;
+  }
+  & .invalid-keybinding {
+    font-weight: bold;
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
+.input-overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  color: var(--editorColor);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* key-input-dialog.vue */
+
+.key-input-dialog .el-dialog,
+.key-input-dialog .el-dialog.ag-dialog-table {
+  box-shadow: none !important;
+  border: none !important;
+  background: none !important;
+}
+.key-input-dialog .el-dialog__header {
+  margin-bottom: 20px;
+  padding: 0 !important;
+}
+.key-input-dialog .el-dialog__body {
+  display: none !important;
+}
+
+/* index.vue */
+
+.pref-markdown {
+}
+
+/* index.vue */
+
+.pref-sidebar {
+  -webkit-app-region: drag;
+  display: flex;
+  flex-direction: column;
+  background: var(--sideBarBgColor);
+  width: var(--prefSideBarWidth);
+  height: 100vh;
+  padding-top: 24px;
+  box-sizing: border-box;
+  & h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: normal;
+    text-align: center;
+    color: var(--sideBarColor);
+  }
+}
+.search-wrapper {
+  -webkit-app-region: no-drag;
+  padding: 0 16px;
+  margin: 18px 0;
+}
+.el-autocomplete {
+  width: 100%;
+
+  & .el-input__wrapper {
+    background: transparent;
+  }
+
+  & .el-input__inner {
+    border: none;
+    background: transparent;
+    height: 28px;
+    line-height: 28px;
+    font-size: 13px;
+  }
+}
+.pref-autocomplete {
+  background: var(--floatBgColor);
+  border-color: var(--floatBorderColor);
+  & .el-autocomplete-suggestion__wrap li:hover {
+    background: var(--floatHoverColor);
+  }
+  & .popper__arrow {
+    display: none;
+  }
+  & li {
+    line-height: normal;
+    padding: 7px;
+    opacity: 0.8;
+
+    & .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      font-weight: 600;
+      color: var(--editorColor80);
+    }
+    & .addr {
+      font-size: 12px;
+      color: var(--editorColor);
+    }
+
+    & .highlighted .addr {
+      color: var(--editorColor);
+    }
+  }
+}
+.category {
+  -webkit-app-region: no-drag;
+  overflow-y: auto;
+  & .item {
+    width: 100%;
+    height: 38px;
+    font-size: 16px;
+    color: var(--sideBarColor);
+    padding-left: 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    & > svg {
+      width: 18px;
+      height: 18px;
+      color: var(--sideBarColor);
+      margin-right: 12px;
+    }
+    &.active > svg {
+      color: var(--sideBarTitleColor);
+    }
+    &:hover {
+      background: var(--sideBarItemHoverBgColor);
+    }
+    &::before {
+      content: '';
+      width: 4px;
+      height: 0;
+      background: var(--highlightThemeColor);
+      position: absolute;
+      left: 0;
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+      transition: height 0.25s ease-in-out;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    &.active {
+      color: var(--sideBarTitleColor);
+    }
+    &.active::before {
+      height: 100%;
+    }
+  }
+}
+
+/* index.vue */
+
+.pref-spellchecker {
+  & div.description {
+    margin-top: 10px;
+    margin-bottom: 2px;
+    color: var(--editorColor);
+    font-size: 14px;
+  }
+}
+.el-table,
+.el-table__expanded-cell {
+  background: var(--editorBgColor);
+}
+.el-table button {
+  padding: 1px 2px;
+  margin: 5px 10px;
+  color: var(--themeColor);
+  background: none;
+  border: none;
+}
+.el-table button:hover,
+.el-table button:active {
+  opacity: 0.9;
+  background: none;
+  border: none;
+}
+
+/* index.vue */
+
+.pref-spellchecker .el-table table {
+  margin: 0;
+  border: none;
+}
+.pref-spellchecker .el-table th,
+.pref-spellchecker .el-table tr {
+  background: var(--editorBgColor);
+}
+/* Element Plus colours table cells with its own grey --el-text-color-regular,
+   which the app never themes, so the custom-dictionary words rendered as
+   low-contrast grey on every theme. Use the theme's editor text colour. */
+.pref-spellchecker .el-table,
+.pref-spellchecker .el-table th.el-table__cell,
+.pref-spellchecker .el-table td.el-table__cell {
+  color: var(--editorColor);
+}
+.pref-spellchecker .el-table th.el-table__cell.is-leaf,
+.pref-spellchecker .el-table th,
+.pref-spellchecker .el-table td {
+  border: none;
+}
+.pref-spellchecker .el-table th.el-table__cell.is-leaf:last-child,
+.pref-spellchecker .el-table th:last-child,
+.pref-spellchecker .el-table td:last-child {
+  border-right: 1px solid var(--tableBorderColor);
+}
+.pref-spellchecker .el-table--border::after,
+.pref-spellchecker .el-table--group::after,
+.pref-spellchecker .el-table::before,
+.pref-spellchecker .el-table__fixed-right::before,
+.pref-spellchecker .el-table__fixed::before {
+  background: var(--tableBorderColor);
+}
+/* Theme Element Plus's table colour variables so the active theme is honoured
+   instead of EP's light defaults: the hovered row (--el-fill-color-light, a
+   near-white bar that hides the text) and the header background
+   (--el-fill-color-blank / white, which left the fixed "Options" column header
+   a white block on dark themes). */
+.pref-spellchecker .el-table {
+  --el-table-row-hover-bg-color: var(--selectionColor);
+  --el-table-header-bg-color: var(--editorBgColor);
+}
+.pref-spellchecker .el-table .el-table__cell {
+  padding: 2px 0;
+  margin: 4px 6px;
+}
+
+.pref-spellchecker li.el-select-dropdown__item {
+  color: var(--editorColor);
+  height: 30px;
+}
+.pref-spellchecker li.el-select-dropdown__item.hover,
+li.el-select-dropdown__item:hover {
+  background: var(--floatHoverColor);
+}
+.pref-spellchecker div.el-select-dropdown {
+  background: var(--floatBgColor);
+  border-color: var(--floatBorderColor);
+  & .popper__arrow {
+    display: none;
+  }
+}
+.pref-spellchecker input.el-input__inner {
+  height: 30px;
+  background: transparent;
+  color: var(--editorColor);
+  border-color: var(--editorColor10);
+}
+.pref-spellchecker .el-input__icon,
+.pref-spellchecker .el-input__inner {
+  line-height: 30px;
+}
+
+/* index.vue */
+
+.offcial-themes {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  & .theme {
+    cursor: pointer;
+    width: 100%;
+    height: 110px;
+    margin: 0;
+    padding: 16px 18px 16px 32px;
+    overflow: hidden;
+    background: var(--editorBgColor);
+    color: var(--editorColor);
+    box-sizing: border-box;
+    box-shadow: 0 9px 28px -9px rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
+    transition: opacity 0.2s ease;
+
+    &.dark {
+      color: rgba(255, 255, 255, 0.7);
+      background: #282828;
+      & a {
+        color: #409eff;
+      }
+    }
+    &.light {
+      color: rgba(0, 0, 0, 0.7);
+      background: rgba(255, 255, 255, 1);
+      & a {
+        color: rgba(33, 181, 111, 1);
+      }
+    }
+    &.graphite {
+      color: rgba(43, 48, 50, 0.7);
+      background: #f7f7f7;
+      & a {
+        color: rgb(104, 134, 170);
+      }
+    }
+    &.material-dark {
+      color: rgba(171, 178, 191, 0.8);
+      background: #34393f;
+      & a {
+        color: #f48237;
+      }
+    }
+    &.one-dark {
+      color: #9da5b4;
+      background: #282c34;
+      & a {
+        color: rgba(226, 192, 141, 1);
+      }
+    }
+    &.ulysses {
+      color: rgba(101, 101, 101, 0.7);
+      background: #f3f3f3;
+      & a {
+        color: rgb(12, 139, 186);
+      }
+    }
+
+    /* New gogh themes - Dark */
+    &.dracula {
+      color: #f8f8f2;
+      background: #282a36;
+      & a {
+        color: #bd93f9;
+      }
+    }
+    &.nord {
+      color: #d8dee9;
+      background: #2e3440;
+      & a {
+        color: #81a1c1;
+      }
+    }
+    &.catppuccin-mocha {
+      color: #cdd6f4;
+      background: #1e1e2e;
+      & a {
+        color: #89b4fa;
+      }
+    }
+    &.gruvbox-dark {
+      color: #ebdbb2;
+      background: #282828;
+      & a {
+        color: #83a598;
+      }
+    }
+    &.tokyo-night {
+      color: #c0caf5;
+      background: #1a1b26;
+      & a {
+        color: #7aa2f7;
+      }
+    }
+    &.tokyo-night-storm {
+      color: #c0caf5;
+      background: #24283b;
+      & a {
+        color: #7aa2f7;
+      }
+    }
+    &.solarized-dark {
+      color: #839496;
+      background: #002b36;
+      & a {
+        color: #268bd2;
+      }
+    }
+    &.ayu-dark {
+      color: #b3b1ad;
+      background: #0a0e14;
+      & a {
+        color: #39bae6;
+      }
+    }
+    &.ayu-mirage {
+      color: #cbccc6;
+      background: #1f2430;
+      & a {
+        color: #ffcc66;
+      }
+    }
+    &.everforest-dark {
+      color: #d3c6aa;
+      background: #2d353b;
+      & a {
+        color: #a7c080;
+      }
+    }
+    &.rose-pine {
+      color: #e0def4;
+      background: #191724;
+      & a {
+        color: #c4a7e7;
+      }
+    }
+    &.rose-pine-moon {
+      color: #e0def4;
+      background: #232136;
+      & a {
+        color: #c4a7e7;
+      }
+    }
+    &.monokai-pro {
+      color: #fcfcfa;
+      background: #2d2a2e;
+      & a {
+        color: #ffd866;
+      }
+    }
+    &.synthwave-84 {
+      color: #ffffff;
+      background: #262335;
+      & a {
+        color: #ff7edb;
+      }
+    }
+    &.horizon-dark {
+      color: #d5d8da;
+      background: #1c1e26;
+      & a {
+        color: #e95678;
+      }
+    }
+    &.palenight {
+      color: #a6accd;
+      background: #292d3e;
+      & a {
+        color: #82aaff;
+      }
+    }
+    &.oxocarbon-dark {
+      color: #f2f4f8;
+      background: #161616;
+      & a {
+        color: #78a9ff;
+      }
+    }
+    &.kanagawa {
+      color: #dcd7ba;
+      background: #1f1f28;
+      & a {
+        color: #7e9cd8;
+      }
+    }
+    &.nightfox {
+      color: #cdcecf;
+      background: #192330;
+      & a {
+        color: #719cd6;
+      }
+    }
+    &.cyberdream {
+      color: #ffffff;
+      background: #16181a;
+      & a {
+        color: #5ea1ff;
+      }
+    }
+
+    /* New gogh themes - Light */
+    &.catppuccin-latte {
+      color: #4c4f69;
+      background: #eff1f5;
+      & a {
+        color: #1e66f5;
+      }
+    }
+    &.gruvbox-light {
+      color: #3c3836;
+      background: #fbf1c7;
+      & a {
+        color: #458588;
+      }
+    }
+    &.tokyo-night-light {
+      color: #343b58;
+      background: #d5d6db;
+      & a {
+        color: #34548a;
+      }
+    }
+    &.solarized-light {
+      color: #657b83;
+      background: #fdf6e3;
+      & a {
+        color: #268bd2;
+      }
+    }
+    &.ayu-light {
+      color: #575f66;
+      background: #fafafa;
+      & a {
+        color: #399ee6;
+      }
+    }
+    &.everforest-light {
+      color: #5c6a72;
+      background: #fdf6e3;
+      & a {
+        color: #8da101;
+      }
+    }
+    &.rose-pine-dawn {
+      color: #575279;
+      background: #faf4ed;
+      & a {
+        color: #907aa9;
+      }
+    }
+
+    /* Disabled state when followSystemTheme is on */
+    &.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Active theme - use outline instead of border to avoid layout shift? */
+    &.active {
+      box-shadow: var(--floatShadow);
+      outline: 2px solid var(--themeColor);
+      outline-offset: -2px;
+    }
+
+    /* Active + disabled: slightly more visible */
+    &.disabled.active {
+      opacity: 0.7;
+    }
+  }
+  & h3 {
+    position: relative;
+    margin: 0;
+    font-size: 16px;
+    color: currentColor;
+    cursor: pointer;
+    &::before {
+      content: 'h3';
+      position: absolute;
+      top: 4px;
+      left: -20px;
+      display: block;
+      width: 10px;
+      height: 10px;
+      font-size: 12px;
+      opacity: 0.5;
+    }
+  }
+  & p {
+    margin: 6px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.custom-css {
+  margin: 20px 0;
+  font-size: 14px;
+  color: var(--editorColor);
+  & .description {
+    margin-bottom: 10px;
+  }
+  & .custom-css-input {
+    width: 100%;
+    background: transparent;
+    color: var(--editorColor);
+    border: 1px solid var(--editorColor10);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: 'DejaVu Sans Mono', 'Source Code Pro', 'Droid Sans Mono', Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+  & .custom-css-input:focus {
+    outline: none;
+    border-color: var(--themeColor);
+  }
+}
+
+.import-themes {
+  padding: 10px 0;
+  display: flex;
+  justify-content: space-around;
+  color: var(--editorColor);
+  & > div {
+    display: flex;
+    flex-direction: column;
+    & > span {
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+  }
+}
+

@@ -1,49 +1,41 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Notademics",
-  "version": "4.11.1",
+  "version": "0.1.0",
   "identifier": "app.notademics",
   "build": {
-    "beforeDevCommand": "pnpm dev",
+    "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm build",
-    "beforeBundleCommand": "bash ../scripts/build-mcp-sidecar.sh",
+    "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Notademics",
         "width": 1200,
         "height": 800,
         "minWidth": 480,
         "minHeight": 360,
-        "visible": false,
-        "center": true,
-        "titleBarStyle": "Overlay",
-        "hiddenTitle": true
+        "center": true
       }
     ],
     "security": {
       "csp": null,
       "assetProtocol": {
         "enable": true,
-        "scope": [
-          "**"
-        ]
+        "scope": ["**"]
       }
     }
   },
   "mainBinaryName": "Notademics",
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
     "category": "Productivity",
-    "license": "MIT",
-    "publisher": "zhitong",
-    "homepage": "https://solomd.app",
-    "shortDescription": "Lightweight Markdown + plain text editor",
-    "longDescription": "SoloMD is a lightweight, distraction-free editor for Markdown and plain text files. One file. One window. Just write.",
+    "shortDescription": "The Art of Minimal Markdown",
+    "longDescription": "Notademics is a lightweight, distraction-free WYSIWYG Markdown editor for Windows. One file. One window. Just write.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -52,21 +44,14 @@
     ],
     "fileAssociations": [
       {
-        "ext": [
-          "md",
-          "markdown",
-          "mdown",
-          "mkd"
-        ],
+        "ext": ["md", "markdown", "mdown", "mkd"],
         "name": "Markdown Document",
         "description": "Markdown text document",
         "role": "Editor",
         "mimeType": "text/markdown"
       },
       {
-        "ext": [
-          "txt"
-        ],
+        "ext": ["txt"],
         "name": "Plain Text",
         "description": "Plain text document",
         "role": "Editor",
@@ -77,18 +62,9 @@
       "nsis": {
         "installMode": "currentUser",
         "installerIcon": "icons/icon.ico",
-        "displayLanguageSelector": false,
-        "installerHooks": "installer.nsh"
+        "displayLanguageSelector": false
       }
     },
-    "resources": [
-      "icons/file_icon.ico",
-      "resources/dicts/en_US.aff",
-      "resources/dicts/en_US.dic"
-    ],
-    "externalBin": [
-      "binaries/notademics-mcp"
-    ]
-  },
-  "plugins": {}
+    "resources": ["resources/locales/*.json"]
+  }
 }

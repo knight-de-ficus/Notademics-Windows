@@ -3,7 +3,8 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -14,6 +15,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Engine type isolation — redirect @muyajs/core to the hand-written
+       declaration so tsc never descends into the vendored muya source tree. */
+    "paths": {
+      "@muyajs/core": ["./src/types/muya-core.d.ts"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": false,
@@ -21,6 +28,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx"],
-  "exclude": ["src/**/*.test.ts"],
+  "exclude": ["src/**/*.test.ts", "node_modules", "dist", "packages"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

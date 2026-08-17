@@ -6,7 +6,10 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [react()],
+  // Muya 实例持有大量 DOM 状态（block tree、selection），HMR 卸载/重挂载
+  // 会破坏编辑器（cleanup 调用 destroy 后 React 再删除 DOM 会冲突）。
+  // 排除编辑器组件链，改动走整页刷新。
+  plugins: [react({ exclude: ["**/MuyaEditor.tsx", "**/Editor.tsx"] })],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
