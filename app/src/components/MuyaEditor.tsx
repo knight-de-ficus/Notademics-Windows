@@ -26,6 +26,9 @@ export interface MuyaEditorHandle {
   selectAll(): void;
   getMuya(): Muya | null;
   getTOC(): unknown[];
+  cut(): void;
+  copy(): void;
+  paste(): void;
 }
 
 interface MuyaEditorProps {
@@ -99,6 +102,20 @@ export const MuyaEditor = forwardRef<MuyaEditorHandle, MuyaEditorProps>(
       },
       getTOC() {
         return muyaRef.current?.getTOC() ?? [];
+      },
+      cut() {
+        // 先聚焦 Muya 的 contenteditable 容器，再执行原生剪切，
+        // 避免菜单点击后焦点在菜单上导致 execCommand 作用域错误。
+        muyaRef.current?.focus();
+        requestAnimationFrame(() => document.execCommand('cut'));
+      },
+      copy() {
+        muyaRef.current?.focus();
+        requestAnimationFrame(() => document.execCommand('copy'));
+      },
+      paste() {
+        muyaRef.current?.focus();
+        requestAnimationFrame(() => document.execCommand('paste'));
       },
     }), []);
 

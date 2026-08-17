@@ -20,6 +20,9 @@ export default function PreferencePage() {
   return (
     <div className="preference">
       <div className="pref-sidebar">
+        <button className="pref-back-button" onClick={() => navigate('/editor')} aria-label="Back to editor">
+          <span aria-hidden="true">←</span> Back to editor
+        </button>
         <div className="pref-sidebar-title">{t('preferences.title')}</div>
         <ul className="pref-sidebar-list">
           {CATEGORIES.map((cat) => (

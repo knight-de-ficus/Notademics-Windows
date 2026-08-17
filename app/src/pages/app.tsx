@@ -1,5 +1,5 @@
 // 主编辑页 —— 对齐 marktext pages/app.vue 的布局与初始化逻辑。
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useMainStore } from '../store';
 import { useEditorStore } from '../store/editor';
 import { usePreferencesStore } from '../store/preferences';
@@ -11,11 +11,13 @@ import { registerListeners as registerEditorListeners } from '../store/editor';
 import { readFile, trashPath } from '../lib/tauri';
 import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+import { convertFileSrc } from '@tauri-apps/api/core';
 import { addStyles, addThemeStyle, addCustomStyle, type AddStylesOptions } from '../util/theme';
 import { DEFAULT_STYLE } from '../config';
 import { watchPath } from '../lib/tauri';
 import SideBar from '../components/sideBar/index';
-import TitleBar from '../components/titleBar/index';
+import StatusBar from '../components/statusBar/index';
 import Recent from '../components/recent/index';
 import EditorWithTabs from '../components/editorWithTabs/index';
 import CommandPalette from '../components/commandPalette/index';
@@ -75,12 +77,17 @@ export default function AppPage() {
         const p = (payload ?? {}) as { path: string };
         void openFileFromSidebar(p.path);
       });
-      bus.on('sideBar::open-workspace', () => {
+      bus.on('sideBar::open-workspace', (payload) => {
         void (async () => {
-          const s = await openDialog({ directory: true, multiple: false, title: 'Open Folder' });
-          if (s && typeof s === 'string') {
-            await projectStore.OPEN_PROJECT(s);
-            void watchPath(s).catch(() => {});
+          // 已有路径（来自 file.open-folder 命令）直接打开；否则弹对话框
+          let path = typeof payload === 'string' && payload ? payload : null
+          if (!path) {
+            const s = await openDialog({ directory: true, multiple: false, title: 'Open Folder' });
+            if (s && typeof s === 'string') path = s;
+          }
+          if (path) {
+            await projectStore.OPEN_PROJECT(path);
+            void watchPath(path).catch(() => {});
           }
         })();
       });
@@ -91,11 +98,20 @@ export default function AppPage() {
       bus.on('show-in-folder', (path) => {
         void invoke('shell_open_path', { path: String(path) }).catch(() => {});
       });
-
-      // Rust 原生菜单点击 → 命令中心执行（菜单 id 与命令 id 一致）
-      bus.on('menu://action', (id) => {
-        bus.emit('cmd::execute', String(id));
+      bus.on('editor:close-unsaved-tab', (payload) => {
+        const id = String((payload as { id?: string } | undefined)?.id ?? '');
+        const tab = useEditorStore.getState().tabs.find((item) => item.id === id);
+        if (tab && window.confirm(`“${tab.filename}” has unsaved changes. Discard them and close the tab?`)) {
+          useEditorStore.getState().FORCE_CLOSE_TAB(tab);
+        }
       });
+
+      // Rust 原生菜单点击 → 命令中心执行（菜单 id 与命令 id 一致）。
+      // 注意：这是 Tauri 事件通道（Rust app.emit），不是 mitt 总线，必须用 listen。
+      const unlistenMenu = await listen<string>('menu://action', (e) => {
+        bus.emit('cmd::execute', String(e.payload));
+      });
+      void unlistenMenu;
 
       // 应用初始主题 / 字体样式
       const style: AddStylesOptions = {
@@ -134,25 +150,22 @@ export default function AppPage() {
   const sourceCode = preferencesStore.sourceCode;
   const textDirection = preferencesStore.textDirection;
   const projectTree = projectStore.projectTree;
+  const backgroundPath = preferencesStore.editorBackgroundImage;
+  const backgroundPosition = preferencesStore.editorBackgroundPosition.replace('-', ' ');
+  const backgroundFit = preferencesStore.editorBackgroundFit;
+  const backgroundStyle = backgroundPath ? {
+    '--editor-background-image': `url("${/^(data:|https?:|blob:)/i.test(backgroundPath) ? backgroundPath : convertFileSrc(backgroundPath)}")`,
+    '--editor-background-position': backgroundPosition,
+    '--editor-background-size': backgroundFit === 'stretch' ? '100% 100%' : backgroundFit === 'tile' ? 'auto' : backgroundFit,
+    '--editor-background-repeat': backgroundFit === 'tile' ? 'repeat' : 'no-repeat',
+    '--editor-background-opacity': String(preferencesStore.editorBackgroundOpacity)
+  } as CSSProperties : undefined;
 
   return (
     <div className="editor-container">
       {init && <SideBar />}
 
-      <div className="editor-middle">
-        <TitleBar
-          project={projectTree}
-          pathname={currentFile?.pathname}
-          filename={currentFile?.filename}
-          active={windowActive}
-          wordCount={currentFile?.wordCount ?? null}
-          platform={platform}
-          isSaved={currentFile?.isSaved}
-          onRename={() => {
-            if (currentFile) bus.emit('rename', { id: currentFile.id, pathname: currentFile.pathname, filename: currentFile.filename });
-          }}
-        />
-
+      <div className={`editor-middle${backgroundPath ? ' has-editor-background' : ''}`} style={backgroundStyle}>
         {!init && <div className="editor-placeholder" />}
         {!hasCurrentFile && init && <Recent />}
         {hasCurrentFile && init && (
@@ -162,6 +175,8 @@ export default function AppPage() {
         <AboutDialog />
         <Rename />
         <ImportModal />
+        {/* 状态栏固定在底部：仅当有文件打开时显示，字数来自当前 tab */}
+        {init && hasCurrentFile && <StatusBar />}
       </div>
     </div>
   );

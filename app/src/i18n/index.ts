@@ -6,6 +6,16 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { useCallback, useEffect, useState } from 'react'
+import de from './locales/de.json'
+import en from './locales/en.json'
+import es from './locales/es.json'
+import fr from './locales/fr.json'
+import ja from './locales/ja.json'
+import ko from './locales/ko.json'
+import pt from './locales/pt.json'
+import tr from './locales/tr.json'
+import zhCN from './locales/zh-CN.json'
+import zhTW from './locales/zh-TW.json'
 
 /** 扁平化后的消息表：dotted key → 文案 */
 type Messages = Record<string, string>
@@ -107,17 +117,26 @@ const FALLBACK: Messages = {
 }
 
 /** 按语言缓存的消息表（en 兜底字典作为基底，语言包覆盖其上） */
-const localeMessages: Record<string, Messages> = { en: { ...FALLBACK } }
+const bundledLocales: Record<string, unknown> = {
+  de, en, es, fr, ja, ko, pt, tr, 'zh-CN': zhCN, 'zh-TW': zhTW
+}
+
+const localeMessages: Record<string, Messages> = Object.fromEntries(
+  Object.entries(bundledLocales).map(([lang, locale]) => [
+    lang,
+    { ...FALLBACK, ...flatten(locale) }
+  ])
+)
 
 let currentLanguage = 'en'
 /** 当前生效的消息表（随 setLanguage 切换） */
-let messages: Messages = { ...FALLBACK }
+let messages: Messages = localeMessages.en
 
 const listeners = new Set<(lang: string) => void>()
 let listening = false
 
 /** 把后端返回的嵌套 JSON（如 en.json 的 { menu: { file: {...} } }）扁平化为 dotted key */
-const flatten = (obj: unknown, prefix = '', out: Messages = {}): Messages => {
+function flatten(obj: unknown, prefix = '', out: Messages = {}): Messages {
   if (obj === null || typeof obj !== 'object') {
     if (typeof obj === 'string') out[prefix] = obj
     return out

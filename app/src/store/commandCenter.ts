@@ -77,10 +77,44 @@ export const useCommandCenterStore = create<CommandCenterState>((set, get) => ({
 
 const executeCommand = (root: Root, commandId: string): void => {
   const { subcommands } = root
+  if (commandId.startsWith('window.change-theme-')) {
+    const theme = commandId.substring('window.change-theme-'.length)
+    import('./preferences').then(({ usePreferencesStore }) => {
+      usePreferencesStore.getState().SET_SINGLE_PREFERENCE('theme', theme)
+    })
+    return
+  }
+  if (commandId.startsWith('window.change-theme-')) {
+    const theme = commandId.substring('window.change-theme-'.length)
+    import('./preferences').then(({ usePreferencesStore }) => {
+      usePreferencesStore.getState().SET_SINGLE_PREFERENCE('theme', theme)
+    })
+    return
+  }
+  // 先匹配顶层命令；失败时尝试 "parent.subcommand" 形式的子命令 id
   const command = subcommands.find((c) => c.id === commandId)
   if (!command) {
+    // 形如 `window.change-theme-light` → 父命令 `window.change-theme` + 子命令 `window.change-theme-light`
+    const parent = subcommands.find((c) => commandId.startsWith(`${c.id}-`))
+    if (parent?.subcommands?.length) {
+      const sub = parent.subcommands.find((s) => s.id === commandId)
+      if (sub) {
+        void parent.executeSubcommand?.(sub.id, sub.value)
+        return
+      }
+      // 子命令用 value 匹配（如主题值 'light'）
+      const byValue = parent.subcommands.find((s) => String(s.value) === commandId.substring(parent.id.length + 1))
+      if (byValue) {
+        void parent.executeSubcommand?.(byValue.id, byValue.value)
+        return
+      }
+    }
     console.error(`Cannot execute command "${commandId}" because it's missing.`)
     return
   }
-  void command.execute?.()
+  if (command.execute) {
+    void command.execute()
+  } else if (command.executeSubcommand && command.subcommands?.length) {
+    void command.executeSubcommand(command.subcommands[0].id, command.subcommands[0].value)
+  }
 }

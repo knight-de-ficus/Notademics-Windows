@@ -25,7 +25,28 @@ import {
 import routes from './router';
 import './assets/symbolIcon';
 import './styles/marktext/index.css';
+import './styles/marktext/components.css';
+import './styles/marktext/statusBar.css';
 import 'katex/dist/katex.min.css';
+
+// WebView2 inherits Chromium navigation/reload/zoom/devtools shortcuts. They
+// conflict with the native Tauri menu and editor keybindings. Keep F12 as the
+// explicit debugging escape hatch while suppressing browser-only behavior.
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'F12') return;
+  const key = event.key.toLowerCase();
+  const ctrl = event.ctrlKey || event.metaKey;
+  const browserFunctionKey = ['F1', 'F3', 'F5', 'F6', 'F7', 'F10', 'F11'].includes(event.key);
+  const browserCtrlKey = ctrl && [
+    'r', 'l', 'u', 'p', 'w', 'n', 't', 'o', 's', 'f', 'g', 'k', 'e', 'd', 'h', 'j',
+    '+', '-', '=', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+  ].includes(key);
+  const browserDevtoolsKey = ctrl && event.shiftKey && ['i', 'j'].includes(key);
+  const browserNavigationKey = event.altKey && ['arrowleft', 'arrowright', 'home'].includes(key);
+  if (browserFunctionKey || browserCtrlKey || browserDevtoolsKey || browserNavigationKey) {
+    event.preventDefault();
+  }
+}, { capture: true });
 
 // Muya UI 插件（进程级注册一次，所有编辑器实例共享）。
 // 与 marktext editor.vue 的注册集一致（ImageEditTool 需要 imageAction 选项，

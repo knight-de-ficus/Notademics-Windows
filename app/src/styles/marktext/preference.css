@@ -16,6 +16,24 @@
   user-select: none;
 }
 
+.pref-back-button {
+  margin: 0 12px 10px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 4px;
+  text-align: left;
+  font: inherit;
+  color: var(--editorColor60, #666);
+  background: transparent;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.pref-back-button:hover {
+  color: var(--editorColor, #333);
+  background: var(--editorColor10, #e6e6e6);
+}
+
 .pref-sidebar-title {
   padding: 10px 20px;
   font-size: 15px;
@@ -78,6 +96,27 @@
   height: 1px;
   background: var(--buttonBorderColor, #dcdfe6);
   margin: 12px 0;
+}
+
+.background-image-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+
+.background-image-actions button {
+  padding: 6px 12px;
+  border: 1px solid var(--buttonBorderColor, #dcdfe6);
+  border-radius: 4px;
+  color: var(--editorColor, #333);
+  background: var(--buttonBgColor, transparent);
+  cursor: pointer;
+}
+
+.background-image-actions button:disabled {
+  opacity: .45;
+  cursor: default;
 }
 
 .pref-item {

@@ -6,6 +6,10 @@ import bus from '../bus'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { t } from '../i18n'
+import { usePreferencesStore } from '../store/preferences'
+
+// 窗口缩放级别（zoomIn/zoomOut 用；Tauri 2 的 Webview.setZoom 需要显式因子）
+let zoomLevel = 1.0
 
 export interface CommandSubcommand {
   id: string
@@ -154,19 +158,42 @@ const commands: CommandDescriptor[] = [
   {
     id: 'file.new-window',
     execute: async () => {
-      bus.emit('mt::cmd-new-editor-window')
+      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+      new WebviewWindow(`main-${Date.now()}`, { url: window.location.pathname })
+    }
+  },
+  {
+    id: 'file.new-window',
+    execute: async () => {
+      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+      new WebviewWindow(`main-${Date.now()}`, { url: window.location.pathname })
     }
   },
   {
     id: 'file.open-file',
     execute: async () => {
-      bus.emit('mt::cmd-open-file')
+      const { open } = await import('@tauri-apps/plugin-dialog')
+      const s = await open({
+        multiple: false,
+        filters: [
+          { name: 'Markdown', extensions: ['md', 'mdx', 'markdown', 'mdown', 'mkd'] },
+          { name: 'Plain Text', extensions: ['txt'] },
+          { name: 'All Files', extensions: ['*'] }
+        ]
+      })
+      if (s && typeof s === 'string') {
+        bus.emit('sideBar::open-file', s)
+      }
     }
   },
   {
     id: 'file.open-folder',
     execute: async () => {
-      bus.emit('mt::cmd-open-folder')
+      const { open } = await import('@tauri-apps/plugin-dialog')
+      const s = await open({ directory: true, multiple: false, title: 'Open Folder' })
+      if (s && typeof s === 'string') {
+        bus.emit('sideBar::open-workspace', s)
+      }
     }
   },
   {
@@ -202,14 +229,17 @@ const commands: CommandDescriptor[] = [
   {
     id: 'file.move-file',
     execute: async () => {
-      bus.emit('mt::editor-move-file', null)
+      const { useEditorStore } = await import('../store/editor')
+      const file = useEditorStore.getState().currentFile
+      if (file) bus.emit('rename', { id: file.id, pathname: file.pathname, filename: file.filename })
     }
   },
   {
     id: 'file.rename-file',
     execute: async () => {
-      await delay(50)
-      bus.emit('mt::editor-rename-file', null)
+      const { useEditorStore } = await import('../store/editor')
+      const file = useEditorStore.getState().currentFile
+      if (file) bus.emit('rename', { id: file.id, pathname: file.pathname, filename: file.filename })
     }
   },
   {
@@ -257,13 +287,18 @@ const commands: CommandDescriptor[] = [
   {
     id: 'file.preferences',
     execute: async () => {
-      bus.emit('mt::open-setting-window')
+      window.location.hash = '#/preference/general'
     }
   },
   {
     id: 'file.quit',
     execute: async () => {
-      bus.emit('mt::app-try-quit')
+      try {
+        const { getCurrentWindow } = await import('@tauri-apps/api/window')
+        await getCurrentWindow().close()
+      } catch {
+        /* ignore */
+      }
     }
   },
 
@@ -335,13 +370,6 @@ const commands: CommandDescriptor[] = [
       focusEditorAndExecute(() => bus.emit('selectAll', 'selectAll'))
     }
   },
-  {
-    id: 'edit.find-in-folder',
-    execute: async () => {
-      await delay(150)
-      bus.emit('mt::editor-edit-action', 'findInFolder')
-    }
-  },
 
   // --------------------------------------------------------------------------
   // Paragraph
@@ -383,18 +411,10 @@ const commands: CommandDescriptor[] = [
       focusEditorAndExecute(() => bus.emit('paragraph', 'heading 6'))
     }
   },
-  {
-    id: 'paragraph.upgrade-heading',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('paragraph', 'upgrade heading'))
-    }
-  },
-  {
-    id: 'paragraph.degrade-heading',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('paragraph', 'degrade heading'))
-    }
-  },
+  { id: 'paragraph.upgrade-heading', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'upgrade heading')) },
+  { id: 'paragraph.degrade-heading', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'degrade heading')) },
+  { id: 'paragraph.upgrade-heading', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'upgrade heading')) },
+  { id: 'paragraph.degrade-heading', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'degrade heading')) },
   {
     id: 'paragraph.table',
     execute: async () => {
@@ -419,12 +439,8 @@ const commands: CommandDescriptor[] = [
       focusEditorAndExecute(() => bus.emit('paragraph', 'mathblock'))
     }
   },
-  {
-    id: 'paragraph.html-block',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('paragraph', 'html'))
-    }
-  },
+  { id: 'paragraph.html-block', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'html')) },
+  { id: 'paragraph.html-block', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'html')) },
   {
     id: 'paragraph.order-list',
     execute: async () => {
@@ -443,12 +459,10 @@ const commands: CommandDescriptor[] = [
       focusEditorAndExecute(() => bus.emit('paragraph', 'ul-task'))
     }
   },
-  {
-    id: 'paragraph.loose-list-item',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('paragraph', 'loose-list-item'))
-    }
-  },
+  { id: 'paragraph.loose-list-item', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'loose-list-item')) },
+  { id: 'paragraph.front-matter', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'frontmatter')) },
+  { id: 'paragraph.loose-list-item', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'loose-list-item')) },
+  { id: 'paragraph.front-matter', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'frontmatter')) },
   {
     id: 'paragraph.paragraph',
     execute: async () => {
@@ -465,12 +479,6 @@ const commands: CommandDescriptor[] = [
     id: 'paragraph.horizontal-line',
     execute: async () => {
       focusEditorAndExecute(() => bus.emit('paragraph', 'hr'))
-    }
-  },
-  {
-    id: 'paragraph.front-matter',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('paragraph', 'front-matter'))
     }
   },
 
@@ -490,30 +498,14 @@ const commands: CommandDescriptor[] = [
       focusEditorAndExecute(() => bus.emit('format', 'em'))
     }
   },
-  {
-    id: 'format.underline',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('format', 'u'))
-    }
-  },
-  {
-    id: 'format.highlight',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('format', 'mark'))
-    }
-  },
-  {
-    id: 'format.superscript',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('format', 'sup'))
-    }
-  },
-  {
-    id: 'format.subscript',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('format', 'sub'))
-    }
-  },
+  { id: 'format.underline', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'u')) },
+  { id: 'format.superscript', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'sup')) },
+  { id: 'format.subscript', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'sub')) },
+  { id: 'format.highlight', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'mark')) },
+  { id: 'format.underline', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'u')) },
+  { id: 'format.superscript', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'sup')) },
+  { id: 'format.subscript', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'sub')) },
+  { id: 'format.highlight', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'mark')) },
   {
     id: 'format.inline-code',
     execute: async () => {
@@ -555,12 +547,7 @@ const commands: CommandDescriptor[] = [
   // Window
   // --------------------------------------------------------------------------
 
-  {
-    id: 'window.minimize',
-    execute: async () => {
-      await getCurrentWindow().minimize()
-    }
-  },
+  { id: 'window.minimize', execute: async () => getCurrentWindow().minimize() },
   {
     id: 'window.toggle-always-on-top',
     execute: async () => {
@@ -575,6 +562,23 @@ const commands: CommandDescriptor[] = [
       await win.setFullscreen(!(await win.isFullscreen()))
     }
   },
+
+  { id: 'window.minimize', execute: async () => getCurrentWindow().minimize() },
+  {
+    id: 'window.toggle-always-on-top',
+    execute: async () => {
+      const win = getCurrentWindow()
+      await win.setAlwaysOnTop(!(await win.isAlwaysOnTop()))
+    }
+  },
+  {
+    id: 'window.toggle-full-screen',
+    execute: async () => {
+      const win = getCurrentWindow()
+      await win.setFullscreen(!(await win.isFullscreen()))
+    }
+  },
+
   {
     id: 'window.change-theme',
     subcommands: [
@@ -625,6 +629,14 @@ const commands: CommandDescriptor[] = [
     }
   },
   {
+    id: 'view.toggleTheme',
+    execute: async () => {
+      const p = usePreferencesStore.getState()
+      const next = p.theme === 'dark' ? 'light' : 'dark'
+      p.SET_SINGLE_PREFERENCE('theme', next)
+    }
+  },
+  {
     id: 'view.text-direction',
     subcommands: [
       { id: 'view.text-direction-ltr', description: 'Left to Right', value: 'ltr' },
@@ -666,6 +678,210 @@ const commands: CommandDescriptor[] = [
     id: 'tabs.cycleBackward',
     execute: async () => {
       bus.emit('mt::tabs-cycle-left')
+    }
+  },
+
+  // --------------------------------------------------------------------------
+  // 对齐 marktext 菜单的补充命令（File / Edit / Paragraph / Format / Window / View / Theme / Help）
+  // --------------------------------------------------------------------------
+
+  // ---- File ----
+  {
+    id: 'file.import',
+    execute: async () => {
+      bus.emit('importDialog', true)
+    }
+  },
+  {
+    id: 'file.print',
+    execute: async () => {
+      console.warn('[command] print not supported (excluded by requirement)')
+    }
+  },
+
+  // ---- Edit ----
+  {
+    id: 'edit.cut',
+    execute: async () => {
+      bus.emit('cut', 'cut')
+    }
+  },
+  {
+    id: 'edit.copy',
+    execute: async () => {
+      bus.emit('copy', 'copy')
+    }
+  },
+  {
+    id: 'edit.paste',
+    execute: async () => {
+      bus.emit('paste', 'paste')
+    }
+  },
+  {
+    id: 'edit.copyAsRich',
+    execute: async () => {
+      focusEditorAndExecute(() => bus.emit('copyAsRich'))
+    }
+  },
+  {
+    id: 'edit.copyAsHtml',
+    execute: async () => {
+      focusEditorAndExecute(() => bus.emit('copyAsHtml'))
+    }
+  },
+  {
+    id: 'edit.pasteAsPlainText',
+    execute: async () => {
+      focusEditorAndExecute(() => bus.emit('pasteAsPlainText'))
+    }
+  },
+  {
+    id: 'edit.screenshot',
+    execute: async () => {
+      console.warn('[command] screenshot not supported on Windows')
+    }
+  },
+  {
+    id: 'edit.line-ending-crlf',
+    execute: async () => {
+      bus.emit('mt::set-line-ending', 'crlf')
+    }
+  },
+  {
+    id: 'edit.line-ending-lf',
+    execute: async () => {
+      bus.emit('mt::set-line-ending', 'lf')
+    }
+  },
+
+  // ---- Paragraph 补充 ----
+
+  // ---- Format 补充 ----
+
+  // ---- Window ----
+  {
+    id: 'window.zoomIn',
+    execute: async () => {
+      const { getCurrentWebview } = await import('@tauri-apps/api/webview')
+      zoomLevel = Math.min(2, zoomLevel + 0.1)
+      await getCurrentWebview().setZoom(zoomLevel)
+    }
+  },
+  {
+    id: 'window.zoomOut',
+    execute: async () => {
+      const { getCurrentWebview } = await import('@tauri-apps/api/webview')
+      zoomLevel = Math.max(0.5, zoomLevel - 0.1)
+      await getCurrentWebview().setZoom(zoomLevel)
+    }
+  },
+
+  // ---- View 补充 ----
+  {
+    id: 'view.command-palette',
+    execute: async () => {
+      bus.emit('show-command-palette')
+    }
+  },
+  {
+    id: 'view.toggle-toc',
+    execute: async () => {
+      const { useLayoutStore } = await import('../store/layout')
+      const s = useLayoutStore.getState()
+      s.SET_LAYOUT({ rightColumn: s.rightColumn === 'toc' ? 'files' : 'toc', showSideBar: true })
+    }
+  },
+  {
+    id: 'view.reload-images',
+    execute: async () => {
+      bus.emit('invalidate-image-cache')
+    }
+  },
+  {
+    id: 'view.toggle-dev-tools',
+    execute: async () => {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window')
+      const w = getCurrentWindow() as unknown as { openDevTools?: () => Promise<void> }
+      await w.openDevTools?.()
+    }
+  },
+  {
+    id: 'view.dev-reload',
+    execute: async () => {
+      window.location.reload()
+    }
+  },
+
+  // ---- Theme ----
+  {
+    id: 'theme.follow-system-theme',
+    execute: async () => {
+      const { usePreferencesStore } = await import('../store/preferences')
+      const p = usePreferencesStore.getState()
+      p.SET_SINGLE_PREFERENCE('followSystemTheme', !p.followSystemTheme)
+    }
+  },
+
+  // ---- Help ----
+  {
+    id: 'help.markdown-reference',
+    execute: async () => {
+      await openUrl('https://marktext.me/docs/markdown-syntax')
+    }
+  },
+  {
+    id: 'help.changelog',
+    execute: async () => {
+      await openUrl('https://github.com/marktext/marktext/releases')
+    }
+  },
+  {
+    id: 'help.follow-us',
+    execute: async () => {
+      await openUrl('https://twitter.com/marktextapp')
+    }
+  },
+  {
+    id: 'help.support',
+    execute: async () => {
+      await openUrl('https://github.com/marktext/marktext')
+    }
+  },
+  {
+    id: 'help.ask-question',
+    execute: async () => {
+      await openUrl('https://github.com/marktext/marktext/discussions')
+    }
+  },
+  {
+    id: 'help.report-bug',
+    execute: async () => {
+      await openUrl('https://github.com/marktext/marktext/issues')
+    }
+  },
+  {
+    id: 'help.view-source',
+    execute: async () => {
+      await openUrl('https://github.com/marktext/marktext')
+    }
+  },
+  {
+    id: 'help.license',
+    execute: async () => {
+      await openUrl('https://github.com/marktext/marktext/blob/develop/LICENSE')
+    }
+  },
+  {
+    id: 'help.check-updates',
+    execute: async () => {
+      bus.emit('check-update')
+    }
+  },
+  {
+    id: 'help.about',
+    execute: async () => {
+      bus.emit('aboutDialog')
     }
   }
 ]

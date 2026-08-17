@@ -14,7 +14,7 @@ export default function Tabs() {
   const { showTabBar } = layoutStore;
   const { openedFilesInSidebar } = preferencesStore;
 
-  if (!showTabBar || tabs.length <= 1) return null;
+  if (!showTabBar) return null;
 
   const tabMenu = (id: string, pathname: string | null): ContextMenuItem[] => [
     { id: 'close', label: 'Close' },

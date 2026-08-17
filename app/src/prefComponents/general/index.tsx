@@ -38,12 +38,6 @@ export default function General() {
 
       <Separator />
       <h3>Window</h3>
-      <SelectInput
-        title="Title Bar Style"
-        value={p.titleBarStyle}
-        options={[{ label: 'Custom', value: 'custom' }, { label: 'Native', value: 'native' }]}
-        onChange={(v) => p.SET_SINGLE_PREFERENCE('titleBarStyle', v)}
-      />
       <BoolInput title="Hide scrollbars" value={p.hideScrollbar} onChange={(v) => p.SET_SINGLE_PREFERENCE('hideScrollbar', v)} />
       <BoolInput title="Open files in new window" value={p.openFilesInNewWindow} onChange={(v) => p.SET_SINGLE_PREFERENCE('openFilesInNewWindow', v)} />
       <RangeInput title="Zoom" value={p.zoom} min={0.5} max={2} step={0.1} onChange={(v) => p.SET_SINGLE_PREFERENCE('zoom', v)} />

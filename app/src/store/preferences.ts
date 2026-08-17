@@ -17,6 +17,8 @@ export type FrontmatterType = '-' | ';' | '{' | '+'
 export type SequenceTheme = 'hand' | 'simple'
 export type ImageInsertAction = 'folder' | 'path' | 'upload'
 export type ImageRelativeDirectoryBase = 'file' | 'root'
+export type EditorBackgroundPosition = 'top-left' | 'top' | 'top-right' | 'left' | 'center' | 'right' | 'bottom-left' | 'bottom' | 'bottom-right'
+export type EditorBackgroundFit = 'cover' | 'contain' | 'stretch' | 'tile'
 
 export interface PreferencesState {
   // ----- General -----
@@ -85,6 +87,10 @@ export interface PreferencesState {
   lightModeTheme: string
   darkModeTheme: string
   customCss: string
+  editorBackgroundImage: string
+  editorBackgroundPosition: EditorBackgroundPosition
+  editorBackgroundFit: EditorBackgroundFit
+  editorBackgroundOpacity: number
 
   // ----- Spellchecker -----
   spellcheckerEnabled: boolean
@@ -127,7 +133,7 @@ export interface ModeTogglePayload {
 const DEFAULT_STATE: PreferencesState = {
   autoSave: false,
   autoSaveDelay: 5000,
-  titleBarStyle: 'custom',
+  titleBarStyle: 'native',
   openFilesInNewWindow: false,
   openFolderInNewWindow: false,
   zoom: 1.0,
@@ -188,6 +194,10 @@ const DEFAULT_STATE: PreferencesState = {
   lightModeTheme: 'light',
   darkModeTheme: 'dark',
   customCss: '',
+  editorBackgroundImage: '',
+  editorBackgroundPosition: 'center',
+  editorBackgroundFit: 'cover',
+  editorBackgroundOpacity: 0.2,
 
   spellcheckerEnabled: false,
   spellcheckerNoUnderline: false,
@@ -230,7 +240,11 @@ const RUST_SETTINGS_MAP: Record<string, keyof PreferencesState> = {
   tab_size: 'tabSize',
   auto_save: 'autoSave',
   show_file_tree: 'sideBarVisibility',
-  last_workspace: 'lastOpenedFolder'
+  last_workspace: 'lastOpenedFolder',
+  editor_background_image: 'editorBackgroundImage',
+  editor_background_position: 'editorBackgroundPosition',
+  editor_background_fit: 'editorBackgroundFit',
+  editor_background_opacity: 'editorBackgroundOpacity'
 }
 
 const fromRustSettings = (rust: Record<string, unknown>): Partial<PreferencesState> => {
@@ -320,7 +334,9 @@ export const usePreferencesStore = create<PreferencesStateShape>((set, get) => (
   ASK_FOR_USER_PREFERENCE: async () => {
     try {
       const rust = (await invoke<Record<string, unknown>>('get_settings')) ?? {}
-      get().SET_USER_PREFERENCE(fromRustSettings(rust))
+      const preference = fromRustSettings(rust)
+      get().SET_USER_PREFERENCE(preference)
+      await setLanguage(preference.language ?? get().language)
     } catch (err) {
       console.error('[preferences] get_settings 读取失败:', err)
     }

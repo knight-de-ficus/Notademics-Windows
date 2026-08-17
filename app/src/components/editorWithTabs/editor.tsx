@@ -123,6 +123,24 @@ export default function Editor({ markdown, cursor, textDirection }: EditorProps)
       console.error('format failed:', type, e);
     }
   }, []);
+
+  // 复制为富文本 / HTML / 粘贴纯文本（对齐 marktext handleCopyPaste）
+  const handleCopyPaste = useCallback((type: string) => {
+    const muya = editorRef.current?.getMuya();
+    if (!muya) return;
+    const ops = muya as unknown as {
+      copyAsRich?: () => void
+      copyAsHtml?: () => void
+      pasteAsPlainText?: () => void
+    };
+    try {
+      if (type === 'copyAsRich') ops.copyAsRich?.();
+      else if (type === 'copyAsHtml') ops.copyAsHtml?.();
+      else if (type === 'pasteAsPlainText') ops.pasteAsPlainText?.();
+    } catch (e) {
+      console.error('copy/paste failed:', type, e);
+    }
+  }, []);
   const handleSearch = useCallback((payload: unknown) => {
     const muya = editorRef.current?.getMuya();
     if (!muya) return;
@@ -193,6 +211,12 @@ export default function Editor({ markdown, cursor, textDirection }: EditorProps)
     bus.on('selectAll', handleSelectAll);
     bus.on('paragraph', (payload) => handleParagraph(String(payload)));
     bus.on('format', (payload) => handleFormat(String(payload)));
+    bus.on('copyAsRich', () => handleCopyPaste('copyAsRich'));
+    bus.on('copyAsHtml', () => handleCopyPaste('copyAsHtml'));
+    bus.on('pasteAsPlainText', () => handleCopyPaste('pasteAsPlainText'));
+    bus.on('cut', () => editorRef.current?.cut());
+    bus.on('copy', () => editorRef.current?.copy());
+    bus.on('paste', () => editorRef.current?.paste());
     bus.on('searchValue', handleSearch);
     bus.on('replaceValue', handReplace);
     bus.on('find-action', handleFindAction);

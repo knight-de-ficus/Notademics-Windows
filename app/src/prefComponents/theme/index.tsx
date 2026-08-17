@@ -1,6 +1,8 @@
 // Theme 偏好页 —— 对齐 marktext prefComponents/theme。
 import { usePreferencesStore } from '../../store/preferences';
 import { BoolInput, SelectInput, TextAreaInput, Separator } from '../common';
+import { RangeInput, TextBoxInput } from '../common';
+import { open } from '@tauri-apps/plugin-dialog';
 
 const THEMES = [
   'light', 'dark', 'graphite', 'material-dark', 'one-dark', 'ulysses',
@@ -51,6 +53,46 @@ export default function Theme() {
           ))}
         </div>
       )}
+
+      <Separator />
+      <h3>Editor background</h3>
+      <TextBoxInput
+        title="Image path"
+        description="Choose a local image used behind the editor and home page."
+        value={p.editorBackgroundImage}
+        onChange={(v) => p.SET_SINGLE_PREFERENCE('editorBackgroundImage', v)}
+      />
+      <div className="background-image-actions">
+        <button type="button" onClick={() => {
+          void open({ multiple: false, filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'svg'] }] })
+            .then((path) => {
+              if (typeof path === 'string') p.SET_SINGLE_PREFERENCE('editorBackgroundImage', path)
+            })
+        }}>Choose image…</button>
+        <button type="button" disabled={!p.editorBackgroundImage} onClick={() => p.SET_SINGLE_PREFERENCE('editorBackgroundImage', '')}>Clear</button>
+      </div>
+      <SelectInput
+        title="Alignment"
+        value={p.editorBackgroundPosition}
+        options={[
+          ['Top left', 'top-left'], ['Top', 'top'], ['Top right', 'top-right'],
+          ['Left', 'left'], ['Center', 'center'], ['Right', 'right'],
+          ['Bottom left', 'bottom-left'], ['Bottom', 'bottom'], ['Bottom right', 'bottom-right']
+        ].map(([label, value]) => ({ label, value }))}
+        onChange={(v) => p.SET_SINGLE_PREFERENCE('editorBackgroundPosition', v)}
+      />
+      <SelectInput
+        title="Fill mode"
+        value={p.editorBackgroundFit}
+        options={[
+          { label: 'Fill (cover)', value: 'cover' },
+          { label: 'Fit (contain)', value: 'contain' },
+          { label: 'Stretch', value: 'stretch' },
+          { label: 'Tile', value: 'tile' }
+        ]}
+        onChange={(v) => p.SET_SINGLE_PREFERENCE('editorBackgroundFit', v)}
+      />
+      <RangeInput title="Opacity" value={p.editorBackgroundOpacity} min={0} max={1} step={0.05} onChange={(v) => p.SET_SINGLE_PREFERENCE('editorBackgroundOpacity', v)} />
 
       <Separator />
       <TextAreaInput title="Custom CSS" value={p.customCss} onChange={(v) => p.SET_SINGLE_PREFERENCE('customCss', v)} />

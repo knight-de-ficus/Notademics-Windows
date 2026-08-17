@@ -19,6 +19,12 @@ export const loadedLanguages = new Set([
 
 const { languages } = components;
 
+// Vite cannot analyse a template-string dynamic import. A glob produces the
+// same lazy modules while giving the bundler a finite, statically-known set.
+const prismComponents = import.meta.glob(
+    '../../../node_modules/prismjs/components/prism-*.js',
+);
+
 // Look for the origin language by alias
 export function transformAliasToOrigin(langs: string[]) {
     const result = [];
@@ -91,9 +97,13 @@ function initLoadLanguage(Prism: IPrismLike) {
                 return;
             }
             delete Prism.languages[lang];
-            await import(
-                `../../../node_modules/prismjs/components/prism-${lang}.js`,
-            );
+            const componentPath = `../../../node_modules/prismjs/components/prism-${lang}.js`;
+            const load = prismComponents[componentPath];
+            if (!load) {
+                statuses.push({ lang, status: 'noexist' });
+                return;
+            }
+            await load();
             loadedLanguages.add(lang);
             statuses.push({ lang, status: 'loaded' });
         };

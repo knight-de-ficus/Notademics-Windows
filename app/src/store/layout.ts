@@ -51,8 +51,8 @@ interface LayoutState extends LayoutPartial {
 
 export const useLayoutStore = create<LayoutState>((set, get) => ({
   rightColumn: 'files',
-  showSideBar: false,
-  showTabBar: false,
+  showSideBar: true,
+  showTabBar: true,
   sideBarWidth: initialSideBarWidth,
 
   SET_LAYOUT: (layout) => {

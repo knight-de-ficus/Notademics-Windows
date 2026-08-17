@@ -25,6 +25,10 @@ pub struct Settings {
     pub show_file_tree: bool,
     /// 上次打开的工作区目录
     pub last_workspace: Option<String>,
+    pub editor_background_image: String,
+    pub editor_background_position: String,
+    pub editor_background_fit: String,
+    pub editor_background_opacity: f64,
 }
 
 impl Default for Settings {
@@ -38,6 +42,10 @@ impl Default for Settings {
             auto_save: false,
             show_file_tree: true,
             last_workspace: None,
+            editor_background_image: String::new(),
+            editor_background_position: "center".into(),
+            editor_background_fit: "cover".into(),
+            editor_background_opacity: 0.2,
         }
     }
 }
