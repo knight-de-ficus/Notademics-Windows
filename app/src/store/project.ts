@@ -32,9 +32,6 @@ interface CreateCacheEntry {
 
 const PATH_SEPARATOR = '\\' // Windows 平台
 
-/** 递归构建深度上限，避免巨目录导致大量 list_dir 往返 */
-const MAX_DEPTH = 10
-
 const basename = (p: string): string => {
   const normalized = p.replace(/\\/g, '/')
   const parts = normalized.split('/')
@@ -49,7 +46,7 @@ const dirname = (p: string): string => {
 
 const hasMarkdownExtension = (name: string): boolean => /\.(md|mdx|markdown|mdown|mkd)$/i.test(name)
 
-const buildTree = async (path: string, depth = 0): Promise<TreeNode> => {
+const buildTree = async (path: string): Promise<TreeNode> => {
   const node: TreeNode = {
     name: basename(path) || path,
     path,
@@ -57,21 +54,15 @@ const buildTree = async (path: string, depth = 0): Promise<TreeNode> => {
     opened: true,
     children: []
   }
-  if (depth >= MAX_DEPTH) {
-    console.warn(`[project] 目录过深（超过 ${MAX_DEPTH} 层），停止展开: ${path}`)
-    return node
-  }
-
   try {
     const entries = await listDir(path)
-    node.children = await Promise.all(
-      entries.map(async (e) => {
-        if (e.is_dir) {
-          return buildTree(e.path, depth + 1)
-        }
-        return { name: e.name, path: e.path, isDirectory: false }
-      })
-    )
+    node.children = entries.map((entry) => ({
+      name: entry.name,
+      path: entry.path,
+      isDirectory: entry.is_dir,
+      opened: false,
+      children: entry.is_dir ? undefined : []
+    }))
   } catch (err) {
     console.error(`[project] list_dir 失败: ${path}`, err)
   }

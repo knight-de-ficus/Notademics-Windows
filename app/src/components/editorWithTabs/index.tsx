@@ -26,11 +26,19 @@ export default function EditorWithTabs() {
     >
       <Tabs />
       <div className="container">
-        <Editor
-          markdown={currentFile.markdown}
-          textDirection={preferencesStore.textDirection}
-        />
-        {sourceCode && <SourceCode markdown={currentFile.markdown} textDirection={preferencesStore.textDirection} />}
+        <div className={`editor-mode-pane${sourceCode ? ' mode-pane-hidden' : ''}`}>
+          <Editor
+            markdown={currentFile.markdown}
+            textDirection={preferencesStore.textDirection}
+          />
+        </div>
+        <div className={`source-mode-pane${sourceCode ? '' : ' mode-pane-hidden'}`}>
+          <SourceCode
+            active={sourceCode}
+            markdown={currentFile.markdown}
+            textDirection={preferencesStore.textDirection}
+          />
+        </div>
       </div>
     </div>
   );

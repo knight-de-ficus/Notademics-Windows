@@ -1,5 +1,5 @@
-// 通知样式 —— 复制自 marktext src/services/notification/index.css（去嵌套语法，纯 CSS）。
-// 颜色变量（--notificationPrimaryBg 等）定义于 src/styles/marktext/index.css。
+/* 通知样式 —— 复制自 marktext src/services/notification/index.css（去嵌套语法，纯 CSS）。 */
+/* 颜色变量（--notificationPrimaryBg 等）定义于 src/styles/marktext/index.css。 */
 
 .mt-notification {
   position: fixed;

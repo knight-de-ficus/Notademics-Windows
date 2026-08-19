@@ -38,8 +38,11 @@ export default function FindBar({ editorRef }: FindBarProps) {
     bus.on('find-bar-close', close);
     return () => {
       if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+      bus.off('find', open);
+      bus.off('replace', open);
+      bus.off('find-bar-open', open);
+      bus.off('find-bar-close', close);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getMuya = (): ReturnType<MuyaEditorHandle['getMuya']> => editorRef.current?.getMuya() ?? null;

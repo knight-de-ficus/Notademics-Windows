@@ -61,7 +61,6 @@ const FALLBACK: Messages = {
   'commands.file.preferences': 'Preferences',
   'commands.edit.undo': 'Undo',
   'commands.edit.redo': 'Redo',
-  'commands.edit.duplicate': 'Duplicate',
   'commands.edit.createParagraph': 'Create Paragraph',
   'commands.edit.deleteParagraph': 'Delete Paragraph',
   'commands.edit.find': 'Find',

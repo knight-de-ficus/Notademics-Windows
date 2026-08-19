@@ -7,12 +7,16 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import bus from '../bus'
 import staticCommands, {
   RootCommand,
+  commandRequiresDocument,
   getCommandsWithDescriptions,
   type CommandDescriptor
 } from '../commands'
+import { useEditorStore } from './editor'
 
 type Command = CommandDescriptor
 type Root = { subcommands: Command[] }
+
+let listenersRegistered = false
 
 interface CommandCenterState {
   rootCommand: Root
@@ -42,6 +46,9 @@ export const useCommandCenterStore = create<CommandCenterState>((set, get) => ({
     // 初始加载：用带描述的完整命令列表替换静态列表，再按描述排序
     set({ rootCommand: { subcommands: await getCommandsWithDescriptions() } })
     get().SORT_COMMANDS()
+
+    if (listenersRegistered) return () => {}
+    listenersRegistered = true
 
     // mitt 的 on 不返回退订函数，无需收集；仅收集 Tauri listen 的退订
     // 语言切换后命令描述需要重新翻译
@@ -76,14 +83,9 @@ export const useCommandCenterStore = create<CommandCenterState>((set, get) => ({
 }))
 
 const executeCommand = (root: Root, commandId: string): void => {
+  if (commandRequiresDocument(commandId) && !useEditorStore.getState().currentFile) return
+
   const { subcommands } = root
-  if (commandId.startsWith('window.change-theme-')) {
-    const theme = commandId.substring('window.change-theme-'.length)
-    import('./preferences').then(({ usePreferencesStore }) => {
-      usePreferencesStore.getState().SET_SINGLE_PREFERENCE('theme', theme)
-    })
-    return
-  }
   if (commandId.startsWith('window.change-theme-')) {
     const theme = commandId.substring('window.change-theme-'.length)
     import('./preferences').then(({ usePreferencesStore }) => {

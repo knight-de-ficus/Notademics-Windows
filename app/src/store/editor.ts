@@ -124,6 +124,15 @@ const adjustTrailingNewlines = (markdown: string, trimTrailingNewlineOption: num
   }
 }
 
+const serializeMarkdown = (
+  markdown: string,
+  lineEnding: string,
+  trimTrailingNewline: number
+): string => {
+  const normalized = adjustTrailingNewlines(markdown.replace(/\r\n|\r/g, '\n'), trimTrailingNewline)
+  return lineEnding.toLowerCase() === 'crlf' ? normalized.replace(/\n/g, '\r\n') : normalized
+}
+
 const basename = (p: string): string => {
   const parts = p.replace(/\\/g, '/').split('/')
   return parts[parts.length - 1] || p
@@ -201,6 +210,7 @@ export interface EditorActions {
   SET_SAVE_STATUS_WHEN_REMOVE: (ids: { pathname: string }) => void
   FILE_SAVE: () => Promise<void>
   FILE_SAVE_AS: () => Promise<void>
+  SET_LINE_ENDING: (lineEnding: LineEnding) => void
   HANDLE_AUTO_SAVE: (payload: AutoSavePayload) => void
   ASK_FOR_SAVE_ALL: (closeTabs: boolean) => Promise<void>
   UPDATE_TOC: (toc: TocItem[]) => void
@@ -577,9 +587,13 @@ export const useEditorStore = create<EditorStore>()((set, get) => {
         return get().FILE_SAVE_AS()
       }
 
-      const { id, pathname, markdown, encoding } = file
+      const { id, pathname, markdown, encoding, lineEnding, trimTrailingNewline } = file
       try {
-        await writeFile(pathname, markdown, encoding.encoding)
+        await writeFile(
+          pathname,
+          serializeMarkdown(markdown, lineEnding, trimTrailingNewline),
+          encoding.encoding
+        )
         markTabSaved(id)
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
@@ -614,7 +628,11 @@ export const useEditorStore = create<EditorStore>()((set, get) => {
         })
         if (!target || typeof target !== 'string') return
 
-        await writeFile(target, file.markdown, file.encoding.encoding)
+        await writeFile(
+          target,
+          serializeMarkdown(file.markdown, file.lineEnding, file.trimTrailingNewline),
+          file.encoding.encoding
+        )
         updateTab(file.id, (tab) => {
           tab.pathname = target
           tab.filename = basename(target)
@@ -644,7 +662,11 @@ export const useEditorStore = create<EditorStore>()((set, get) => {
         autoSaveTimers.delete(id)
         const tab = get().tabs.find((f) => f.id === id)
         if (tab && !tab.isSaved) {
-          void writeFile(pathname, markdown, options.encoding.encoding)
+          void writeFile(
+            pathname,
+            serializeMarkdown(markdown, options.lineEnding, options.trimTrailingNewline),
+            options.encoding.encoding
+          )
             .then(() => {
               markTabSaved(id)
             })
@@ -666,7 +688,11 @@ export const useEditorStore = create<EditorStore>()((set, get) => {
           .filter((file) => file.pathname)
           .map(async (file) => {
             try {
-              await writeFile(file.pathname, file.markdown, file.encoding.encoding)
+              await writeFile(
+                file.pathname,
+                serializeMarkdown(file.markdown, file.lineEnding, file.trimTrailingNewline),
+                file.encoding.encoding
+              )
               markTabSaved(file.id)
             } catch (err) {
               console.error('ASK_FOR_SAVE_ALL failed:', file.pathname, err)
@@ -677,6 +703,16 @@ export const useEditorStore = create<EditorStore>()((set, get) => {
       if (closeTabs) {
         get().CLOSE_ALL_TABS()
       }
+    },
+
+    SET_LINE_ENDING: (lineEnding) => {
+      const file = get().currentFile
+      if (!file) return
+      updateTab(file.id, (tab) => {
+        tab.lineEnding = lineEnding
+        tab.adjustLineEndingOnSave = lineEnding === 'crlf'
+        tab.isSaved = false
+      })
     },
 
     // ------------------------------------------------------------------

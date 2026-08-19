@@ -5,8 +5,10 @@
 import bus from '../bus'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { openUrl } from '@tauri-apps/plugin-opener'
+import { readText } from '@tauri-apps/plugin-clipboard-manager'
 import { t } from '../i18n'
 import { usePreferencesStore } from '../store/preferences'
+import { useLayoutStore } from '../store/layout'
 
 // 窗口缩放级别（zoomIn/zoomOut 用；Tauri 2 的 Webview.setZoom 需要显式因子）
 let zoomLevel = 1.0
@@ -72,18 +74,28 @@ const COMMAND_KEY_MAP: Record<string, string> = {
   'file.toggle-auto-save': 'commands.file.toggleAutoSave',
   'file.move-file': 'commands.file.moveFile',
   'file.rename-file': 'commands.file.renameFile',
-  'file.export-file': 'commands.file.exportFile',
+  'file.import': 'commands.file.importFile',
   'file.zoom': 'commands.file.zoom',
   'file.preferences': 'commands.file.preferences',
   'file.quit': 'commands.file.quit',
   'edit.undo': 'commands.edit.undo',
   'edit.redo': 'commands.edit.redo',
-  'edit.duplicate': 'commands.edit.duplicate',
+  'edit.cut': 'commands.edit.cut',
+  'edit.copy': 'commands.edit.copy',
+  'edit.paste': 'commands.edit.paste',
+  'edit.copyAsRich': 'commands.edit.copyAsRich',
+  'edit.copyAsHtml': 'commands.edit.copyAsHtml',
+  'edit.pasteAsPlainText': 'commands.edit.pasteAsPlaintext',
+  'edit.selectAll': 'commands.edit.selectAll',
   'edit.create-paragraph': 'commands.edit.createParagraph',
   'edit.delete-paragraph': 'commands.edit.deleteParagraph',
   'edit.find': 'commands.edit.find',
+  'edit.findNext': 'commands.edit.findNext',
+  'edit.findPrevious': 'commands.edit.findPrevious',
   'edit.replace': 'commands.edit.replace',
   'edit.find-in-folder': 'commands.edit.findInFolder',
+  'edit.line-ending-crlf': 'menu.edit.lineEndingCrlf',
+  'edit.line-ending-lf': 'menu.edit.lineEndingLf',
   'paragraph.heading-1': 'commands.paragraph.heading1',
   'paragraph.heading-2': 'commands.paragraph.heading2',
   'paragraph.heading-3': 'commands.paragraph.heading3',
@@ -118,16 +130,24 @@ const COMMAND_KEY_MAP: Record<string, string> = {
   'format.image': 'commands.format.image',
   'format.clear-format': 'commands.format.clearFormat',
   'window.minimize': 'commands.window.minimize',
+  'window.zoomIn': 'commands.window.zoomIn',
+  'window.zoomOut': 'commands.window.zoomOut',
   'window.toggle-always-on-top': 'commands.window.toggleAlwaysOnTop',
   'window.toggle-full-screen': 'commands.window.toggleFullScreen',
   'window.change-theme': 'commands.window.changeTheme',
   'view.source-code-mode': 'commands.view.sourceCodeMode',
-  'view.typewriter-mode': 'commands.view.typewriterMode',
-  'view.focus-mode': 'commands.view.focusMode',
+  'view.command-palette': 'commands.view.commandPalette',
   'view.toggle-sidebar': 'commands.view.toggleSidebar',
+  'view.toggle-toc': 'commands.view.toggleToc',
   'view.toggle-tabbar': 'commands.view.toggleTabbar',
+  'view.reload-images': 'commands.view.reloadImages',
+  'view.toggle-dev-tools': 'commands.view.toggleDevTools',
+  'view.dev-reload': 'commands.view.devReload',
   'view.text-direction': 'commands.view.textDirection',
-  'docs.user-guide': 'commands.docs.userGuide',
+  'theme.follow-system-theme': 'preferences.theme.followSystemTheme',
+  'help.markdown-reference': 'menu.help.markdownReference',
+  'help.view-source': 'menu.help.viewSource',
+  'help.about': 'menu.Notademics.about',
   'docs.markdown-syntax': 'commands.docs.markdownSyntax',
   'tabs.cycleForward': 'commands.tabs.cycleForward',
   'tabs.cycleBackward': 'commands.tabs.cycleBackward'
@@ -144,6 +164,14 @@ export const getCommandDescriptionById = (id: string): string => {
   return translated === key ? id : translated
 }
 
+/** Commands that have no meaningful target until an editor tab is open. */
+export const commandRequiresDocument = (id: string): boolean =>
+  id.startsWith('edit.') ||
+  id.startsWith('paragraph.') ||
+  id.startsWith('format.') ||
+  id === 'view.source-code-mode' ||
+  ['file.save', 'file.save-as', 'file.move-file', 'file.rename-file', 'file.close-tab'].includes(id)
+
 const commands: CommandDescriptor[] = [
   // --------------------------------------------------------------------------
   // File
@@ -153,13 +181,6 @@ const commands: CommandDescriptor[] = [
     id: 'file.new-tab',
     execute: async () => {
       bus.emit('mt::new-untitled-tab', { selected: true, markdown: '' })
-    }
-  },
-  {
-    id: 'file.new-window',
-    execute: async () => {
-      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
-      new WebviewWindow(`main-${Date.now()}`, { url: window.location.pathname })
     }
   },
   {
@@ -243,27 +264,6 @@ const commands: CommandDescriptor[] = [
     }
   },
   {
-    id: 'file.export-file',
-    subcommands: [
-      {
-        id: 'file.export-file-html',
-        description: 'Export as HTML',
-        execute: async () => {
-          await delay(50)
-          bus.emit('showExportDialog', 'styledHtml')
-        }
-      },
-      {
-        id: 'file.export-file-pdf',
-        description: 'Export as PDF',
-        execute: async () => {
-          await delay(50)
-          bus.emit('showExportDialog', 'pdf')
-        }
-      }
-    ]
-  },
-  {
     id: 'file.zoom',
     shortcut: ['Ctrl', 'Scroll'],
     subcommands: [
@@ -319,12 +319,6 @@ const commands: CommandDescriptor[] = [
     }
   },
   {
-    id: 'edit.duplicate',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('duplicate', 'duplicate'))
-    }
-  },
-  {
     id: 'edit.create-paragraph',
     execute: async () => {
       focusEditorAndExecute(() => bus.emit('createParagraph', 'createParagraph'))
@@ -370,6 +364,12 @@ const commands: CommandDescriptor[] = [
       focusEditorAndExecute(() => bus.emit('selectAll', 'selectAll'))
     }
   },
+  {
+    id: 'edit.find-in-folder',
+    execute: async () => {
+      useLayoutStore.getState().SET_LAYOUT({ rightColumn: 'search', showSideBar: true })
+    }
+  },
 
   // --------------------------------------------------------------------------
   // Paragraph
@@ -413,8 +413,6 @@ const commands: CommandDescriptor[] = [
   },
   { id: 'paragraph.upgrade-heading', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'upgrade heading')) },
   { id: 'paragraph.degrade-heading', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'degrade heading')) },
-  { id: 'paragraph.upgrade-heading', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'upgrade heading')) },
-  { id: 'paragraph.degrade-heading', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'degrade heading')) },
   {
     id: 'paragraph.table',
     execute: async () => {
@@ -440,7 +438,6 @@ const commands: CommandDescriptor[] = [
     }
   },
   { id: 'paragraph.html-block', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'html')) },
-  { id: 'paragraph.html-block', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'html')) },
   {
     id: 'paragraph.order-list',
     execute: async () => {
@@ -459,8 +456,6 @@ const commands: CommandDescriptor[] = [
       focusEditorAndExecute(() => bus.emit('paragraph', 'ul-task'))
     }
   },
-  { id: 'paragraph.loose-list-item', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'loose-list-item')) },
-  { id: 'paragraph.front-matter', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'frontmatter')) },
   { id: 'paragraph.loose-list-item', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'loose-list-item')) },
   { id: 'paragraph.front-matter', execute: async () => focusEditorAndExecute(() => bus.emit('paragraph', 'frontmatter')) },
   {
@@ -498,10 +493,6 @@ const commands: CommandDescriptor[] = [
       focusEditorAndExecute(() => bus.emit('format', 'em'))
     }
   },
-  { id: 'format.underline', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'u')) },
-  { id: 'format.superscript', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'sup')) },
-  { id: 'format.subscript', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'sub')) },
-  { id: 'format.highlight', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'mark')) },
   { id: 'format.underline', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'u')) },
   { id: 'format.superscript', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'sup')) },
   { id: 'format.subscript', execute: async () => focusEditorAndExecute(() => bus.emit('format', 'sub')) },
@@ -563,22 +554,6 @@ const commands: CommandDescriptor[] = [
     }
   },
 
-  { id: 'window.minimize', execute: async () => getCurrentWindow().minimize() },
-  {
-    id: 'window.toggle-always-on-top',
-    execute: async () => {
-      const win = getCurrentWindow()
-      await win.setAlwaysOnTop(!(await win.isAlwaysOnTop()))
-    }
-  },
-  {
-    id: 'window.toggle-full-screen',
-    execute: async () => {
-      const win = getCurrentWindow()
-      await win.setFullscreen(!(await win.isFullscreen()))
-    }
-  },
-
   {
     id: 'window.change-theme',
     subcommands: [
@@ -601,39 +576,19 @@ const commands: CommandDescriptor[] = [
   {
     id: 'view.source-code-mode',
     execute: async () => {
-      bus.emit('view:toggle-view-entry', 'sourceCode')
-    }
-  },
-  {
-    id: 'view.typewriter-mode',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('view:toggle-view-entry', 'typewriter'))
-    }
-  },
-  {
-    id: 'view.focus-mode',
-    execute: async () => {
-      focusEditorAndExecute(() => bus.emit('view:toggle-view-entry', 'focus'))
+      usePreferencesStore.getState().TOGGLE_VIEW_MODE('sourceCode')
     }
   },
   {
     id: 'view.toggle-sidebar',
     execute: async () => {
-      bus.emit('view:toggle-layout-entry', 'showSideBar')
+      useLayoutStore.getState().TOGGLE_LAYOUT_ENTRY('showSideBar')
     }
   },
   {
     id: 'view.toggle-tabbar',
     execute: async () => {
-      bus.emit('view:toggle-layout-entry', 'showTabBar')
-    }
-  },
-  {
-    id: 'view.toggleTheme',
-    execute: async () => {
-      const p = usePreferencesStore.getState()
-      const next = p.theme === 'dark' ? 'light' : 'dark'
-      p.SET_SINGLE_PREFERENCE('theme', next)
+      useLayoutStore.getState().TOGGLE_LAYOUT_ENTRY('showTabBar')
     }
   },
   {
@@ -652,15 +607,9 @@ const commands: CommandDescriptor[] = [
   // --------------------------------------------------------------------------
 
   {
-    id: 'docs.user-guide',
-    execute: async () => {
-      await openUrl('https://marktext.me/docs/basics')
-    }
-  },
-  {
     id: 'docs.markdown-syntax',
     execute: async () => {
-      await openUrl('https://marktext.me/docs/markdown-syntax')
+      await openUrl('https://www.markdownguide.org/basic-syntax/')
     }
   },
 
@@ -692,13 +641,6 @@ const commands: CommandDescriptor[] = [
       bus.emit('importDialog', true)
     }
   },
-  {
-    id: 'file.print',
-    execute: async () => {
-      console.warn('[command] print not supported (excluded by requirement)')
-    }
-  },
-
   // ---- Edit ----
   {
     id: 'edit.cut',
@@ -715,7 +657,8 @@ const commands: CommandDescriptor[] = [
   {
     id: 'edit.paste',
     execute: async () => {
-      bus.emit('paste', 'paste')
+      const text = await readText()
+      if (text) focusEditorAndExecute(() => bus.emit('insert-text-at-cursor', text))
     }
   },
   {
@@ -733,25 +676,22 @@ const commands: CommandDescriptor[] = [
   {
     id: 'edit.pasteAsPlainText',
     execute: async () => {
-      focusEditorAndExecute(() => bus.emit('pasteAsPlainText'))
-    }
-  },
-  {
-    id: 'edit.screenshot',
-    execute: async () => {
-      console.warn('[command] screenshot not supported on Windows')
+      const text = await readText()
+      if (text) focusEditorAndExecute(() => bus.emit('insert-text-at-cursor', text))
     }
   },
   {
     id: 'edit.line-ending-crlf',
     execute: async () => {
-      bus.emit('mt::set-line-ending', 'crlf')
+      const { useEditorStore } = await import('../store/editor')
+      useEditorStore.getState().SET_LINE_ENDING('crlf')
     }
   },
   {
     id: 'edit.line-ending-lf',
     execute: async () => {
-      bus.emit('mt::set-line-ending', 'lf')
+      const { useEditorStore } = await import('../store/editor')
+      useEditorStore.getState().SET_LINE_ENDING('lf')
     }
   },
 
@@ -827,55 +767,13 @@ const commands: CommandDescriptor[] = [
   {
     id: 'help.markdown-reference',
     execute: async () => {
-      await openUrl('https://marktext.me/docs/markdown-syntax')
-    }
-  },
-  {
-    id: 'help.changelog',
-    execute: async () => {
-      await openUrl('https://github.com/marktext/marktext/releases')
-    }
-  },
-  {
-    id: 'help.follow-us',
-    execute: async () => {
-      await openUrl('https://twitter.com/marktextapp')
-    }
-  },
-  {
-    id: 'help.support',
-    execute: async () => {
-      await openUrl('https://github.com/marktext/marktext')
-    }
-  },
-  {
-    id: 'help.ask-question',
-    execute: async () => {
-      await openUrl('https://github.com/marktext/marktext/discussions')
-    }
-  },
-  {
-    id: 'help.report-bug',
-    execute: async () => {
-      await openUrl('https://github.com/marktext/marktext/issues')
+      await openUrl('https://www.markdownguide.org/basic-syntax/')
     }
   },
   {
     id: 'help.view-source',
     execute: async () => {
-      await openUrl('https://github.com/marktext/marktext')
-    }
-  },
-  {
-    id: 'help.license',
-    execute: async () => {
-      await openUrl('https://github.com/marktext/marktext/blob/develop/LICENSE')
-    }
-  },
-  {
-    id: 'help.check-updates',
-    execute: async () => {
-      bus.emit('check-update')
+      await openUrl('https://github.com/knight-de-ficus/Notademics-Windows')
     }
   },
   {

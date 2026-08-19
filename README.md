@@ -1,77 +1,46 @@
 <div align="center">
 <img src="app/src-tauri/icons/icon-round.webp" width="96" />
 
-<h1> Notademics for Windows </h1>
+<h1> Notademics</h1>
 
-<p>The Art of Minimal Markdown</p>
+<strong>The Art of Minimal Markdown</strong>
 
 </div>
 
-Notademics 是一个极简的所见即所得（WYSIWYG）Markdown 编辑器，面向 Windows 平台。
+Notademics is an open-source, lightweight, fully functional, and highly customizable Markdown Editor, now avaliable for Windows. Notademics is a refactoring and superset of [Typora](https://typora.io/) and [MarkText](https://github.com/marktext/marktext) . It will soon support AI features.
 
-- **技术栈**：Tauri 2 + Rust + React 19 + Vite
-- **编辑器引擎**：Muya（`@muyajs/core`）—— 基于块结构的 WYSIWYG Markdown 渲染内核
-- **核心能力**：实时编辑（WYSIWYG）、源码模式、分栏预览、多标签页、文件夹文件树、查找/替换、明暗主题、自动保存、文件监视
+## Tech Stack
 
-## 目录结构
+Frontend: Tauri / React / Typescript;
 
-```
-Notademics-Windows/
-  app/                 应用源代码（Tauri + React）
-    src/               React 前端
-    src-tauri/         Rust 后端（文件系统、偏好、菜单、监视）
-      icons/           Notademics 品牌图标
-  LICENSE              MIT
-```
+Backend: Rust;
 
-## 开发
+WYSIWYG Engine: Muya;
+
+## Screenshot
+
+![screenshot](.\image\screenshot.png)
+
+## Features
+
+- The WYSIWYG engine from [Muya](https://github.com/marktext/marktext) can perform Markdown rendering in real-time, providing an elegant writing experience. 
+
+- Supports [all themes of Marktext](https://marktext.me/docs/themes) , and allows customization of image backgrounds on this basis;
+
+## Installation, Build & Deployment
 
 ```bash
-# 安装依赖（app 目录下）
 cd app
 npm install
-
-# 开发模式（Vite dev server + Tauri 窗口）
-npm run dev:app
-
-# 前端类型检查 + 构建
-npm run build
-
-# Rust 侧检查
-npm run check:rs
-
-# 打包 Windows 安装程序（NSIS）
 npm run tauri build
 ```
 
-> 说明：本仓库使用 `npm` 管理依赖（`package-lock.json`）。
+> 首次运行 Tauri 命令前，请确保已安装 [Rust](https://www.rust-lang.org/)（stable）与 [Node.js](https://nodejs.org/)（≥ 20）。Windows 上还需安装 [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)（含 "Desktop development with C++" 工作负载）以及 [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/)（Windows 10/11 一般已内置）。
 
-## 功能
+## Development
 
-- **多标签页**：新建 / 打开 / 保存 / 另存为，未保存关闭确认
-- **实时编辑**：Muya WYSIWYG 引擎，支持标题、引用、列表、任务列表、代码块、数学公式、Mermaid / PlantUML 等块级元素
-- **四种视图**：实时编辑（liveEdit）、源码（code）、分栏（split）、预览（preview）
-- **文件树**：打开文件夹后按目录浏览，点击打开 Markdown / 纯文本文件
-- **查找/替换**：编辑器内查找（F3 下一个）
-- **主题**：明暗切换（Ctrl+Shift+T）
-- **自动保存**：可在偏好中开启
+Notademics is a product of vibe programming, and I cannot guarantee its product usability. If you find any bugs or vulnerabilities, or wish to implement new features, you can raise an issue, and I will evaluate and implement them accordingly. If you wish to implement them yourself, you are welcome to fork or submit a pull request.
 
-## 快捷键
+## License
 
-| 操作 | 快捷键 |
-|---|---|
-| 新建文件 | Ctrl+N |
-| 打开文件 | Ctrl+O |
-| 打开文件夹 | Ctrl+Shift+O |
-| 保存 / 另存为 | Ctrl+S / Ctrl+Shift+S |
-| 关闭标签 | Ctrl+W |
-| 撤销 / 重做 | Ctrl+Z / Ctrl+Y |
-| 查找 | Ctrl+F |
-| 切换视图模式 | Ctrl+1 |
-| 切换文件树 | Ctrl+\ |
-| 切换主题 | Ctrl+Shift+T |
-| 切换标签 | Ctrl+Tab |
-
-## 许可
-
-[MIT](./LICENSE)
+<img src=".\image\gnu.svg" alt="GNU Head" style="width: 10%;" /> [GNU GPL 3.0](https://gnu.net.cn/licenses/gpl-3.0.html)

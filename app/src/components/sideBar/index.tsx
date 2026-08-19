@@ -1,12 +1,9 @@
 // 侧边栏 —— 对齐 marktext components/sideBar/index.vue 的结构与类名。
 import { useEffect, useRef, useState } from 'react';
 import { useLayoutStore } from '../../store/layout';
-import { useProjectStore } from '../../store/project';
-import { useEditorStore } from '../../store/editor';
 import Tree from './tree';
 import Toc from './toc';
-import SideBarSearch from './search';
-import { t } from '../../i18n';
+import Search from './search';
 
 interface SideBarIcon {
   id: string
@@ -15,15 +12,12 @@ interface SideBarIcon {
 }
 
 const sideBarIcons: SideBarIcon[] = [
-  { id: 'files', icon: 'icon-files', title: 'Files' },
-  { id: 'search', icon: 'icon-search', title: 'Search' },
-  { id: 'toc', icon: 'icon-tree', title: 'Table of Contents' }
+  { id: 'files', icon: 'icon-files', title: '文件夹' },
+  { id: 'toc', icon: 'icon-tree', title: '大纲' }
 ]
 
 export default function SideBar() {
   const layoutStore = useLayoutStore();
-  const projectStore = useProjectStore();
-  const editorStore = useEditorStore();
   const dragBarRef = useRef<HTMLDivElement>(null);
 
   const { rightColumn, showSideBar, sideBarWidth } = layoutStore;
@@ -33,7 +27,8 @@ export default function SideBar() {
     setViewWidth(Number(sideBarWidth) || 280);
   }, [sideBarWidth]);
 
-  const finalSideBarWidth = !showSideBar ? 0 : !rightColumn ? 45 : viewWidth < 220 ? 220 : viewWidth;
+  const activeColumn = rightColumn === 'toc' ? 'toc' : rightColumn === 'search' ? 'search' : 'files';
+  const finalSideBarWidth = !showSideBar ? 0 : viewWidth < 220 ? 220 : viewWidth;
 
   // 拖拽调宽
   useEffect(() => {
@@ -63,20 +58,9 @@ export default function SideBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rightColumn]);
 
-  const handleLeftIconClick = (name: string): void => {
-    if (rightColumn === name) {
-      layoutStore.SET_LAYOUT({ rightColumn: '' });
-    } else {
-      layoutStore.SET_LAYOUT({ rightColumn: name as 'files' | 'search' | 'toc' });
-      setViewWidth(Number(sideBarWidth) || 280);
-    }
-  };
-
-  const handleLeftBottomClick = (name: string): void => {
-    if (name === 'settings') {
-      // 打开偏好设置窗口（单窗口应用内跳转 /preference）
-      window.location.hash = '#/preference/general';
-    }
+  const handleIconClick = (name: string): void => {
+    layoutStore.SET_LAYOUT({ rightColumn: name as 'files' | 'toc' });
+    setViewWidth(Number(sideBarWidth) || 280);
   };
 
   if (!showSideBar) return null;
@@ -84,33 +68,30 @@ export default function SideBar() {
   return (
     <div
       className="side-bar"
-      style={!rightColumn ? { minWidth: '45px', width: `${finalSideBarWidth}px` } : { width: `${finalSideBarWidth}px` }}
+      style={{ width: `${finalSideBarWidth}px` }}
     >
-      <div className="left-column">
-        <ul>
-          {sideBarIcons.map((c) => (
-            <li
-              key={c.id}
-              className={c.id === rightColumn ? 'active' : ''}
-              onClick={() => handleLeftIconClick(c.id)}
-              title={c.title}
-            >
-              <svg className="icon" aria-hidden="true"><use xlinkHref={`#${c.icon}`} /></svg>
-            </li>
-          ))}
-        </ul>
-        <ul className="bottom">
-          <li onClick={() => handleLeftBottomClick('settings')} title={t('sideBar.icons.settings')}>
-            <svg className="icon" aria-hidden="true"><use xlinkHref="#icon-gear" /></svg>
-          </li>
-        </ul>
+      <div className="side-bar-tabs" role="tablist" aria-label="Sidebar">
+        {sideBarIcons.map((item) => (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={item.id === activeColumn}
+            key={item.id}
+            className={item.id === activeColumn ? 'active' : ''}
+            onClick={() => handleIconClick(item.id)}
+            title={item.title}
+          >
+            <svg className="icon" aria-hidden="true"><use xlinkHref={`#${item.icon}`} /></svg>
+            <span>{item.title}</span>
+          </button>
+        ))}
       </div>
-      <div className="right-column" style={{ display: rightColumn ? 'block' : 'none' }}>
-        {rightColumn === 'files' && <Tree />}
-        {rightColumn === 'search' && <SideBarSearch />}
-        {rightColumn === 'toc' && <Toc />}
+      <div className="right-column">
+        {activeColumn === 'files' && <Tree />}
+        {activeColumn === 'toc' && <Toc />}
+        {activeColumn === 'search' && <Search />}
       </div>
-      {rightColumn && <div ref={dragBarRef} className="drag-bar" />}
+      <div ref={dragBarRef} className="drag-bar" />
     </div>
   );
 }

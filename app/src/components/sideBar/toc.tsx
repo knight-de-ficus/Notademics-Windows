@@ -12,8 +12,7 @@ export default function Toc() {
 
   return (
     <div className="side-bar-toc">
-      <div className="title">{t('sideBar.toc.title')}</div>
-      {!listToc.length && <div className="empty">No headings</div>}
+      {!listToc.length && <div className="toc-empty">当前文档没有标题</div>}
       {listToc.map((item, index) => (
         <div
           key={`${item.slug}-${index}`}

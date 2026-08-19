@@ -279,8 +279,21 @@ ul.commands li span.shortcut > kbd {
   background: var(--editorBgColor);
   & > .container {
     flex: 1;
+    position: relative;
     overflow: hidden;
   }
+}
+
+.editor-mode-pane,
+.source-mode-pane {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.mode-pane-hidden {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* notifications.vue */
@@ -936,7 +949,7 @@ ul.commands li span.shortcut > kbd {
     }
   }
 }
-.search {
+.search-wrapper .search {
   width: 100%;
   height: 30px;
   outline: none;
@@ -994,8 +1007,8 @@ ul.commands li span.shortcut > kbd {
 .search-bar .right-controls {
   flex: 1;
 }
-.search,
-.replace {
+.search-bar .search,
+.search-bar .replace {
   height: 28px;
   display: flex;
   padding: 4px 10px 0 4px;
@@ -1050,6 +1063,8 @@ ul.commands li span.shortcut > kbd {
   right: 10px;
   font-size: 12px;
   display: flex;
+  flex-direction: row;
+  align-items: center;
   color: var(--sideBarTitleColor);
   & > span.search-result {
     height: 20px;
@@ -2046,10 +2061,427 @@ div.title > span {
   flex: 1;
   min-height: 100vh;
   position: relative;
+  background: var(--editorBgColor);
   & > .editor {
     flex: 1;
   }
 }
+
+/* React sidebar: two horizontal modes with one content pane underneath. */
+.side-bar {
+  flex-direction: column;
+  min-width: 220px;
+  color: var(--sideBarColor, var(--editorColor));
+  background: var(--sideBarBgColor, var(--editorBgColor));
+}
+
+.side-bar-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 0 0 42px;
+  border-bottom: 1px solid var(--itemBgColor, var(--editorColor10));
+}
+
+.side-bar-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--sideBarTextColor, var(--editorColor50));
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.side-bar-tabs button:hover {
+  color: var(--sideBarTitleColor, var(--editorColor));
+  background: var(--sideBarItemHoverBgColor, var(--editorColor04));
+}
+
+.side-bar-tabs button.active {
+  color: var(--themeColor);
+  border-bottom-color: var(--themeColor);
+}
+
+.side-bar > .right-column {
+  width: 100%;
+  min-height: 0;
+}
+
+.side-bar-search {
+  gap: 10px;
+  padding: 12px 10px;
+  box-sizing: border-box;
+  color: var(--sideBarColor);
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 0 0 32px;
+}
+
+.search-input-wrapper > input {
+  width: 100%;
+  height: 32px;
+  padding: 0 72px 0 9px;
+  box-sizing: border-box;
+  color: var(--sideBarColor);
+  background: var(--inputBgColor);
+  border: 1px solid var(--floatBorderColor);
+  border-radius: 4px;
+  outline: none;
+}
+
+.search-input-wrapper > input:focus {
+  border-color: var(--themeColor);
+}
+
+.search-options {
+  position: absolute;
+  top: 0;
+  right: 5px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--sideBarTextColor);
+}
+
+.search-options > span {
+  min-width: 18px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.search-options > span:hover,
+.search-options > span.active {
+  color: var(--highlightThemeColor);
+  background: var(--sideBarItemHoverBgColor);
+}
+
+.side-bar-search .no-folder,
+.side-bar-search .no-results,
+.side-bar-search .searching {
+  padding: 6px 4px;
+  font-size: 13px;
+  color: var(--sideBarTextColor);
+}
+
+.side-bar-search .search-results {
+  min-height: 0;
+  overflow: auto;
+}
+
+.side-bar-search .search-result-item {
+  padding: 7px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.side-bar-search .search-result-item:hover {
+  background: var(--sideBarItemHoverBgColor);
+}
+
+.side-bar-search .result-path,
+.side-bar-search .result-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-bar-search .result-path {
+  font-size: 12px;
+  color: var(--sideBarTitleColor);
+}
+
+.side-bar-search .result-line {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.side-bar-tabs .icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.side-bar .right-column {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tree-file-item .text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-insert-image {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0 5px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+  font: 12px/22px Consolas, monospace;
+  transition: opacity .12s ease;
+}
+
+.tree-file-item:hover .tree-insert-image,
+.tree-insert-image:focus-visible {
+  opacity: .72;
+}
+
+.tree-insert-image:hover {
+  opacity: 1;
+}
+
+/* Find belongs to the editor overlay and must never participate in its flex flow. */
+.editor {
+  position: relative;
+  min-height: 0;
+}
+
+.editor > .search-bar {
+  z-index: 12000;
+}
+
+/* React command palette: an absolute editor overlay, not a relative block. */
+.command-palette-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 22000;
+  background: rgba(0, 0, 0, .12);
+}
+
+.command-palette {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, calc(100% - 32px));
+  max-height: min(430px, calc(100% - 24px));
+  padding: 10px;
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  color: var(--editorColor);
+  background: var(--floatBgColor);
+  border: 1px solid var(--floatBorderColor);
+  border-radius: 7px;
+  box-shadow: 0 10px 32px var(--floatShadow);
+}
+
+.command-palette-search input {
+  width: 100%;
+  height: 36px;
+  padding: 0 11px;
+  box-sizing: border-box;
+  color: var(--editorColor);
+  background: var(--inputBgColor);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  outline: none;
+  font: inherit;
+}
+
+.command-palette-search input:focus {
+  border-color: var(--themeColor);
+}
+
+.command-palette-list {
+  min-height: 0;
+  margin-top: 8px;
+  overflow: auto;
+}
+
+.command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.command-item:hover,
+.command-item.active {
+  background: var(--floatHoverColor);
+}
+
+.command-description {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command-shortcut {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  color: var(--editorColor);
+  background: transparent;
+  border: 1px solid var(--floatBorderColor);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.tree-view,
+.side-bar-toc {
+  height: 100%;
+  min-height: 0;
+  color: var(--sideBarColor, var(--editorColor));
+}
+
+.tree-view > .title {
+  display: none;
+}
+
+.opened-files {
+  flex: 0 0 auto;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--itemBgColor, var(--editorColor10));
+}
+
+.opened-files .title {
+  min-width: 0;
+  padding: 0 12px;
+  color: var(--sideBarTitleColor, var(--editorColor));
+}
+
+.project-tree {
+  padding: 8px 0 16px;
+}
+
+.tree-item {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  padding-right: 10px;
+  color: var(--sideBarTextColor, var(--editorColor));
+  cursor: pointer;
+}
+
+.tree-item:hover,
+.tree-item.active {
+  color: var(--sideBarTitleColor, var(--editorColor));
+  background: var(--sideBarItemHoverBgColor, var(--editorColor04));
+}
+
+.tree-item.active {
+  box-shadow: inset 2px 0 var(--themeColor);
+}
+
+.tree-item > .icon,
+.tree-item > .icon .icon {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--sideBarIconColor, var(--iconColor));
+  fill: currentColor;
+}
+
+.tree-item .text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 72px 18px 0;
+  color: var(--sideBarTextColor, var(--editorColor50));
+  text-align: center;
+}
+
+.side-bar-toc {
+  display: block;
+  overflow: auto;
+  padding: 10px 0 16px;
+}
+
+.toc-item {
+  box-sizing: border-box;
+  min-height: 30px;
+  padding-top: 6px;
+  padding-right: 12px;
+  padding-bottom: 6px;
+  color: var(--sideBarTextColor, var(--editorColor));
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toc-item:hover {
+  color: var(--sideBarTitleColor, var(--editorColor));
+  background: var(--sideBarItemHoverBgColor, var(--editorColor04));
+}
+
+.toc-empty {
+  padding: 72px 18px 0;
+  color: var(--sideBarTextColor, var(--editorColor50));
+  text-align: center;
+}
+
+/* About dialog rebuilt for React (the old selectors target Element UI). */
+.modal-mask {
+  position: fixed !important;
+  inset: 0;
+  z-index: 20000 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .42);
+}
+
+.about {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(500px, calc(100vw - 40px));
+  padding: 30px 32px 24px;
+  color: var(--editorColor);
+  background: var(--floatBgColor, var(--editorBgColor));
+  border: 1px solid var(--floatBorderColor, var(--editorColor10));
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .28);
+}
+
+.about-logo { width: 88px; height: 88px; }
+.about-title { margin-top: 14px; font-size: 24px; font-weight: 650; }
+.about-version { margin-top: 5px; color: var(--editorColor50); font-size: 13px; }
+.about-description { margin-top: 16px; color: var(--editorColor60); text-align: center; line-height: 1.6; }
+.about-license { margin-top: 8px; color: var(--editorColor50); font-size: 12px; }
+.about-actions { display: flex; gap: 10px; margin-top: 22px; }
+.about-actions button { min-width: 92px; min-height: 32px; border-radius: 5px; cursor: pointer; }
+.about-link { color: var(--themeColor); background: transparent; border: 1px solid var(--themeColor); }
+.about-close { color: var(--buttonPrimaryFontColor); background: var(--buttonPrimaryBgColor); border: 0; }
 
 /* preference.vue */
 

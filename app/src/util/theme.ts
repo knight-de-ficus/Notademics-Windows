@@ -42,6 +42,7 @@ import {
   rosePineDawn
 } from './themeColor'
 import { isLinux } from './index'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 
 // 预留常量（与 marktext 保持一致，当前未使用）
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -57,10 +58,13 @@ const getEmojiPickerPatch = (): string => {
     : ''
 }
 
+export const isDarkThemeName = (theme: string): boolean =>
+  oneDarkThemes.includes(theme) || railscastsThemes.includes(theme)
+
 export const addThemeStyle = (theme: string): void => {
   const isCmRailscasts = railscastsThemes.includes(theme)
   const isCmOneDark = oneDarkThemes.includes(theme)
-  const isDarkTheme = isCmOneDark || isCmRailscasts
+  const isDarkTheme = isDarkThemeName(theme)
   let themeStyleEle = document.querySelector(`#${THEME_STYLE_ID}`) as HTMLStyleElement | null
   if (!themeStyleEle) {
     themeStyleEle = document.createElement('style')
@@ -180,6 +184,13 @@ export const addThemeStyle = (theme: string): void => {
   document.body.classList.remove('dark')
   if (isDarkTheme) {
     document.body.classList.add('dark')
+  }
+
+  // Keep native Windows chrome/menu in step with the editor appearance.
+  try {
+    void getCurrentWindow().setTheme(isDarkTheme ? 'dark' : 'light').catch(() => {})
+  } catch {
+    // Plain-browser development has no native window handle.
   }
 
   // 切换 CodeMirror 主题

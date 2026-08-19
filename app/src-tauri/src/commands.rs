@@ -13,6 +13,7 @@ use crate::watcher::WatcherState;
 pub struct FileReadResult {
     pub content: String,
     pub encoding: String,
+    pub is_binary: bool,
 }
 
 #[derive(Serialize)]
@@ -53,6 +54,45 @@ fn decode_bytes(bytes: &[u8]) -> (String, String) {
     (cow.to_string(), enc.name().to_string())
 }
 
+/// A conservative binary-file check. UTF-16 BOM files are text even though
+/// their byte stream contains NULs; other NUL/control-heavy files are binary.
+fn is_binary_file(bytes: &[u8]) -> bool {
+    if bytes.is_empty()
+        || bytes.starts_with(&[0xFF, 0xFE])
+        || bytes.starts_with(&[0xFE, 0xFF])
+    {
+        return false;
+    }
+
+    let sample = &bytes[..bytes.len().min(8192)];
+    if sample.contains(&0) {
+        return true;
+    }
+    let controls = sample
+        .iter()
+        .filter(|&&byte| byte < 0x09 || (byte > 0x0D && byte < 0x20) || byte == 0x7F)
+        .count();
+    controls * 20 > sample.len()
+}
+
+#[cfg(test)]
+mod binary_file_tests {
+    use super::is_binary_file;
+
+    #[test]
+    fn recognizes_common_text_encodings() {
+        assert!(!is_binary_file(b"# Markdown\nplain text"));
+        assert!(!is_binary_file(&[0xFF, 0xFE, b'a', 0, b'b', 0]));
+        assert!(!is_binary_file(&[]));
+    }
+
+    #[test]
+    fn recognizes_nul_and_control_heavy_binary_data() {
+        assert!(is_binary_file(&[0x89, b'P', b'N', b'G', 0, 1, 2, 3]));
+        assert!(is_binary_file(&[1, 2, 3, 4, 5, b'a', b'b', b'c']));
+    }
+}
+
 fn encode_bytes(content: &str, encoding: &str) -> Result<Vec<u8>, String> {
     match encoding {
         "UTF-16LE" => {
@@ -82,8 +122,13 @@ fn encode_bytes(content: &str, encoding: &str) -> Result<Vec<u8>, String> {
 #[tauri::command]
 pub fn read_file(path: String) -> Result<FileReadResult, String> {
     let bytes = fs::read(&path).map_err(|e| format!("read failed: {e}"))?;
+    let is_binary = is_binary_file(&bytes);
     let (content, encoding) = decode_bytes(&bytes);
-    Ok(FileReadResult { content, encoding })
+    Ok(FileReadResult {
+        content,
+        encoding,
+        is_binary,
+    })
 }
 
 /// 原子写入文件：先写临时文件再 rename，避免断电/崩溃产生半截文件。

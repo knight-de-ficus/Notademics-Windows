@@ -84,13 +84,16 @@ export default function Editor({ markdown, cursor, textDirection }: EditorProps)
     const file = currentFileRef.current;
     if (!file) return;
     const wc = wordCount(md);
+    const toc = editorRef.current?.getTOC() as Array<{
+      content: string; lvl: number; slug: string; githubSlug: string
+    }> | undefined;
     editorStore.LISTEN_FOR_CONTENT_CHANGE({
       id: file.id,
       markdown: md,
       wordCount: wc,
       history: undefined,
       cursor: undefined,
-      toc: undefined,
+      toc,
       blocks: undefined
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,38 +199,30 @@ export default function Editor({ markdown, cursor, textDirection }: EditorProps)
 
   // ── bus 事件注册 ──
   useEffect(() => {
-    bus.on('file-loaded', () => {
-      const file = editorStore.currentFile;
+    const handleFileLoaded = (): void => {
+      const file = useEditorStore.getState().currentFile;
       if (file) editorRef.current?.setContent(file.markdown);
-    });
-    bus.on('file-changed', (payload) => {
+    };
+    const handleFileChanged = (payload: unknown): void => {
       const p = (payload ?? {}) as { id?: string; markdown?: string };
       if (typeof p.markdown === 'string') {
         editorRef.current?.setContent(p.markdown);
       }
-    });
-    bus.on('undo', handleUndo);
-    bus.on('redo', handleRedo);
-    bus.on('selectAll', handleSelectAll);
-    bus.on('paragraph', (payload) => handleParagraph(String(payload)));
-    bus.on('format', (payload) => handleFormat(String(payload)));
-    bus.on('copyAsRich', () => handleCopyPaste('copyAsRich'));
-    bus.on('copyAsHtml', () => handleCopyPaste('copyAsHtml'));
-    bus.on('pasteAsPlainText', () => handleCopyPaste('pasteAsPlainText'));
-    bus.on('cut', () => editorRef.current?.cut());
-    bus.on('copy', () => editorRef.current?.copy());
-    bus.on('paste', () => editorRef.current?.paste());
-    bus.on('searchValue', handleSearch);
-    bus.on('replaceValue', handReplace);
-    bus.on('find-action', handleFindAction);
-    bus.on('flush-active-editor', flushActiveEditor);
-    bus.on('scroll-to-header', (payload) => scrollToHeader(String(payload)));
-    bus.on('editor-focus', () => editorRef.current?.focus());
-    bus.on('editor-blur', () => editorRef.current?.blur());
-    bus.on('duplicate', () => handleParagraph('duplicate'));
-    bus.on('createParagraph', () => handleParagraph('paragraph'));
-    bus.on('deleteParagraph', () => handleParagraph('delete'));
-    bus.on('insertParagraph', (payload) => {
+    };
+    const handleParagraphEvent = (payload: unknown): void => handleParagraph(String(payload));
+    const handleFormatEvent = (payload: unknown): void => handleFormat(String(payload));
+    const handleCopyAsRich = (): void => handleCopyPaste('copyAsRich');
+    const handleCopyAsHtml = (): void => handleCopyPaste('copyAsHtml');
+    const handlePasteAsPlainText = (): void => handleCopyPaste('pasteAsPlainText');
+    const handleCut = (): void => editorRef.current?.cut();
+    const handleCopy = (): void => editorRef.current?.copy();
+    const handlePaste = (): void => editorRef.current?.paste();
+    const handleScrollToHeader = (payload: unknown): void => scrollToHeader(String(payload));
+    const handleEditorFocus = (): void => editorRef.current?.focus();
+    const handleEditorBlur = (): void => editorRef.current?.blur();
+    const handleCreateParagraph = (): void => editorRef.current?.getMuya()?.insertParagraph('after', '', true);
+    const handleDeleteParagraph = (): void => editorRef.current?.getMuya()?.deleteParagraph();
+    const handleInsertParagraph = (payload: unknown): void => {
       const dir = String((payload as { location?: string } | undefined)?.location ?? 'after') as 'before' | 'after';
       const muya = editorRef.current?.getMuya();
       if (muya) {
@@ -235,16 +230,69 @@ export default function Editor({ markdown, cursor, textDirection }: EditorProps)
           (muya as unknown as { insertParagraph: (l: 'before' | 'after', text?: string, outMost?: boolean) => void }).insertParagraph(dir);
         } catch { /* ignore */ }
       }
-    });
+    };
+    bus.on('file-loaded', handleFileLoaded);
+    bus.on('file-changed', handleFileChanged);
+    bus.on('undo', handleUndo);
+    bus.on('redo', handleRedo);
+    bus.on('selectAll', handleSelectAll);
+    bus.on('paragraph', handleParagraphEvent);
+    bus.on('format', handleFormatEvent);
+    bus.on('copyAsRich', handleCopyAsRich);
+    bus.on('copyAsHtml', handleCopyAsHtml);
+    bus.on('pasteAsPlainText', handlePasteAsPlainText);
+    bus.on('cut', handleCut);
+    bus.on('copy', handleCopy);
+    bus.on('paste', handlePaste);
+    const insertTextAtCursor = (payload: unknown): void => {
+      const text = String(payload ?? '');
+      if (!text) return;
+      const muya = editorRef.current?.getMuya();
+      muya?.insertText(text);
+      editorRef.current?.focus();
+    };
+    bus.on('insert-text-at-cursor', insertTextAtCursor);
+    bus.on('searchValue', handleSearch);
+    bus.on('replaceValue', handReplace);
+    bus.on('find-action', handleFindAction);
+    bus.on('flush-active-editor', flushActiveEditor);
+    bus.on('scroll-to-header', handleScrollToHeader);
+    bus.on('editor-focus', handleEditorFocus);
+    bus.on('editor-blur', handleEditorBlur);
+    bus.on('createParagraph', handleCreateParagraph);
+    bus.on('deleteParagraph', handleDeleteParagraph);
+    bus.on('insertParagraph', handleInsertParagraph);
     return () => {
-      // mitt 无退订；组件卸载即整体销毁（单实例 editor，可接受）
+      bus.off('file-loaded', handleFileLoaded);
+      bus.off('file-changed', handleFileChanged);
+      bus.off('undo', handleUndo);
+      bus.off('redo', handleRedo);
+      bus.off('selectAll', handleSelectAll);
+      bus.off('paragraph', handleParagraphEvent);
+      bus.off('format', handleFormatEvent);
+      bus.off('copyAsRich', handleCopyAsRich);
+      bus.off('copyAsHtml', handleCopyAsHtml);
+      bus.off('pasteAsPlainText', handlePasteAsPlainText);
+      bus.off('cut', handleCut);
+      bus.off('copy', handleCopy);
+      bus.off('paste', handlePaste);
+      bus.off('insert-text-at-cursor', insertTextAtCursor);
+      bus.off('searchValue', handleSearch);
+      bus.off('replaceValue', handReplace);
+      bus.off('find-action', handleFindAction);
+      bus.off('flush-active-editor', flushActiveEditor);
+      bus.off('scroll-to-header', handleScrollToHeader);
+      bus.off('editor-focus', handleEditorFocus);
+      bus.off('editor-blur', handleEditorBlur);
+      bus.off('createParagraph', handleCreateParagraph);
+      bus.off('deleteParagraph', handleDeleteParagraph);
+      bus.off('insertParagraph', handleInsertParagraph);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="editor" style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
-      {!preferencesStore.sourceCode && <FindBar editorRef={editorRef} />}
       <MuyaEditor
         ref={editorRef}
         content={markdown}
@@ -256,6 +304,9 @@ export default function Editor({ markdown, cursor, textDirection }: EditorProps)
         onSave={doSave}
         className="muya-editor-container"
       />
+      {/* Muya mutates its host DOM. Keep React overlays after that host so
+          mounting a find bar never relies on a Muya-replaced sibling node. */}
+      {!preferencesStore.sourceCode && <FindBar editorRef={editorRef} />}
     </div>
   );
 }

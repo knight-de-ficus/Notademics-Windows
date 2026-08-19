@@ -57,7 +57,7 @@ export const URL_REG =
   /^http(s)?:\/\/([a-z0-9\-._~]+\.[a-z]{2,}|[0-9.]+|localhost|\[[a-f0-9.:]+\])(:[0-9]{1,5})?(\/[\S]+)?/i
 
 // Notademics 项目主页（暂无公开仓库时为 about 对话框显示用）
-export const GITHUB_REPO_URL = 'https://github.com/notademics/notademics'
+export const GITHUB_REPO_URL = 'https://github.com/knight-de-ficus/Notademics-Windows'
 
 // ---- 平台判断 ----
 interface ElectronLikeWindow extends Window {

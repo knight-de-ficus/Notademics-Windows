@@ -18,6 +18,7 @@ export interface TabInfo {
 export interface FileReadResult {
   content: string;
   encoding: string;
+  is_binary: boolean;
 }
 
 export interface DirEntryInfo {

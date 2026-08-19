@@ -1,7 +1,8 @@
 [package]
 name = "notademics"
-version = "0.1.0"
+version = "0.2.0"
 description = "Notademics — The Art of Minimal Markdown"
+license = "GPL-3.0-only"
 authors = ["Notademics"]
 edition = "2021"
 # Disable auto-discovery of bins so Cargo only produces the explicit

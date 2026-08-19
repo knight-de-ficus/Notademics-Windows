@@ -28,6 +28,7 @@ import './styles/marktext/index.css';
 import './styles/marktext/components.css';
 import './styles/marktext/statusBar.css';
 import 'katex/dist/katex.min.css';
+import bus from './bus';
 
 // WebView2 inherits Chromium navigation/reload/zoom/devtools shortcuts. They
 // conflict with the native Tauri menu and editor keybindings. Keep F12 as the
@@ -36,6 +37,26 @@ window.addEventListener('keydown', (event) => {
   if (event.key === 'F12') return;
   const key = event.key.toLowerCase();
   const ctrl = event.ctrlKey || event.metaKey;
+  const viewShortcut =
+    (ctrl && !event.altKey && !event.shiftKey && key === 'j' && 'view.toggle-sidebar') ||
+    (ctrl && !event.altKey && !event.shiftKey && (key === '\\' || event.code === 'Backslash') && 'view.toggle-sidebar') ||
+    (ctrl && event.altKey && !event.shiftKey && key === 'o' && 'view.toggle-toc') ||
+    (ctrl && event.altKey && !event.shiftKey && key === 's' && 'view.source-code-mode') ||
+    (ctrl && event.shiftKey && !event.altKey && key === 'p' && 'view.command-palette') ||
+    (ctrl && !event.altKey && !event.shiftKey && key === 'f' && 'edit.find') ||
+    (ctrl && !event.altKey && event.shiftKey && key === 'f' && 'edit.find-in-folder') ||
+    (ctrl && !event.altKey && !event.shiftKey && key === 'h' && 'edit.replace') ||
+    (!ctrl && !event.altKey && !event.shiftKey && event.key === 'F3' && 'edit.findNext') ||
+    (!ctrl && !event.altKey && event.shiftKey && event.key === 'F3' && 'edit.findPrevious') ||
+    (ctrl && !event.altKey && !event.shiftKey && (key === '+' || key === '=') && 'window.zoomIn') ||
+    (ctrl && !event.altKey && !event.shiftKey && key === '-' && 'window.zoomOut') ||
+    (!ctrl && !event.altKey && !event.shiftKey && event.key === 'F11' && 'window.toggle-full-screen');
+  if (viewShortcut) {
+    event.preventDefault();
+    event.stopPropagation();
+    bus.emit('cmd::execute', viewShortcut);
+    return;
+  }
   const browserFunctionKey = ['F1', 'F3', 'F5', 'F6', 'F7', 'F10', 'F11'].includes(event.key);
   const browserCtrlKey = ctrl && [
     'r', 'l', 'u', 'p', 'w', 'n', 't', 'o', 's', 'f', 'g', 'k', 'e', 'd', 'h', 'j',

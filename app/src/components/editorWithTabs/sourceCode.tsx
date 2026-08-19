@@ -5,12 +5,20 @@ import codeMirror from '../../codeMirror';
 import { useEditorStore } from '../../store/editor';
 import bus from '../../bus';
 
+const markdownToc = (markdown: string) => markdown.split(/\r?\n/).flatMap((line, index) => {
+  const match = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
+  if (!match) return [];
+  const content = match[2].replace(/[*_`~[\]]/g, '').trim();
+  return [{ content, lvl: match[1].length, slug: `source-heading-${index}`, githubSlug: content.toLowerCase().replace(/\s+/g, '-') }];
+});
+
 interface SourceCodeProps {
+  active?: boolean;
   markdown?: string;
   textDirection?: string;
 }
 
-export default function SourceCode({ markdown, textDirection }: SourceCodeProps) {
+export default function SourceCode({ active = false, markdown, textDirection }: SourceCodeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<ReturnType<typeof codeMirror> | null>(null);
   const commitTimerRef = useRef<number | null>(null);
@@ -45,14 +53,23 @@ export default function SourceCode({ markdown, textDirection }: SourceCodeProps)
             wordCount: undefined,
             history: undefined,
             cursor: undefined,
-            toc: undefined,
+            toc: markdownToc(value),
             blocks: undefined
           });
         }
       }, 200);
     });
 
+    const insertTextAtCursor = (payload: unknown): void => {
+      const text = String(payload ?? '');
+      if (!text) return;
+      cm.focus();
+      cm.replaceSelection(text, 'end');
+    };
+    bus.on('insert-text-at-cursor', insertTextAtCursor);
+
     return () => {
+      bus.off('insert-text-at-cursor', insertTextAtCursor);
       if (commitTimerRef.current !== null) window.clearTimeout(commitTimerRef.current);
       // 卸载（切到 WYSIWYG）时把当前值交还
       const value = cm.getValue();
@@ -62,7 +79,7 @@ export default function SourceCode({ markdown, textDirection }: SourceCodeProps)
           bus.emit('file-changed', { id: file.id, markdown: value });
         }
       }
-      cm.toTextArea();
+      cm.getWrapperElement().remove();
       editorRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -78,6 +95,10 @@ export default function SourceCode({ markdown, textDirection }: SourceCodeProps)
       cm.setValue(markdown);
     }
   }, [markdown]);
+
+  useEffect(() => {
+    if (active) requestAnimationFrame(() => editorRef.current?.refresh());
+  }, [active]);
 
   return <div ref={containerRef} className="source-code" style={{ height: '100%', width: '100%' }} />;
 }

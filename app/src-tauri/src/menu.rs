@@ -5,7 +5,8 @@
 //
 // marktext 参考：packages/desktop/src/main/menu/templates/{file,edit,paragraph,format,window,theme,view,help}.ts
 
-use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
+use serde::Deserialize;
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, MenuItemKind, PredefinedMenuItem, Submenu};
 use tauri::{App, AppHandle, Emitter};
 
 /// 快速构造带快捷键的菜单项
@@ -49,10 +50,11 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
     )?;
 
     // ---------------- Edit ----------------
-    let edit_menu = Submenu::with_items(
+    let edit_menu = Submenu::with_id_and_items(
         app,
+        "menu.edit",
         "Edit",
-        true,
+        false,
         &[
             &item!(app, "edit.undo", "Undo", "CmdOrCtrl+Z"),
             &item!(app, "edit.redo", "Redo", "CmdOrCtrl+Y"),
@@ -67,9 +69,8 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
             &PredefinedMenuItem::separator(app)?,
             &item!(app, "edit.selectAll", "Select All", "CmdOrCtrl+A"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "edit.duplicate", "Duplicate"),
-            &item!(app, "edit.create-paragraph", "Create Paragraph"),
-            &item!(app, "edit.delete-paragraph", "Delete Paragraph"),
+            &item!(app, "edit.create-paragraph", "Create Paragraph", "CmdOrCtrl+Shift+N"),
+            &item!(app, "edit.delete-paragraph", "Delete Paragraph", "CmdOrCtrl+Shift+D"),
             &PredefinedMenuItem::separator(app)?,
             &item!(app, "edit.find", "Find…", "CmdOrCtrl+F"),
             &item!(app, "edit.findNext", "Find Next", "F3"),
@@ -78,17 +79,16 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
             &PredefinedMenuItem::separator(app)?,
             &item!(app, "edit.find-in-folder", "Find In Folder", "CmdOrCtrl+Shift+F"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "edit.screenshot", "Screenshot"),
-            &PredefinedMenuItem::separator(app)?,
             &submenu_line_ending(app)?,
         ],
     )?;
 
     // ---------------- Paragraph ----------------
-    let paragraph_menu = Submenu::with_items(
+    let paragraph_menu = Submenu::with_id_and_items(
         app,
+        "menu.paragraph",
         "Paragraph",
-        true,
+        false,
         &[
             &item!(app, "paragraph.heading-1", "Heading 1", "CmdOrCtrl+1"),
             &item!(app, "paragraph.heading-2", "Heading 2", "CmdOrCtrl+2"),
@@ -119,10 +119,11 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
     )?;
 
     // ---------------- Format ----------------
-    let format_menu = Submenu::with_items(
+    let format_menu = Submenu::with_id_and_items(
         app,
+        "menu.format",
         "Format",
-        true,
+        false,
         &[
             &item!(app, "format.strong", "Bold", "CmdOrCtrl+B"),
             &item!(app, "format.emphasis", "Italic", "CmdOrCtrl+I"),
@@ -171,10 +172,10 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
             &item!(app, "view.command-palette", "Command Palette", "CmdOrCtrl+Shift+P"),
             &PredefinedMenuItem::separator(app)?,
             &item!(app, "view.source-code-mode", "Source Code Mode", "CmdOrCtrl+Alt+S"),
-            &item!(app, "view.typewriter-mode", "Typewriter Mode", "CmdOrCtrl+Alt+T"),
-            &item!(app, "view.focus-mode", "Focus Mode", "CmdOrCtrl+Shift+F"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "view.toggle-sidebar", "Toggle Sidebar", "CmdOrCtrl+\\"),
+            // Chromium reserves Ctrl+J for Downloads. Handle it in the
+            // WebView before the browser default action runs.
+            &item!(app, "view.toggle-sidebar", "Toggle Sidebar"),
             &item!(app, "view.toggle-tabbar", "Toggle Tabbar"),
             &item!(app, "view.toggle-toc", "Toggle Table of Contents", "CmdOrCtrl+Alt+O"),
             &item!(app, "view.reload-images", "Reload Images"),
@@ -190,20 +191,9 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
         "Help",
         true,
         &[
-            &item!(app, "help.markdown-reference", "Markdown Reference"),
-            &item!(app, "help.changelog", "Changelog"),
+            &item!(app, "help.markdown-reference", "Markdown References"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "help.follow-us", "Follow Us"),
-            &item!(app, "help.support", "Support"),
-            &PredefinedMenuItem::separator(app)?,
-            &item!(app, "help.ask-question", "Ask Question"),
-            &item!(app, "help.report-bug", "Report Bug"),
             &item!(app, "help.view-source", "View Source"),
-            &PredefinedMenuItem::separator(app)?,
-            &item!(app, "help.license", "License"),
-            &PredefinedMenuItem::separator(app)?,
-            &item!(app, "help.check-updates", "Check for Updates"),
-            &PredefinedMenuItem::separator(app)?,
             &item!(app, "help.about", "About"),
         ],
     )?;
@@ -213,14 +203,15 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
         &[&file_menu, &edit_menu, &paragraph_menu, &format_menu, &window_menu, &theme_menu, &view_menu, &help_menu],
     )?;
     app.set_menu(menu)?;
+    set_editor_menu_state(app.handle(), false, None)?;
     Ok(())
 }
 
 /// Line Ending 子菜单（对齐 marktext edit.ts 的 Line Ending 单选组）
 fn submenu_line_ending(app: &App) -> tauri::Result<Submenu<tauri::Wry>> {
-    let crlf = MenuItem::with_id(app, "edit.line-ending-crlf", "CRLF (Windows)", true, None::<&str>)?;
-    let lf = MenuItem::with_id(app, "edit.line-ending-lf", "LF (Linux/Mac)", true, None::<&str>)?;
-    Submenu::with_items(app, "Line Ending", true, &[&crlf, &lf])
+    let crlf = CheckMenuItem::with_id(app, "edit.line-ending-crlf", "CRLF (Windows)", true, false, None::<&str>)?;
+    let lf = CheckMenuItem::with_id(app, "edit.line-ending-lf", "LF (Linux/Mac)", true, true, None::<&str>)?;
+    Submenu::with_id_and_items(app, "edit.line-ending", "Line Ending", false, &[&crlf, &lf])
 }
 
 /// Theme 菜单 —— 对齐 marktext theme.ts：Follow System Theme + 亮色/暗色主题列表。
@@ -288,9 +279,91 @@ pub fn on_menu_event(app: &AppHandle, event: tauri::menu::MenuEvent) {
     let _ = app.emit("menu://action", id);
 }
 
-/// 接收前端菜单启用/勾选状态。占位实现：仅记录，不真正重建菜单。
-#[tauri::command]
-pub fn update_editor_menu_state(payload: serde_json::Value) -> Result<(), String> {
-    eprintln!("[menu] editor menu state: {payload}");
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EditorMenuState {
+    has_document: bool,
+    line_ending: Option<String>,
+}
+
+fn find_menu_item(
+    items: Vec<MenuItemKind<tauri::Wry>>,
+    id: &str,
+) -> tauri::Result<Option<MenuItemKind<tauri::Wry>>> {
+    for item in items {
+        if item.id().as_ref() == id {
+            return Ok(Some(item));
+        }
+        if let MenuItemKind::Submenu(submenu) = &item {
+            if let Some(found) = find_menu_item(submenu.items()?, id)? {
+                return Ok(Some(found));
+            }
+        }
+    }
+    Ok(None)
+}
+
+fn find_app_menu_item(
+    menu: &Menu<tauri::Wry>,
+    id: &str,
+) -> tauri::Result<Option<MenuItemKind<tauri::Wry>>> {
+    find_menu_item(menu.items()?, id)
+}
+
+fn set_menu_item_enabled(menu: &Menu<tauri::Wry>, id: &str, enabled: bool) -> tauri::Result<()> {
+    if let Some(item) = find_app_menu_item(menu, id)? {
+        match item {
+            MenuItemKind::MenuItem(item) => item.set_enabled(enabled)?,
+            MenuItemKind::Submenu(item) => item.set_enabled(enabled)?,
+            MenuItemKind::Check(item) => item.set_enabled(enabled)?,
+            MenuItemKind::Icon(item) => item.set_enabled(enabled)?,
+            MenuItemKind::Predefined(_) => {}
+        }
+    }
     Ok(())
+}
+
+fn set_editor_menu_state(
+    app: &AppHandle,
+    has_document: bool,
+    line_ending: Option<&str>,
+) -> tauri::Result<()> {
+    let Some(menu) = app.menu() else { return Ok(()); };
+
+    for id in [
+        "menu.edit",
+        "menu.paragraph",
+        "menu.format",
+        "file.save",
+        "file.save-as",
+        "file.toggle-auto-save",
+        "file.move-file",
+        "file.rename-file",
+        "file.close-tab",
+        "edit.line-ending",
+        "view.source-code-mode",
+    ] {
+        set_menu_item_enabled(&menu, id, has_document)?;
+    }
+
+    if let Some(line_ending) = line_ending {
+        if let Some(item) = find_app_menu_item(&menu, "edit.line-ending-crlf")? {
+            if let Some(item) = item.as_check_menuitem() {
+                item.set_checked(line_ending.eq_ignore_ascii_case("crlf"))?;
+            }
+        }
+        if let Some(item) = find_app_menu_item(&menu, "edit.line-ending-lf")? {
+            if let Some(item) = item.as_check_menuitem() {
+                item.set_checked(line_ending.eq_ignore_ascii_case("lf"))?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Receive document-dependent enabled/check states from the editor frontend.
+#[tauri::command]
+pub fn update_editor_menu_state(app: AppHandle, payload: EditorMenuState) -> Result<(), String> {
+    set_editor_menu_state(&app, payload.has_document, payload.line_ending.as_deref())
+        .map_err(|error| error.to_string())
 }

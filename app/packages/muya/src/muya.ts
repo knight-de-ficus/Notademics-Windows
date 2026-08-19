@@ -869,6 +869,22 @@ export class Muya {
         dupBlock.lastContentInDescendant()?.setCursor(0, 0, true);
     }
 
+    /** Insert plain Markdown text at the current selection/caret. */
+    insertText(text: string) {
+        const selection = this.editor.selection.getSelection();
+        if (!selection || !selection.isSelectionInSameBlock)
+            return;
+
+        const { anchor, focus } = selection;
+        const block = anchor.block;
+        const start = Math.min(anchor.offset, focus.offset);
+        const end = Math.max(anchor.offset, focus.offset);
+        this.editor.history.markInputBoundary('insertText', text);
+        block.text = block.text.substring(0, start) + text + block.text.substring(end);
+        const offset = start + text.length;
+        block.setCursor(offset, offset, true);
+    }
+
     /**
      * Insert an empty paragraph relative to the block at the current cursor.
      * @param location Insert `before` or `after` the current block (default `after`).

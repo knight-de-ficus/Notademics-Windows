@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { filter as fuzzyFilter } from 'fuzzaldrin';
 import { useCommandCenterStore } from '../../store/commandCenter';
-import type { CommandDescriptor } from '../../commands';
+import { commandRequiresDocument, type CommandDescriptor } from '../../commands';
+import { useEditorStore } from '../../store/editor';
 import bus from '../../bus';
 import { t } from '../../i18n';
 
@@ -13,6 +14,7 @@ interface CommandPaletteProps {
 
 export default function CommandPalette({ visible: propVisible, onClose }: CommandPaletteProps) {
   const commandCenterStore = useCommandCenterStore();
+  const hasDocument = useEditorStore((state) => Boolean(state.currentFile));
   const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
@@ -33,12 +35,16 @@ export default function CommandPalette({ visible: propVisible, onClose }: Comman
     bus.on('show-command-palette', onShow);
     bus.on('command-palette-close', off);
     return () => {
-      // mitt 无退订
+      bus.off('show-command-palette', onShow);
+      bus.off('command-palette-close', off);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const commands: CommandDescriptor[] = commandCenterStore.rootCommand?.subcommands ?? [];
+  const commands: CommandDescriptor[] = useMemo(() => {
+    const allCommands = commandCenterStore.rootCommand?.subcommands ?? [];
+    return hasDocument ? allCommands : allCommands.filter((command) => !commandRequiresDocument(command.id));
+  }, [commandCenterStore.rootCommand?.subcommands, hasDocument]);
 
   const filtered = useMemo(() => {
     if (!query) return commands;
