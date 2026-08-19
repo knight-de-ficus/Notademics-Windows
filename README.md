@@ -19,7 +19,7 @@ WYSIWYG Engine: Muya;
 
 ## Screenshot
 
-![screenshot](.\image\screenshot.png)
+<img src=".\image\screenshot.png"/> 
 
 ## Features
 
@@ -35,7 +35,7 @@ npm install
 npm run tauri build
 ```
 
-> 首次运行 Tauri 命令前，请确保已安装 [Rust](https://www.rust-lang.org/)（stable）与 [Node.js](https://nodejs.org/)（≥ 20）。Windows 上还需安装 [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)（含 "Desktop development with C++" 工作负载）以及 [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/)（Windows 10/11 一般已内置）。
+> Before running, make sure you have installed [Rust](https://www.rust-lang.org/) (stable) , [Node.js](https://nodejs.org/) (≥ 20) and [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) .
 
 ## Development
 
