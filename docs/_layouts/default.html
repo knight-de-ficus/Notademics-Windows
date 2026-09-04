@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="{{ site.lang | default: 'zh-CN' }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f7f4">
+    <title>{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}</title>
+    <meta name="description" content="{{ page.description | default: site.description | strip_html | normalize_whitespace | escape }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}">
+    <meta property="og:description" content="{{ page.description | default: site.description | strip_html | normalize_whitespace | escape }}">
+    <meta property="og:image" content="https://raw.githubusercontent.com/knight-de-ficus/Notademics-Windows/main/image/screenshot.png">
+    <meta property="og:url" content="{{ page.url | absolute_url }}">
+    <link rel="canonical" href="{{ page.url | absolute_url }}">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  </head>
+  <body class="{% if page.page_class %}{{ page.page_class }}{% else %}document-page{% endif %}">
+    <a class="skip-link" href="#main-content">跳到正文</a>
+    {% include header.html %}
+    <main id="main-content" class="page-shell">
+      {{ content }}
+    </main>
+    {% include footer.html %}
+  </body>
+</html>
+

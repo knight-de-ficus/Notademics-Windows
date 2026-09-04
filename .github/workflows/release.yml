@@ -1,0 +1,213 @@
+name: Release Windows app
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish Windows packages
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify release version
+        shell: pwsh
+        run: |
+          $packageVersion = (Get-Content app/package.json | ConvertFrom-Json).version
+          $tauriVersion = (Get-Content app/src-tauri/tauri.conf.json | ConvertFrom-Json).version
+          $cargoVersion = (Select-String -Path app/src-tauri/Cargo.toml -Pattern '^version\s*=\s*"([^"]+)"' | Select-Object -First 1).Matches.Groups[1].Value
+          $tagVersion = '${{ github.ref_name }}'.TrimStart('v')
+
+          if ($packageVersion -ne $tauriVersion -or $packageVersion -ne $cargoVersion) {
+            throw "Version mismatch: package.json=$packageVersion, tauri.conf.json=$tauriVersion, Cargo.toml=$cargoVersion"
+          }
+          if ($tagVersion -ne $packageVersion) {
+            throw "Tag v$tagVersion does not match application version $packageVersion"
+          }
+
+      - name: Install frontend dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Prepare verified WiX toolset
+        shell: pwsh
+        run: |
+          $wixDirectory = Join-Path $env:LOCALAPPDATA 'tauri\WixTools314'
+          $requiredFiles = @(
+            'candle.exe',
+            'candle.exe.config',
+            'darice.cub',
+            'light.exe',
+            'light.exe.config',
+            'wconsole.dll',
+            'winterop.dll',
+            'wix.dll',
+            'WixUIExtension.dll',
+            'WixUtilExtension.dll'
+          )
+          $hasCompleteToolset = (Test-Path -LiteralPath $wixDirectory) -and
+            -not ($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $wixDirectory $_)) })
+
+          if (-not $hasCompleteToolset) {
+            $archivePath = Join-Path $env:RUNNER_TEMP 'wix314-binaries.zip'
+            $downloadUrl = 'https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip'
+            $expectedSha256 = '6ac824e1642d6f7277d0ed7ea09411a508f6116ba6fae0aa5f2c7daa2ff43d31'
+
+            & curl.exe --location --fail --continue-at - --retry 8 --retry-delay 2 --retry-all-errors --output $archivePath $downloadUrl
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Failed to download the WiX 3.14.1 toolset.'
+            }
+            $actualSha256 = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualSha256 -ne $expectedSha256) {
+              throw "WiX SHA-256 mismatch: expected $expectedSha256, got $actualSha256"
+            }
+
+            if (Test-Path -LiteralPath $wixDirectory) {
+              Remove-Item -LiteralPath $wixDirectory -Recurse -Force
+            }
+            New-Item -ItemType Directory -Path $wixDirectory -Force | Out-Null
+            Expand-Archive -LiteralPath $archivePath -DestinationPath $wixDirectory
+          }
+
+          foreach ($requiredFile in $requiredFiles) {
+            if (-not (Test-Path -LiteralPath (Join-Path $wixDirectory $requiredFile))) {
+              throw "WiX toolset is incomplete: missing $requiredFile"
+            }
+          }
+
+      - name: Build Windows MSI
+        uses: tauri-apps/tauri-action@v1
+        with:
+          projectPath: app
+          tauriScript: npm run tauri
+          args: --bundles msi
+          retryAttempts: 2
+
+      - name: Create release packages and MD5 files
+        working-directory: app
+        shell: pwsh
+        run: ./scripts/package-windows-release.ps1
+
+      - name: Verify release assets
+        shell: pwsh
+        run: |
+          $packageVersion = (Get-Content app/package.json | ConvertFrom-Json).version
+          $expectedNames = @(
+            "Notademics_${packageVersion}_x64.msi",
+            "Notademics_${packageVersion}_x64.msi.md5",
+            "Notademics_${packageVersion}_x64-portable.zip",
+            "Notademics_${packageVersion}_x64-portable.zip.md5",
+            "Notademics_${packageVersion}_source.zip"
+          ) | Sort-Object
+          $assets = @(Get-ChildItem app/release-artifacts -File)
+          $actualNames = @($assets.Name | Sort-Object)
+          $difference = @(Compare-Object -ReferenceObject $expectedNames -DifferenceObject $actualNames)
+          if ($difference.Count -ne 0) {
+            throw "Release asset set is invalid. Expected: $($expectedNames -join ', '). Actual: $($actualNames -join ', ')."
+          }
+
+          $checksumFiles = @($assets | Where-Object Extension -eq '.md5')
+          if ($checksumFiles.Count -ne 2) {
+            throw "Expected exactly two MD5 files, found $($checksumFiles.Count)."
+          }
+          foreach ($checksumFile in $checksumFiles) {
+            $line = (Get-Content -LiteralPath $checksumFile.FullName -Raw).Trim()
+            if ($line -notmatch '^([0-9a-f]{32}) \*(.+)$') {
+              throw "Invalid MD5 file format: $($checksumFile.Name)"
+            }
+            $artifactPath = Join-Path $checksumFile.DirectoryName $Matches[2]
+            $actualHash = (Get-FileHash -LiteralPath $artifactPath -Algorithm MD5).Hash.ToLowerInvariant()
+            if ($actualHash -ne $Matches[1]) {
+              throw "MD5 mismatch for $($Matches[2])"
+            }
+          }
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $sourceArchive = Join-Path 'app/release-artifacts' "Notademics_${packageVersion}_source.zip"
+          $sourcePrefix = "Notademics_${packageVersion}_source/"
+          $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $sourceArchive))
+          try {
+            $fileEntries = @($zip.Entries | Where-Object { -not [string]::IsNullOrEmpty($_.Name) })
+            if ($fileEntries.Count -eq 0) {
+              throw 'Source archive is empty.'
+            }
+            $outsidePrefix = @($fileEntries | Where-Object { -not $_.FullName.StartsWith($sourcePrefix, [System.StringComparison]::Ordinal) })
+            if ($outsidePrefix.Count -ne 0) {
+              throw "Source archive contains paths outside the app-only root: $($outsidePrefix[0].FullName)"
+            }
+            $archivedPaths = @($fileEntries.FullName | ForEach-Object { $_.Substring($sourcePrefix.Length) } | Sort-Object)
+            $trackedAppPaths = @(
+              git ls-tree -r --name-only HEAD app |
+                ForEach-Object { $_.Substring('app/'.Length) } |
+                Sort-Object
+            )
+            $sourceDifference = @(Compare-Object -ReferenceObject $trackedAppPaths -DifferenceObject $archivedPaths)
+            if ($sourceDifference.Count -ne 0) {
+              throw 'Source archive does not exactly match the committed app directory.'
+            }
+          }
+          finally {
+            $zip.Dispose()
+          }
+
+          $portableArchive = Join-Path 'app/release-artifacts' "Notademics_${packageVersion}_x64-portable.zip"
+          $portablePrefix = "Notademics_${packageVersion}_x64-portable/"
+          $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $portableArchive))
+          try {
+            $portablePaths = @($zip.Entries.FullName)
+            foreach ($requiredPath in @(
+              "${portablePrefix}Notademics.exe",
+              "${portablePrefix}README.txt",
+              "${portablePrefix}LICENSE.txt"
+            )) {
+              if ($requiredPath -notin $portablePaths) {
+                throw "Portable archive is missing $requiredPath"
+              }
+            }
+            if (-not ($portablePaths | Where-Object { $_.StartsWith("${portablePrefix}resources/", [System.StringComparison]::Ordinal) })) {
+              throw 'Portable archive does not contain runtime resources.'
+            }
+          }
+          finally {
+            $zip.Dispose()
+          }
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $assets = @(Get-ChildItem app/release-artifacts -File | Sort-Object Name | ForEach-Object FullName)
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            & gh release upload $tag @assets --clobber
+          } else {
+            & gh release create $tag @assets --verify-tag --title "Notademics $tag" --generate-notes
+          }
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to publish GitHub Release $tag."
+          }

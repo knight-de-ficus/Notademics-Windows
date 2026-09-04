@@ -32,7 +32,7 @@
   "mainBinaryName": "Notademics",
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": ["msi"],
     "category": "Productivity",
     "shortDescription": "The Art of Minimal Markdown",
     "longDescription": "Notademics is a lightweight, distraction-free WYSIWYG Markdown editor for Windows. One file. One window. Just write.",
@@ -59,10 +59,8 @@
       }
     ],
     "windows": {
-      "nsis": {
-        "installMode": "currentUser",
-        "installerIcon": "icons/icon.ico",
-        "displayLanguageSelector": false
+      "wix": {
+        "language": "en-US"
       }
     },
     "resources": ["resources/locales/*.json"]

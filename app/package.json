@@ -11,7 +11,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "check:rs": "cd src-tauri && cargo check"
+    "check:rs": "cd src-tauri && cargo check",
+    "clean:rs": "cargo clean --manifest-path src-tauri/Cargo.toml",
+    "package:windows-release": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-windows-release.ps1"
   },
   "dependencies": {
     "@muyajs/core": "file:./packages/muya",

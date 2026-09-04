@@ -1,0 +1,31 @@
+title: Notademics
+tagline: The Art of Minimal Markdown
+description: 面向 Windows 的轻量、开源、所见即所得 Markdown 编辑器。
+url: https://knight-de-ficus.github.io
+baseurl: /Notademics-Windows
+repository: knight-de-ficus/Notademics-Windows
+repository_url: https://github.com/knight-de-ficus/Notademics-Windows
+release_url: https://github.com/knight-de-ficus/Notademics-Windows/releases/latest
+lang: zh-CN
+timezone: Asia/Shanghai
+
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+

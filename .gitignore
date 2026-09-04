@@ -33,6 +33,7 @@ pnpm-debug.log*
 
 # Distribution binaries (use GitHub Releases instead)
 distribution/
+app/release-artifacts/
 
 # ai assist
 CLAUDE.md

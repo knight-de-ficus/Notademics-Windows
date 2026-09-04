@@ -17,7 +17,10 @@ path = "src/main.rs"
 
 [lib]
 name = "notademics_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# Notademics-Windows only builds a desktop binary. The staticlib/cdylib
+# outputs are needed by Tauri's mobile targets, but on Windows they only add
+# large intermediate artifacts to target/. The binary links this rlib.
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -45,3 +48,13 @@ trash = "5"
 winreg = "0.55"
 # 轻量正则（文件夹内搜索用）
 regex-lite = "0.1"
+
+# Optimize the artifact users install. These settings trade a somewhat longer
+# release build/link for a smaller executable and MSI installer. They do not
+# affect `tauri dev` or normal debug builds.
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
