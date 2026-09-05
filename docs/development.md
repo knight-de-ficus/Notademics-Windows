@@ -138,7 +138,9 @@ bundle install
 bundle exec jekyll serve --baseurl ""
 ```
 
-推送到 `main` 后，`.github/workflows/pages.yml` 会构建 `docs/` 并部署。首次启用时，需要在仓库 **Settings → Pages → Build and deployment → Source** 中选择 **GitHub Actions**。
+推送到 `master` 后，`.github/workflows/pages.yml` 会构建 `docs/` 并部署。首次启用时，需要由仓库管理员在 **Settings → Pages → Build and deployment → Source** 中选择 **GitHub Actions**；工作流自带的 `GITHUB_TOKEN` 无法代替这项首次启用操作。
+
+GitHub Pages 项目站点的默认路径由仓库名决定，无法通过 Jekyll 路由或 Pages 工作流改写。例如，仓库名为 `Notademics-Windows` 时，站点路径就是 `/Notademics-Windows`。如需使用 `/Notademics`，必须先将 GitHub 仓库重命名为 `Notademics`，再同步更新 `_config.yml` 中的 `baseurl`、`repository`、`repository_url` 和 `release_url`，以及本地 Git 远端地址。GitHub 不保证旧的项目站点 URL 在仓库重命名后自动跳转。
 
 ## 提交建议
 

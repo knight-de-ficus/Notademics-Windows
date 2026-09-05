@@ -5,65 +5,62 @@ permalink: /
 page_class: home-page
 ---
 
-<section class="hero">
-  <p class="eyebrow">Windows · Open source · WYSIWYG</p>
-  <h1>写作，只留下必要的。</h1>
-  <p class="hero-copy">Notademics 是一款面向 Windows 的轻量 Markdown 编辑器。它把 Muya 的实时所见即所得体验、原生文件操作与丰富主题收进一个安静的写作空间。</p>
-  <div class="hero-actions">
-    <a class="button" href="{{ site.release_url }}">下载最新版本</a>
-    <a class="button secondary" href="{{ '/guide/' | relative_url }}">阅读使用指南</a>
-  </div>
-</section>
+<article class="article">
+  <header class="article-header">
+    <p class="content-label">产品概述</p>
+    <h1>Notademics</h1>
+    <p class="lead">一款面向 Windows 的轻量、开源、所见即所得 Markdown 编辑器。</p>
+    <div class="metadata">
+      <span>适用于 Windows 10 和 Windows 11</span>
+      <span>GNU GPL v3.0</span>
+    </div>
+  </header>
 
-<figure class="product-shot">
-  <img src="https://raw.githubusercontent.com/knight-de-ficus/Notademics-Windows/main/image/screenshot.png" alt="Notademics Markdown 编辑器界面截图">
-  <figcaption>所见即所得编辑、文件树与文档目录，共处一个克制的工作空间。</figcaption>
-</figure>
+  <div class="article-body">
+    <div class="hero-actions">
+      <a class="button" href="{{ site.release_url }}">下载最新版本</a>
+      <a class="button secondary" href="{{ '/guide/' | relative_url }}">阅读使用指南</a>
+    </div>
 
-<section class="feature-section">
-  <div class="section-heading">
-    <h2>一份 Markdown，<br>两种视角。</h2>
-    <p>在所见即所得编辑与源码模式之间切换；专注于内容，同时保留对原始文本的完整控制。</p>
-  </div>
+    <div class="callout note">
+      <strong>选择安装方式</strong>
+      <p>正式 Release 同时提供 MSI 安装包和免安装 ZIP，并附带对应的 MD5 校验文件。</p>
+    </div>
 
-  <div class="feature-grid">
-    <article class="feature-card">
-      <span class="number">01</span>
-      <h3>实时编辑</h3>
-      <p>标题、列表、表格、代码块、数学公式、脚注与图表在编辑过程中即时呈现。</p>
-    </article>
-    <article class="feature-card">
-      <span class="number">02</span>
-      <h3>文件即内容</h3>
-      <p>直接打开 Markdown 文件或文件夹，多标签管理文稿，并监视外部文件变化。</p>
-    </article>
-    <article class="feature-card">
-      <span class="number">03</span>
-      <h3>保持自己的风格</h3>
-      <p>提供多套明暗主题、编辑器背景、自定义 CSS、字体、行宽与排版选项。</p>
-    </article>
-    <article class="feature-card">
-      <span class="number">04</span>
-      <h3>高效导航</h3>
-      <p>侧边栏文件树、文档目录、文件夹内搜索、命令面板与可配置快捷键协同工作。</p>
-    </article>
-    <article class="feature-card">
-      <span class="number">05</span>
-      <h3>可靠保存</h3>
-      <p>支持自动保存、编码检测、UTF-8 / UTF-16 LE / GBK 与 CRLF / LF 行尾。</p>
-    </article>
-    <article class="feature-card">
-      <span class="number">06</span>
-      <h3>原生 Windows 应用</h3>
-      <p>基于 Tauri 2 与 Rust，支持文件关联、单实例唤醒、窗口状态恢复和系统回收站。</p>
-    </article>
-  </div>
-</section>
+    <h2>主要功能</h2>
+    <p>Notademics 将常用 Markdown 工作流集中在一个原生 Windows 窗口中，同时保留直接编辑源码的能力。</p>
 
-<section class="release-note">
-  <div>
-    <h2>选择适合你的版本</h2>
-    <p>Release 同时提供 MSI 安装包与免安装 ZIP；下载后可用配套 MD5 文件核验完整性。</p>
+    <div class="feature-grid">
+      <section class="feature-card">
+        <h3>所见即所得与源码模式</h3>
+        <p>实时呈现标题、列表、表格、代码块、数学公式、脚注与图表，并可随时切换到 Markdown 源码。</p>
+      </section>
+      <section class="feature-card">
+        <h3>文件与项目管理</h3>
+        <p>打开单个文件或整个文件夹，通过标签页、文件树、目录和搜索在文稿之间导航。</p>
+      </section>
+      <section class="feature-card">
+        <h3>Windows 原生体验</h3>
+        <p>基于 Tauri 2 与 Rust，支持文件关联、单实例唤醒、窗口恢复和系统回收站。</p>
+      </section>
+      <section class="feature-card">
+        <h3>可调整的写作环境</h3>
+        <p>提供明暗主题、自定义 CSS、编辑字体、行宽、图片处理和可配置快捷键。</p>
+      </section>
+    </div>
+
+    <h2>界面预览</h2>
+    <figure class="product-shot">
+      <img src="{{ site.repository_url }}/raw/master/image/screenshot.png" alt="Notademics Markdown 编辑器界面截图">
+      <figcaption>编辑器主界面：文件树、所见即所得编辑区域与文档目录。</figcaption>
+    </figure>
+
+    <h2>开始使用</h2>
+    <ol class="steps">
+      <li><strong>下载应用。</strong> 从 GitHub Releases 获取 MSI 或免安装 ZIP。</li>
+      <li><strong>打开内容。</strong> 选择一个 Markdown 文件，或打开文件夹以使用项目文件树。</li>
+      <li><strong>开始写作。</strong> 使用所见即所得模式编辑，必要时切换到源码模式。</li>
+    </ol>
+    <p><a href="{{ '/guide/' | relative_url }}">查看完整使用方法 →</a></p>
   </div>
-  <a class="button secondary" href="{{ site.release_url }}">前往 Releases ↗</a>
-</section>
+</article>

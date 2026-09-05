@@ -14,7 +14,7 @@ permalink: /license/
 
 ## 项目许可证
 
-Notademics 的项目源码以 **GNU General Public License v3.0（GPL-3.0-only）** 发布。完整且具有法律效力的条款见仓库根目录的 [LICENSE]({{ site.repository_url }}/blob/main/LICENSE)。本页面是便于理解的摘要，不替代许可证原文，也不构成法律意见。
+Notademics 的项目源码以 **GNU General Public License v3.0（GPL-3.0-only）** 发布。完整且具有法律效力的条款见仓库根目录的 [LICENSE]({{ site.repository_url }}/blob/master/LICENSE)。本页面是便于理解的摘要，不替代许可证原文，也不构成法律意见。
 
 ## 你可以做什么
 
@@ -51,4 +51,3 @@ GPL 允许收费分发，但收费不会取消接收者复制、修改和再分�
 
   </div>
 </article>
-

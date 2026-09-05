@@ -2,21 +2,27 @@
   <div class="header-inner">
     <a class="brand" href="{{ '/' | relative_url }}" aria-label="Notademics 首页">
       <span class="brand-mark" aria-hidden="true">N</span>
-      <span>Notademics</span>
+      <span class="brand-name">Notademics</span>
+      <span class="brand-section">文档</span>
     </a>
 
     <input class="nav-toggle" type="checkbox" id="nav-toggle" aria-label="打开导航">
     <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">
-      <span></span><span></span>
+      <span></span><span></span><span></span>
     </label>
 
-    <nav class="site-nav" aria-label="主导航">
+    <nav class="utility-nav" aria-label="实用链接">
+      <a href="{{ site.release_url }}">下载</a>
+      <a href="{{ site.repository_url }}">GitHub</a>
+    </nav>
+  </div>
+  <div class="product-bar">
+    <a class="product-title" href="{{ '/' | relative_url }}">Notademics 文档</a>
+    <nav class="product-nav" aria-label="文档导航">
       {% for item in site.data.navigation %}
         {% assign item_url = item.url | relative_url %}
         <a href="{{ item_url }}"{% if page.url == item.url %} class="active" aria-current="page"{% endif %}>{{ item.title }}</a>
       {% endfor %}
-      <a class="nav-github" href="{{ site.repository_url }}">GitHub ↗</a>
     </nav>
   </div>
 </header>
-
