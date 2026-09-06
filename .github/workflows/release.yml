@@ -221,8 +221,17 @@ jobs:
           $tag = '${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}'
           $assets = @(Get-ChildItem app/release-artifacts -File | Sort-Object Name | ForEach-Object FullName)
 
-          gh release view $tag *> $null
-          if ($LASTEXITCODE -eq 0) {
+          $nativeErrorPreference = $PSNativeCommandUseErrorActionPreference
+          $PSNativeCommandUseErrorActionPreference = $false
+          try {
+            gh release view $tag *> $null
+            $releaseExists = ($LASTEXITCODE -eq 0)
+          }
+          finally {
+            $PSNativeCommandUseErrorActionPreference = $nativeErrorPreference
+          }
+
+          if ($releaseExists) {
             & gh release upload $tag @assets --clobber
           } else {
             & gh release create $tag @assets --verify-tag --title "Notademics $tag" --generate-notes
