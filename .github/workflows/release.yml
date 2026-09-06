@@ -218,7 +218,7 @@ jobs:
         run: |
           $existingTags = @(git tag --list -- $env:RELEASE_TAG)
           if ($env:RELEASE_TAG -notin $existingTags) {
-            git tag --annotate $env:RELEASE_TAG --message "Notademics $env:RELEASE_TAG"
+            git tag $env:RELEASE_TAG
             if ($LASTEXITCODE -ne 0) {
               throw "Failed to create release tag $env:RELEASE_TAG."
             }
