@@ -18,18 +18,24 @@
   <body class="{% if page.page_class %}{{ page.page_class }}{% else %}document-page{% endif %}">
     <a class="skip-link" href="#main-content">跳到正文</a>
     {% include header.html %}
-    <div class="docs-layout">
-      {% include sidebar.html %}
-      <main id="main-content" class="page-shell">
-        <nav class="breadcrumbs" aria-label="面包屑">
-          <a href="{{ '/' | relative_url }}">Notademics</a>
-          <span aria-hidden="true">/</span>
-          <span aria-current="page">{{ page.title }}</span>
-        </nav>
+    {% if page.landing %}
+      <main id="main-content" class="landing-shell">
         {{ content }}
       </main>
-      {% include toc.html %}
-    </div>
+    {% else %}
+      <div class="docs-layout">
+        {% include sidebar.html %}
+        <main id="main-content" class="page-shell">
+          <nav class="breadcrumbs" aria-label="面包屑">
+            <a href="{{ '/' | relative_url }}">Notademics</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">{{ page.title }}</span>
+          </nav>
+          {{ content }}
+        </main>
+        {% include toc.html %}
+      </div>
+    {% endif %}
     {% include footer.html %}
   </body>
 </html>

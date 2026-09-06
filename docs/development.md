@@ -107,12 +107,18 @@ npm run tauri -- build --bundles msi
 - `app/src-tauri/tauri.conf.json`
 - `app/src-tauri/Cargo.toml`
 
-然后创建并推送对应的 `v` 前缀标签：
+发布工作流只监听远端 `release` 分支。准备好发布内容后，确保该分支最新提交的标题严格使用 `release: vX.Y.Z`：
 
 ```powershell
-git tag v0.2.0
-git push origin v0.2.0
+git switch release
+git add <本次发布文件>
+git commit -m "release: v0.2.0"
+git push -u origin release
 ```
+
+GitHub 只会在提交被推送到远端后运行工作流，本地 `commit` 本身不会触发。工作流读取最新提交的第一行，因此可以附加提交正文，但标题必须完全符合格式。版本名称区分大小写，并且使用“小写 `v` + 完整三段版本号”；例如应用版本为 `0.2.0` 时必须填写 `release: v0.2.0`，不能写成 `Release: V0.1` 或 `release: v0.2`。
+
+工作流验证提交信息和三个应用版本号后构建发布包。构建及附件检查全部通过后，它会在当前提交上创建并推送对应标签（例如 `v0.2.0`），再创建 GitHub Release。若同名标签已经指向其他提交，工作流会停止，避免覆盖已发布版本。
 
 `.github/workflows/release.yml` 会在 `windows-latest` 上重新安装锁定依赖、检查版本，按官方 SHA-256 校验 WiX 3.14.1 后构建 MSI，并产出：
 
