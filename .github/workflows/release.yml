@@ -2,20 +2,14 @@ name: Release Windows app
 
 on:
   push:
-    tags:
-      - "v*"
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "要发布的现有标签（例如 v0.2.0）"
-        required: true
-        type: string
+    branches:
+      - release
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -29,7 +23,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -44,15 +37,11 @@ jobs:
       - name: Verify release version
         shell: pwsh
         run: |
-          $tag = '${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}'
-          if ($tag -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$') {
-            throw "Release tag must start with v and contain a semantic version, got: $tag"
+          $subject = (git log -1 --pretty=%s).Trim()
+          if ($subject -notmatch '^release: (v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?)$') {
+            throw "The latest commit subject must use 'release: vX.Y.Z', for example 'release: v0.2.0'. Got: $subject"
           }
-
-          git rev-parse --verify "refs/tags/$tag^{commit}" *> $null
-          if ($LASTEXITCODE -ne 0) {
-            throw "Release tag does not exist: $tag"
-          }
+          $tag = $Matches[1]
 
           $packageVersion = (Get-Content app/package.json | ConvertFrom-Json).version
           $tauriVersion = (Get-Content app/src-tauri/tauri.conf.json | ConvertFrom-Json).version
@@ -65,6 +54,17 @@ jobs:
           if ($tagVersion -ne $packageVersion) {
             throw "Tag v$tagVersion does not match application version $packageVersion"
           }
+
+          $existingTags = @(git tag --list -- $tag)
+          if ($tag -in $existingTags) {
+            $existingTagCommit = (git rev-list -n 1 $tag).Trim()
+            $headCommit = (git rev-parse HEAD).Trim()
+            if ($existingTagCommit -ne $headCommit) {
+              throw "Tag $tag already exists on another commit. Increment the application version and use a new release commit."
+            }
+          }
+
+          "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Install frontend dependencies
         working-directory: app
@@ -213,16 +213,40 @@ jobs:
             $zip.Dispose()
           }
 
+      - name: Create release tag
+        shell: pwsh
+        run: |
+          $existingTags = @(git tag --list -- $env:RELEASE_TAG)
+          if ($env:RELEASE_TAG -notin $existingTags) {
+            git tag $env:RELEASE_TAG
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to create release tag $env:RELEASE_TAG."
+            }
+            git push origin "refs/tags/$env:RELEASE_TAG"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to push release tag $env:RELEASE_TAG."
+            }
+          }
+
       - name: Publish GitHub Release
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = '${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}'
+          $tag = $env:RELEASE_TAG
           $assets = @(Get-ChildItem app/release-artifacts -File | Sort-Object Name | ForEach-Object FullName)
 
-          gh release view $tag *> $null
-          if ($LASTEXITCODE -eq 0) {
+          $nativeErrorPreference = $PSNativeCommandUseErrorActionPreference
+          $PSNativeCommandUseErrorActionPreference = $false
+          try {
+            gh release view $tag *> $null
+            $releaseExists = ($LASTEXITCODE -eq 0)
+          }
+          finally {
+            $PSNativeCommandUseErrorActionPreference = $nativeErrorPreference
+          }
+
+          if ($releaseExists) {
             & gh release upload $tag @assets --clobber
           } else {
             & gh release create $tag @assets --verify-tag --title "Notademics $tag" --generate-notes
