@@ -14,13 +14,15 @@ export const DEFAULT_STYLE = Object.freeze({
   codeFontFamily: DEFAULT_CODE_FONT_FAMILY,
   codeFontSize: '14px',
   hideScrollbar: false,
-  theme: 'light'
+  theme: 'typora-github'
 })
 
 // 使用 railscasts CodeMirror 主题的暗色主题列表
 export const railscastsThemes: readonly string[] = Object.freeze([
   'dark',
   'material-dark',
+  // Typora 内置深色主题
+  'typora-night',
   // gogh 深色主题
   'dracula',
   'nord',
@@ -82,3 +84,4 @@ export const isLinux = platform === 'linux'
 
 // 路径分隔符（Tauri 下无 window.path，按平台取）
 export const PATH_SEPARATOR: string = isWindows ? '\\' : '/'
+

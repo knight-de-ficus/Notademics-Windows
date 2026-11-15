@@ -35,6 +35,13 @@ import ayuLightTheme from '../styles/marktext/themes/ayu-light.theme.css?inline'
 import everforestLightTheme from '../styles/marktext/themes/everforest-light.theme.css?inline'
 import rosePineDawnTheme from '../styles/marktext/themes/rose-pine-dawn.theme.css?inline'
 
+// Typora 自带主题（移植自 Typora 1.14.9 resources/style/themes/*.css）
+import typoraGithubTheme from '../styles/marktext/themes/typora-github.theme.css?inline'
+import typoraNightTheme from '../styles/marktext/themes/typora-night.theme.css?inline'
+import typoraNewsprintTheme from '../styles/marktext/themes/typora-newsprint.theme.css?inline'
+import typoraPixyllTheme from '../styles/marktext/themes/typora-pixyll.theme.css?inline'
+import typoraWhiteyTheme from '../styles/marktext/themes/typora-whitey.theme.css?inline'
+
 // Prism.js 语法高亮主题
 import darkPrismTheme from '../styles/marktext/themes/prismjs/dark.theme.css?inline'
 import oneDarkPrismTheme from '../styles/marktext/themes/prismjs/one-dark.theme.css?inline'
@@ -198,3 +205,14 @@ export const everforestLight = (): string => {
 export const rosePineDawn = (): string => {
   return rosePineDawnTheme + '\n' + rosePineDawnPrismTheme
 }
+
+// Typora 主题（无独立 Prism 主题，语法高亮跟随主题变量）
+export const typoraGithub = (): string => typoraGithubTheme
+
+export const typoraNight = (): string => typoraNightTheme
+
+export const typoraNewsprint = (): string => typoraNewsprintTheme
+
+export const typoraPixyll = (): string => typoraPixyllTheme
+
+export const typoraWhitey = (): string => typoraWhiteyTheme

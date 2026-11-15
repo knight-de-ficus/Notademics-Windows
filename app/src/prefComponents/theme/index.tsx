@@ -5,6 +5,7 @@ import { RangeInput, TextBoxInput } from '../common';
 import { open } from '@tauri-apps/plugin-dialog';
 
 const THEMES = [
+  'typora-github', 'typora-night', 'typora-newsprint', 'typora-pixyll', 'typora-whitey',
   'light', 'dark', 'graphite', 'material-dark', 'one-dark', 'ulysses',
   'dracula', 'nord', 'catppuccin-mocha', 'gruvbox-dark', 'tokyo-night', 'tokyo-night-storm',
   'solarized-dark', 'ayu-dark', 'ayu-mirage', 'everforest-dark', 'rose-pine', 'rose-pine-moon',
@@ -12,6 +13,13 @@ const THEMES = [
   'nightfox', 'cyberdream', 'catppuccin-latte', 'gruvbox-light', 'tokyo-night-light',
   'solarized-light', 'ayu-light', 'everforest-light', 'rose-pine-dawn'
 ]
+
+const DARK_THEMES = new Set([
+  'typora-night', 'dark', 'material-dark', 'one-dark', 'dracula', 'nord', 'catppuccin-mocha',
+  'gruvbox-dark', 'tokyo-night', 'tokyo-night-storm', 'solarized-dark', 'ayu-dark', 'ayu-mirage',
+  'everforest-dark', 'rose-pine', 'rose-pine-moon', 'monokai-pro', 'synthwave-84', 'horizon-dark',
+  'palenight', 'oxocarbon-dark', 'kanagawa', 'nightfox', 'cyberdream'
+])
 
 export default function Theme() {
   const p = usePreferencesStore();
@@ -47,7 +55,7 @@ export default function Theme() {
               onClick={() => p.SET_SINGLE_PREFERENCE('theme', th)}
               title={th}
             >
-              <div className="theme-preview" style={{ background: th.includes('dark') || th === 'one-dark' || th === 'dracula' || th === 'nord' ? '#282c34' : '#ffffff' }} />
+              <div className="theme-preview" style={{ background: DARK_THEMES.has(th) ? '#282c34' : '#ffffff' }} />
               <span className="theme-name">{th}</span>
             </div>
           ))}

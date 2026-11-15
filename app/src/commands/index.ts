@@ -136,6 +136,10 @@ const COMMAND_KEY_MAP: Record<string, string> = {
   'window.toggle-full-screen': 'commands.window.toggleFullScreen',
   'window.change-theme': 'commands.window.changeTheme',
   'view.source-code-mode': 'commands.view.sourceCodeMode',
+  'view.focus-mode': 'commands.view.focusMode',
+  'view.typewriter-mode': 'commands.view.typewriterMode',
+  'view.readonly-mode': 'commands.view.readonlyMode',
+  'view.toggle-status-bar': 'commands.view.toggleStatusBar',
   'view.command-palette': 'commands.view.commandPalette',
   'view.toggle-sidebar': 'commands.view.toggleSidebar',
   'view.toggle-toc': 'commands.view.toggleToc',
@@ -557,6 +561,11 @@ const commands: CommandDescriptor[] = [
   {
     id: 'window.change-theme',
     subcommands: [
+      { id: 'window.change-theme-typora-github', description: 'Typora GitHub', value: 'typora-github' },
+      { id: 'window.change-theme-typora-night', description: 'Typora Night', value: 'typora-night' },
+      { id: 'window.change-theme-typora-newsprint', description: 'Typora Newsprint', value: 'typora-newsprint' },
+      { id: 'window.change-theme-typora-pixyll', description: 'Typora Pixyll', value: 'typora-pixyll' },
+      { id: 'window.change-theme-typora-whitey', description: 'Typora Whitey', value: 'typora-whitey' },
       { id: 'window.change-theme-light', description: 'Cadmium Light', value: 'light' },
       { id: 'window.change-theme-dark', description: 'Dark', value: 'dark' },
       { id: 'window.change-theme-graphite', description: 'Graphite', value: 'graphite' },
@@ -577,6 +586,30 @@ const commands: CommandDescriptor[] = [
     id: 'view.source-code-mode',
     execute: async () => {
       usePreferencesStore.getState().TOGGLE_VIEW_MODE('sourceCode')
+    }
+  },
+  {
+    id: 'view.focus-mode',
+    execute: async () => {
+      usePreferencesStore.getState().TOGGLE_VIEW_MODE('focus')
+    }
+  },
+  {
+    id: 'view.typewriter-mode',
+    execute: async () => {
+      usePreferencesStore.getState().TOGGLE_VIEW_MODE('typewriter')
+    }
+  },
+  {
+    id: 'view.readonly-mode',
+    execute: async () => {
+      usePreferencesStore.getState().TOGGLE_VIEW_MODE('readonly')
+    }
+  },
+  {
+    id: 'view.toggle-status-bar',
+    execute: async () => {
+      useLayoutStore.getState().TOGGLE_LAYOUT_ENTRY('showStatusBar')
     }
   },
   {

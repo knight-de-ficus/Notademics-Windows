@@ -1,0 +1,513 @@
+/* Typora "pixyll" theme — ported from Typora 1.14.9 resources/style/themes/pixyll.css
+ *
+ * Font files and remote imports were dropped: the bundled Merriweather/Lato
+ * fonts and the `@include-when-export` Google Fonts URLs are replaced with a
+ * local/system serif stack (body) and sans stack (headings). Typora's
+ * `@media print` blocks were dropped. Typora's `#write` container maps onto
+ * Muya's `.mu-container`; the `body` typography maps onto `.mu-editor`.
+ */
+
+/* ==================================================================== */
+/* App chrome variables — exact pixyll values where defined, derived    */
+/* values for chrome Typora does not style.                             */
+/* ==================================================================== */
+
+:root {
+  /*editor*/
+  --themeColor: #463f5c;
+  --themeColor90: rgba(70, 63, 92, 0.9);
+  --themeColor80: rgba(70, 63, 92, 0.8);
+  --themeColor70: rgba(70, 63, 92, 0.7);
+  --themeColor60: rgba(70, 63, 92, 0.6);
+  --themeColor50: rgba(70, 63, 92, 0.5);
+  --themeColor40: rgba(70, 63, 92, 0.4);
+  --themeColor30: rgba(70, 63, 92, 0.3);
+  --themeColor20: rgba(70, 63, 92, 0.2);
+  --themeColor10: rgba(70, 63, 92, 0.1);
+
+  --highlightColor: rgba(70, 63, 92, 0.25);
+  --selectionColor: rgba(70, 63, 92, 0.25);
+  --editorColor: #333333;
+  --editorColor80: rgba(51, 51, 51, 0.8);
+  --editorColor60: rgba(51, 51, 51, 0.6);
+  --editorColor50: rgba(51, 51, 51, 0.5);
+  --editorColor40: rgba(51, 51, 51, 0.4);
+  --editorColor30: rgba(51, 51, 51, 0.3);
+  --editorColor10: rgba(51, 51, 51, 0.1);
+  --editorColor04: rgba(51, 51, 51, 0.04);
+  --editorBgColor: #ffffff;
+  --deleteColor: #b04a3a;
+  --iconColor: #777777;
+  --codeBgColor: transparent;
+  --codeBlockBgColor: transparent;
+  --footnoteBgColor: rgba(0, 0, 0, 0.03);
+  --inputBgColor: rgba(0, 0, 0, 0.05);
+
+  --focusColor: var(--themeColor);
+
+  --buttonFontColor: var(--editorColor);
+  --buttonBgColor: #ffffff;
+  --buttonBorder: 1px solid #dcdfe6;
+  --buttonShadow: none;
+  --buttonFontColorHover: var(--buttonFontColor);
+  --buttonBgColorHover: #fafafa;
+  --buttonBorderHover: var(--buttonBorder);
+  --buttonFontColorActive: var(--buttonFontColor);
+  --buttonBgColorActive: #f5f5f5;
+  --buttonBorderActive: var(--buttonBorder);
+  --buttonFocusBorder: 1px solid var(--themeColor);
+
+  --buttonPrimaryFontColor: #ffffff;
+  --buttonPrimaryBgColor: var(--themeColor);
+  --buttonPrimaryBorder: none;
+  --buttonPrimaryShadow: 0 0 8px 0 rgba(0, 0, 0, 0.1);
+  --buttonPrimaryFontColorHover: var(--buttonPrimaryFontColor);
+  --buttonPrimaryBgColorHover: #574f70;
+  --buttonPrimaryBorderHover: var(--buttonPrimaryBorder);
+  --buttonPrimaryFontColorActive: var(--buttonPrimaryFontColor);
+  --buttonPrimaryBgColorActive: #383250;
+  --buttonPrimaryBorderActive: var(--buttonPrimaryBorder);
+  --buttonPrimaryFocusBorder: none;
+  --buttonPrimaryFocusShadow: inset 0 0 0 1px rgba(31, 28, 41, 0.5), 0 0 0 1px var(--themeColor);
+  --tableBorderColor: #333333;
+
+  /* Markdown element colors */
+  --headingColor: #333333;
+  --h1Color: #333333;
+  --h2Color: #333333;
+  --h3Color: #333333;
+  --h4Color: #333333;
+  --h5Color: #333333;
+  --h6Color: #333333;
+  --blockquoteTextColor: #555555;
+  --blockquoteBorderColor: #7a7a7a;
+  --hrColor: #dddddd;
+  --linkColor: #463f5c;
+  --strongColor: #333333;
+  --emColor: #333333;
+  --listMarkerColor: #333333;
+
+  /*marktext*/
+  --sideBarColor: #333333;
+  --sideBarIconColor: #777777;
+  --sideBarTitleColor: #333333;
+  --sideBarTextColor: #777777;
+  --sideBarBgColor: #ffffff;
+  --sideBarItemHoverBgColor: rgba(0, 0, 0, 0.04);
+  --itemBgColor: #f5f5f5;
+
+  --floatFontColor: #333333;
+  --floatBgColor: #ffffff;
+  --floatHoverColor: rgba(0, 0, 0, 0.04);
+  --floatBorderColor: rgba(0, 0, 0, 0.08);
+  --floatShadow: rgba(0, 0, 0, 0.12);
+  --maskColor: rgba(255, 255, 255, 0.8);
+  --editorAreaWidth: 914px;
+
+  /* @muyajs/core (kebab-case) editor variables
+     Additive prep for the muyajs -> @muyajs/core editor swap. These
+     mirror the camelCase vars above; the legacy editor ignores them.
+     Do NOT remove the camelCase vars — they still drive the current
+     editor until editor.vue switches engines. */
+  --theme-color: var(--themeColor);
+  --highlight-color: var(--highlightColor);
+  --selection-color: var(--selectionColor);
+  --editor-color: var(--editorColor);
+  --editor-color-80: var(--editorColor80);
+  --editor-color-50: var(--editorColor50);
+  --editor-color-30: var(--editorColor30);
+  --editor-color-10: var(--editorColor10);
+  --editor-color-04: var(--editorColor04);
+  --editor-bg-color: var(--editorBgColor);
+  --editor-area-width: var(--editorAreaWidth);
+  --delete-color: var(--deleteColor);
+  --icon-color: var(--iconColor);
+  --code-block-bg-color: var(--codeBlockBgColor);
+  --table-border-color: var(--tableBorderColor);
+  --input-bg-color: var(--inputBgColor);
+  --button-font-color: var(--buttonFontColor);
+  --button-bg-color: var(--buttonBgColor);
+  --button-border: var(--buttonBorder);
+  --button-bg-color-hover: var(--buttonBgColorHover);
+  --button-border-hover: var(--buttonBorderHover);
+  --button-bg-color-active: var(--buttonBgColorActive);
+  --button-border-active: var(--buttonBorderActive);
+  --button-border-focus: var(--button-border);
+  --float-bg-color: var(--floatBgColor);
+  --float-hover-color: var(--floatHoverColor);
+  --float-border-color: var(--floatBorderColor);
+  --float-shadow: rgb(15 15 15 / 3%) 0 0 0 1px, rgb(15 15 15 / 4%) 0 3px 6px, rgb(15 15 15 / 5%) 0 9px 24px;
+  --link-color: var(--linkColor);
+  --h1-color: var(--h1Color);
+  --h2-color: var(--h2Color);
+  --h3-color: var(--h3Color);
+  --h4-color: var(--h4Color);
+  --h5-color: var(--h5Color);
+  --h6-color: var(--h6Color);
+  --blockquote-text-color: var(--blockquoteTextColor);
+  --blockquote-border-color: var(--blockquoteBorderColor);
+  --strong-color: var(--strongColor);
+  --em-color: var(--emColor);
+  --list-marker-color: var(--listMarkerColor);
+  --hr-color: var(--hrColor);
+}
+
+/* ==================================================================== */
+/* Editor surface — Typora `body` (Merriweather, 1.5rem)                */
+/* ==================================================================== */
+
+.mu-editor {
+  --mu-font-size: 24px;
+  --mu-line-height: 1.5;
+
+  -webkit-font-smoothing: antialiased;
+
+  font-family:
+    'Merriweather', 'PT Serif', Georgia, 'Times New Roman', 'STSong', 'Segoe UI Emoji', 'SF Pro', serif;
+  font-size: var(--mu-font-size);
+  font-weight: 400;
+  line-height: var(--mu-line-height);
+  color: #333333;
+}
+
+/* ==================================================================== */
+/* Writing column — Typora `#write` (max-width: 914px, padding-top 2rem) */
+/* ==================================================================== */
+
+.mu-container {
+  padding-top: 2rem;
+
+  color: #333333;
+}
+
+.editor-component .mu-container {
+  padding-top: 2rem;
+}
+
+/* links */
+.mu-container a {
+  color: #463f5c;
+  text-decoration: underline;
+}
+
+/* headings */
+.mu-container h1,
+.mu-container h2,
+.mu-container h3,
+.mu-container h4,
+.mu-container h5,
+.mu-container h6 {
+  margin: 1em 0 0.5em;
+
+  font-family: 'Lato', 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.mu-container h1 {
+  font-size: 2rem;
+}
+
+.mu-container h2 {
+  font-size: 1.5rem;
+}
+
+.mu-container h3 {
+  font-size: 1.25rem;
+}
+
+.mu-container h4 {
+  font-size: 1.13rem;
+}
+
+.mu-container h5,
+.mu-container h6 {
+  font-size: 1.125rem;
+}
+
+/* paragraph body sizes */
+.mu-container p,
+.mu-container ul.mu-bullet-list,
+.mu-container ol.mu-order-list,
+.mu-container dl {
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+}
+
+.mu-container p {
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.mu-container li {
+  margin: 0.5rem 0;
+}
+
+.mu-container li > *:last-child {
+  margin-bottom: 0;
+}
+
+/* images */
+.mu-container img {
+  width: auto;
+  max-width: 100%;
+}
+
+/* blockquote */
+.mu-container blockquote {
+  padding: 1.33em;
+
+  font-style: italic;
+
+  color: #555555;
+
+  background: transparent;
+  border-left: 5px solid #7a7a7a;
+}
+
+.mu-container blockquote::before {
+  content: none;
+}
+
+.mu-container blockquote em {
+  color: #000000;
+}
+
+/* horizontal rule — pixyll leaves the UA rule in place; render a solid hairline */
+.mu-container hr {
+  height: 1px;
+  margin: 2em 0;
+
+  background: #dddddd;
+  border: 0;
+}
+
+.mu-container .mu-thematic-break:not(.mu-active)::before {
+  height: 1px;
+
+  background: #dddddd;
+  border: 0;
+}
+
+/* tables — horizontal rules only, thick head rule */
+.mu-container .mu-table-inner {
+  width: 100%;
+
+  font-size: 1.125rem;
+
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.mu-container .mu-table-inner tr th,
+.mu-container .mu-table-inner tr td {
+  padding: 12px;
+
+  line-height: 1.2;
+  vertical-align: top;
+
+  border: 0;
+}
+
+.mu-container .mu-table-inner tr th::before,
+.mu-container .mu-table-inner tr td::before {
+  border: 0;
+  border-top: 1px solid #333333;
+}
+
+.mu-container .mu-table-inner tr:first-child th,
+.mu-container .mu-table-inner tr:first-child td {
+  vertical-align: bottom;
+}
+
+.mu-container .mu-table-inner tr:first-child th::before,
+.mu-container .mu-table-inner tr:first-child td::before {
+  border-top: 0;
+  border-bottom: 2px solid #333333;
+}
+
+/* inline + fenced code */
+.mu-container code,
+.mu-container pre {
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+}
+
+.mu-container code.mu-inline-rule {
+  padding: 0;
+
+  font-size: 1em;
+
+  color: #7a7a7a;
+
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.mu-container pre.mu-code-block {
+  margin-bottom: 0.88em;
+  padding: 0.5rem 1.125em;
+
+  font-size: 1rem;
+
+  color: #7a7a7a;
+
+  background: transparent;
+  border: 1px solid #7a7a7a;
+  border-radius: 0;
+}
+
+/* task lists — pixyll draws large round checkboxes */
+.mu-container ul.mu-task-list {
+  padding-inline-start: 0;
+}
+
+.mu-container li.mu-task-list-item {
+  list-style-type: none;
+}
+
+.mu-container li.mu-task-list-item > input[type='checkbox']::before,
+.mu-container li.mu-task-list-item > span.mu-task-list-checkbox::before {
+  top: -6px;
+  left: -6px;
+
+  width: 1.5rem;
+  height: 1.5rem;
+
+  background: #ffffff;
+  border: 1px solid #555555;
+  border-radius: 50%;
+}
+
+.mu-container li.mu-task-list-item > input.mu-checkbox-checked::before,
+.mu-container li.mu-task-list-item > span.mu-checkbox-checked::before {
+  background: #333333;
+  border-width: 2px;
+  box-shadow: none;
+}
+
+.mu-container li.mu-task-list-item > input.mu-checkbox-checked::after,
+.mu-container li.mu-task-list-item > span.mu-checkbox-checked::after {
+  border-color: #ffffff;
+}
+
+/* images — Typora `.md-image > .md-meta` accent */
+.mu-container .mu-image-marked-text {
+  color: #463f5c;
+}
+
+/* footnotes — Typora `.footnotes { font-size: 1.1rem }` */
+.mu-container figure.mu-footnote {
+  font-size: 1.1rem;
+
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* YAML front matter — Typora `#write pre.md-meta-block`
+   (the theme's full-bleed 100vw / negative-margin trick is dropped) */
+.mu-container pre.mu-frontmatter {
+  min-height: 35px;
+  margin: 0 0 2em;
+  padding: 0.5em 1em;
+
+  font-family: 'Lato', 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 300;
+  line-height: 1.5em;
+  white-space: pre;
+
+  color: #7a7a7a;
+
+  background-color: #fafafa;
+  border: 0;
+}
+
+/* math — Typora `.md-mathjax-midline { background: #fafafa }` */
+.mu-container .mu-math > .mu-math-render {
+  background: #fafafa;
+}
+
+/* diagrams — Typora `.md-diagram-panel { margin-top: 24px; margin-left: -1.2em }`
+   (the negative offset would overflow the app's centred column, so only the
+   top margin is kept) */
+.mu-container figure.mu-diagram-block {
+  margin-top: 24px;
+}
+
+/* theme-quirk markup: Typora `abbr { border-bottom: 1px black dotted }` */
+.mu-container abbr {
+  border-bottom: 1px black dotted;
+  cursor: help;
+}
+
+/* --- responsive heading scale (Typora's 48em / 64em breakpoints) ------- */
+
+@media screen and (min-width: 48em) {
+  .mu-container h1 {
+    font-size: 3.25rem;
+  }
+
+  .mu-container h2 {
+    font-size: 2.298rem;
+  }
+
+  .mu-container h3 {
+    font-size: 1.625rem;
+  }
+
+  .mu-container h4 {
+    font-size: 1.3rem;
+  }
+
+  .mu-container p,
+  .mu-container li {
+    font-size: 1.25rem;
+    line-height: 1.8;
+  }
+
+  .mu-container .mu-table-inner {
+    font-size: 1.25rem;
+  }
+}
+
+@media screen and (min-width: 64em) {
+  .mu-container h1 {
+    font-size: 4.498rem;
+  }
+
+  .mu-container h2 {
+    font-size: 2.29rem;
+  }
+
+  .mu-container h3 {
+    font-size: 1.9rem;
+  }
+
+  .mu-container h4 {
+    font-size: 1.591rem;
+  }
+}
+
+@media (max-width: 48em) {
+  .mu-container blockquote {
+    margin-right: 0;
+    margin-left: 1rem;
+    padding: 0.5em;
+  }
+
+  .mu-container h1 {
+    font-size: 2.827rem;
+  }
+
+  .mu-container h2 {
+    font-size: 1.999rem;
+  }
+
+  .mu-container h3 {
+    font-size: 1.413rem;
+  }
+
+  .mu-container h4 {
+    font-size: 1.3rem;
+  }
+}

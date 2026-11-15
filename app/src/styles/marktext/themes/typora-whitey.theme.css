@@ -1,0 +1,435 @@
+/* Typora "whitey" theme — ported from Typora 1.14.9 resources/style/themes/whitey.css
+ *
+ * The theme references the Vollkorn web font but bundles no font files and has
+ * no remote import, so a local/system serif stack is used. Typora's
+ * `@media print` block was dropped. Typora's `#write` container maps onto
+ * Muya's `.mu-container`; the `html` / `body` typography maps onto
+ * `.mu-editor`.
+ */
+
+/* ==================================================================== */
+/* App chrome variables — exact whitey values where defined, derived    */
+/* values for chrome Typora does not style.                             */
+/* ==================================================================== */
+
+:root {
+  /*editor*/
+  --themeColor: #2484c1;
+  --themeColor90: rgba(36, 132, 193, 0.9);
+  --themeColor80: rgba(36, 132, 193, 0.8);
+  --themeColor70: rgba(36, 132, 193, 0.7);
+  --themeColor60: rgba(36, 132, 193, 0.6);
+  --themeColor50: rgba(36, 132, 193, 0.5);
+  --themeColor40: rgba(36, 132, 193, 0.4);
+  --themeColor30: rgba(36, 132, 193, 0.3);
+  --themeColor20: rgba(36, 132, 193, 0.2);
+  --themeColor10: rgba(36, 132, 193, 0.1);
+
+  --highlightColor: rgba(36, 132, 193, 0.3);
+  --selectionColor: rgba(36, 132, 193, 0.3);
+  --editorColor: #333333;
+  --editorColor80: rgba(51, 51, 51, 0.8);
+  --editorColor60: rgba(51, 51, 51, 0.6);
+  --editorColor50: rgba(51, 51, 51, 0.5);
+  --editorColor40: rgba(51, 51, 51, 0.4);
+  --editorColor30: rgba(51, 51, 51, 0.3);
+  --editorColor10: rgba(51, 51, 51, 0.1);
+  --editorColor04: rgba(51, 51, 51, 0.04);
+  --editorBgColor: #fefefe;
+  --deleteColor: #b04a3a;
+  --iconColor: #777777;
+  --codeBgColor: #ffffff;
+  --codeBlockBgColor: #ffffff;
+  --footnoteBgColor: #f8f8f8;
+  --inputBgColor: rgba(0, 0, 0, 0.04);
+
+  --focusColor: var(--themeColor);
+
+  --buttonFontColor: var(--editorColor);
+  --buttonBgColor: #fefefe;
+  --buttonBorder: 1px solid #dddddd;
+  --buttonShadow: none;
+  --buttonFontColorHover: var(--buttonFontColor);
+  --buttonBgColorHover: #f5f5f5;
+  --buttonBorderHover: var(--buttonBorder);
+  --buttonFontColorActive: var(--buttonFontColor);
+  --buttonBgColorActive: #ededed;
+  --buttonBorderActive: var(--buttonBorder);
+  --buttonFocusBorder: 1px solid var(--themeColor);
+
+  --buttonPrimaryFontColor: #ffffff;
+  --buttonPrimaryBgColor: var(--themeColor);
+  --buttonPrimaryBorder: none;
+  --buttonPrimaryShadow: 0 0 8px 0 rgba(0, 0, 0, 0.1);
+  --buttonPrimaryFontColorHover: var(--buttonPrimaryFontColor);
+  --buttonPrimaryBgColorHover: #2f94d4;
+  --buttonPrimaryBorderHover: var(--buttonPrimaryBorder);
+  --buttonPrimaryFontColorActive: var(--buttonPrimaryFontColor);
+  --buttonPrimaryBgColorActive: #1c6da0;
+  --buttonPrimaryBorderActive: var(--buttonPrimaryBorder);
+  --buttonPrimaryFocusBorder: none;
+  --buttonPrimaryFocusShadow: inset 0 0 0 1px rgba(17, 63, 92, 0.5), 0 0 0 1px var(--themeColor);
+  --tableBorderColor: #dddddd;
+
+  /* Markdown element colors */
+  --headingColor: #333333;
+  --h1Color: #333333;
+  --h2Color: #333333;
+  --h3Color: #333333;
+  --h4Color: #333333;
+  --h5Color: #333333;
+  --h6Color: #333333;
+  --blockquoteTextColor: #333333;
+  --blockquoteBorderColor: #dddddd;
+  --hrColor: #dddddd;
+  --linkColor: #2484c1;
+  --strongColor: #333333;
+  --emColor: #333333;
+  --listMarkerColor: #333333;
+
+  /*marktext*/
+  --sideBarColor: #333333;
+  --sideBarIconColor: #777777;
+  --sideBarTitleColor: #333333;
+  --sideBarTextColor: #777777;
+  --sideBarBgColor: #fefefe;
+  --sideBarItemHoverBgColor: rgba(0, 0, 0, 0.04);
+  --itemBgColor: #f5f5f5;
+
+  --floatFontColor: #333333;
+  --floatBgColor: #fefefe;
+  --floatHoverColor: rgba(0, 0, 0, 0.04);
+  --floatBorderColor: rgba(0, 0, 0, 0.08);
+  --floatShadow: rgba(0, 0, 0, 0.12);
+  --maskColor: rgba(254, 254, 254, 0.8);
+  --editorAreaWidth: 960px;
+
+  /* @muyajs/core (kebab-case) editor variables
+     Additive prep for the muyajs -> @muyajs/core editor swap. These
+     mirror the camelCase vars above; the legacy editor ignores them.
+     Do NOT remove the camelCase vars — they still drive the current
+     editor until editor.vue switches engines. */
+  --theme-color: var(--themeColor);
+  --highlight-color: var(--highlightColor);
+  --selection-color: var(--selectionColor);
+  --editor-color: var(--editorColor);
+  --editor-color-80: var(--editorColor80);
+  --editor-color-50: var(--editorColor50);
+  --editor-color-30: var(--editorColor30);
+  --editor-color-10: var(--editorColor10);
+  --editor-color-04: var(--editorColor04);
+  --editor-bg-color: var(--editorBgColor);
+  --editor-area-width: var(--editorAreaWidth);
+  --delete-color: var(--deleteColor);
+  --icon-color: var(--iconColor);
+  --code-block-bg-color: var(--codeBlockBgColor);
+  --table-border-color: var(--tableBorderColor);
+  --input-bg-color: var(--inputBgColor);
+  --button-font-color: var(--buttonFontColor);
+  --button-bg-color: var(--buttonBgColor);
+  --button-border: var(--buttonBorder);
+  --button-bg-color-hover: var(--buttonBgColorHover);
+  --button-border-hover: var(--buttonBorderHover);
+  --button-bg-color-active: var(--buttonBgColorActive);
+  --button-border-active: var(--buttonBorderActive);
+  --button-border-focus: var(--button-border);
+  --float-bg-color: var(--floatBgColor);
+  --float-hover-color: var(--floatHoverColor);
+  --float-border-color: var(--floatBorderColor);
+  --float-shadow: rgb(15 15 15 / 3%) 0 0 0 1px, rgb(15 15 15 / 4%) 0 3px 6px, rgb(15 15 15 / 5%) 0 9px 24px;
+  --link-color: var(--linkColor);
+  --h1-color: var(--h1Color);
+  --h2-color: var(--h2Color);
+  --h3-color: var(--h3Color);
+  --h4-color: var(--h4Color);
+  --h5-color: var(--h5Color);
+  --h6-color: var(--h6Color);
+  --blockquote-text-color: var(--blockquoteTextColor);
+  --blockquote-border-color: var(--blockquoteBorderColor);
+  --strong-color: var(--strongColor);
+  --em-color: var(--emColor);
+  --list-marker-color: var(--listMarkerColor);
+  --hr-color: var(--hrColor);
+}
+
+/* ==================================================================== */
+/* Editor surface — Typora `html` (19px) / `body` (Vollkorn, justify)   */
+/* ==================================================================== */
+
+.mu-editor {
+  --mu-font-size: 19px;
+  --mu-line-height: 1.4;
+
+  -webkit-font-smoothing: antialiased;
+
+  font-family: 'Vollkorn', Palatino, Times, serif;
+  font-size: var(--mu-font-size);
+  line-height: var(--mu-line-height);
+  color: #333333;
+}
+
+/* ==================================================================== */
+/* Writing column — Typora `#write`                                     */
+/* -------------------------------------------------------------------- */
+/* Typora: #write { max-width: 960px; margin: 0 auto; margin-bottom: 2em; */
+/*                  line-height: 1.53; padding-top: 40px; }              */
+/* The width goes through --editorAreaWidth so the app's own editor      */
+/* width preference still wins; vertical scroll padding stays with the   */
+/* app container.                                                        */
+/* ==================================================================== */
+
+.mu-container {
+  margin-bottom: 2em;
+
+  line-height: 1.53;
+  text-align: justify;
+
+  color: #333333;
+}
+
+.editor-component .mu-container {
+  padding-top: 40px;
+}
+
+/* headings — whitey centres h1/h2/h3 and draws a 100px rule under h2 */
+.mu-container h1,
+.mu-container h2,
+.mu-container h3 {
+  text-align: center;
+}
+
+.mu-container h1 {
+  margin-top: 1.6em;
+
+  font-size: 3em;
+  font-weight: normal;
+}
+
+.mu-container > h1:first-child {
+  margin-top: 1.6em;
+}
+
+.mu-container h2 {
+  margin-top: 2em;
+
+  font-weight: normal;
+}
+
+.mu-container h2::after {
+  display: block;
+
+  width: 100px;
+  height: 1px;
+  margin: 0 auto;
+
+  border-bottom: 1px solid #2f2f2f;
+
+  content: '';
+}
+
+.mu-container h3 {
+  margin-top: 3em;
+
+  font-style: italic;
+  font-weight: normal;
+}
+
+.mu-container h1 + h2,
+.mu-container h2 + h3 {
+  margin-top: 0.83em;
+}
+
+/* paragraphs */
+.mu-container p {
+  margin-top: 0;
+
+  hyphens: auto;
+}
+
+/* lists */
+.mu-container ul.mu-bullet-list {
+  padding-inline-start: 1.2em;
+
+  list-style: square;
+}
+
+.mu-container ol.mu-order-list {
+  padding-inline-start: 1.2em;
+}
+
+/* links */
+.mu-container a {
+  color: #2484c1;
+  text-decoration: none;
+}
+
+.mu-container a:hover {
+  text-decoration: underline;
+}
+
+.mu-container a img {
+  border: none;
+}
+
+.mu-container h1 a,
+.mu-container h1 a:hover {
+  color: #333333;
+  text-decoration: none;
+}
+
+/* blockquote */
+.mu-container blockquote {
+  margin-left: 1em;
+  padding-left: 1em;
+
+  border-left: 1px solid #dddddd;
+}
+
+.mu-container blockquote::before {
+  left: 0;
+
+  width: 1px;
+
+  background: #dddddd;
+}
+
+/* horizontal rule */
+.mu-container hr {
+  height: 1px;
+  margin: 2em 0;
+
+  color: #dddddd;
+
+  border-top: 1px solid #dddddd;
+  border-right: 0;
+  border-bottom: none;
+  border-left: 0;
+}
+
+.mu-container .mu-thematic-break:not(.mu-active)::before {
+  height: 0;
+
+  background: none;
+  border: 0;
+  border-top: 1px solid #dddddd;
+}
+
+/* tables — horizontal rules only */
+.mu-container .mu-table-inner {
+  width: 100%;
+  margin-bottom: 1.333333rem;
+
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.mu-container .mu-table-inner tr th,
+.mu-container .mu-table-inner tr td {
+  padding: 8px;
+
+  line-height: 1.333333rem;
+  vertical-align: top;
+
+  border: 0;
+}
+
+.mu-container .mu-table-inner tr th::before,
+.mu-container .mu-table-inner tr td::before {
+  border: 0;
+  border-top: 1px solid #dddddd;
+}
+
+.mu-container .mu-table-inner tr th {
+  font-weight: bold;
+}
+
+.mu-container .mu-table-inner tr:first-child th,
+.mu-container .mu-table-inner tr:first-child td {
+  vertical-align: bottom;
+}
+
+.mu-container .mu-table-inner tr:first-child th::before,
+.mu-container .mu-table-inner tr:first-child td::before {
+  border-top: 0;
+}
+
+/* inline + fenced code */
+.mu-container code,
+.mu-container pre {
+  font-family: Consolas, Menlo, Monaco, monospace, serif;
+  font-size: 0.9em;
+
+  background: #ffffff;
+}
+
+.mu-container code.mu-inline-rule {
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+}
+
+.mu-container pre.mu-code-block {
+  margin: 0 0 1.5em 1em;
+  padding: 6px 0 8px 1em;
+
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 0;
+}
+
+/* task lists */
+.mu-container ul.mu-task-list {
+  padding: 0;
+}
+
+.mu-container li.mu-task-list-item {
+  padding-left: 1.6rem;
+
+  list-style-type: none;
+}
+
+.mu-container li.mu-task-list-item > input[type='checkbox']::before,
+.mu-container li.mu-task-list-item > span.mu-task-list-checkbox::before {
+  background-color: #fefefe;
+  border: 1px solid #bbbbbb;
+  border-radius: 0;
+}
+
+.mu-container li.mu-task-list-item > input.mu-checkbox-checked::before,
+.mu-container li.mu-task-list-item > span.mu-checkbox-checked::before {
+  background: #333333;
+  border-color: #333333;
+  box-shadow: none;
+}
+
+.mu-container li.mu-task-list-item > input.mu-checkbox-checked::after,
+.mu-container li.mu-task-list-item > span.mu-checkbox-checked::after {
+  border-color: #fefefe;
+}
+
+/* YAML front matter — Typora `#write pre.md-meta-block`
+   (the full-bleed 100vw / negative-margin trick is dropped) */
+.mu-container pre.mu-frontmatter {
+  min-height: 35px;
+  margin: 0 0 2em;
+  padding: 0.5em 1em;
+
+  font-size: 0.76em;
+  line-height: 1.8em;
+  white-space: pre;
+
+  color: #999999;
+
+  background-color: #f8f8f8;
+  border: 0;
+}
+
+/* math — Typora `.md-mathjax-midline { background: #fafafa }` */
+.mu-container .mu-math > .mu-math-render {
+  background: #fafafa;
+}
+
+.mu-container figure.mu-math-block {
+  margin-top: 0;
+}

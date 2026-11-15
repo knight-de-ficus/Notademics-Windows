@@ -26,10 +26,10 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
         "File",
         true,
         &[
-            &item!(app, "file.new-tab", "New Tab", "CmdOrCtrl+N"),
+            &item!(app, "file.new-tab", "New", "CmdOrCtrl+N"),
             &item!(app, "file.new-window", "New Window", "CmdOrCtrl+Shift+N"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "file.open-file", "Open File…", "CmdOrCtrl+O"),
+            &item!(app, "file.open-file", "Open…", "CmdOrCtrl+O"),
             &item!(app, "file.open-folder", "Open Folder…", "CmdOrCtrl+Shift+O"),
             &PredefinedMenuItem::separator(app)?,
             &item!(app, "file.save", "Save", "CmdOrCtrl+S"),
@@ -63,9 +63,9 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
             &item!(app, "edit.copy", "Copy", "CmdOrCtrl+C"),
             &item!(app, "edit.paste", "Paste", "CmdOrCtrl+V"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "edit.copyAsRich", "Copy As Rich Text", "CmdOrCtrl+Shift+C"),
-            &item!(app, "edit.copyAsHtml", "Copy As HTML", "CmdOrCtrl+Alt+C"),
-            &item!(app, "edit.pasteAsPlainText", "Paste As Plain Text", "CmdOrCtrl+Shift+V"),
+            &item!(app, "edit.copyAsRich", "Copy as Markdown", "CmdOrCtrl+Shift+C"),
+            &item!(app, "edit.copyAsHtml", "Copy as HTML Code", "CmdOrCtrl+Alt+C"),
+            &item!(app, "edit.pasteAsPlainText", "Paste as Plain Text", "CmdOrCtrl+Shift+V"),
             &PredefinedMenuItem::separator(app)?,
             &item!(app, "edit.selectAll", "Select All", "CmdOrCtrl+A"),
             &PredefinedMenuItem::separator(app)?,
@@ -83,7 +83,7 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
         ],
     )?;
 
-    // ---------------- Paragraph ----------------
+    // ---------------- Paragraph (Typora layout) ----------------
     let paragraph_menu = Submenu::with_id_and_items(
         app,
         "menu.paragraph",
@@ -96,91 +96,76 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
             &item!(app, "paragraph.heading-4", "Heading 4", "CmdOrCtrl+4"),
             &item!(app, "paragraph.heading-5", "Heading 5", "CmdOrCtrl+5"),
             &item!(app, "paragraph.heading-6", "Heading 6", "CmdOrCtrl+6"),
+            &item!(app, "paragraph.paragraph", "Paragraph", "CmdOrCtrl+0"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "paragraph.upgrade-heading", "Promote Heading", "CmdOrCtrl+Shift+Up"),
-            &item!(app, "paragraph.degrade-heading", "Demote Heading", "CmdOrCtrl+Shift+Down"),
+            &item!(app, "paragraph.upgrade-heading", "Increase Heading Level", "CmdOrCtrl+="),
+            &item!(app, "paragraph.degrade-heading", "Decrease Heading Level", "CmdOrCtrl+-"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "paragraph.table", "Table", "CmdOrCtrl+Shift+T"),
+            &item!(app, "paragraph.table", "Table", "CmdOrCtrl+T"),
             &item!(app, "paragraph.code-fence", "Code Fences", "CmdOrCtrl+Shift+K"),
-            &item!(app, "paragraph.quote-block", "Quote Block", "CmdOrCtrl+Shift+."),
             &item!(app, "paragraph.math-formula", "Math Block", "CmdOrCtrl+Shift+M"),
+            &item!(app, "paragraph.quote-block", "Quote", "CmdOrCtrl+Shift+Q"),
             &item!(app, "paragraph.html-block", "HTML Block"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "paragraph.order-list", "Ordered List", "CmdOrCtrl+Shift+7"),
-            &item!(app, "paragraph.bullet-list", "Bullet List", "CmdOrCtrl+Shift+8"),
+            &item!(app, "paragraph.order-list", "Ordered List", "CmdOrCtrl+Shift+["),
+            &item!(app, "paragraph.bullet-list", "Unordered List", "CmdOrCtrl+Shift+]"),
             &item!(app, "paragraph.task-list", "Task List"),
             &PredefinedMenuItem::separator(app)?,
             &item!(app, "paragraph.loose-list-item", "Loose List Item"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "paragraph.paragraph", "Paragraph", "CmdOrCtrl+0"),
-            &item!(app, "paragraph.horizontal-line", "Horizontal Rule", "CmdOrCtrl+Shift+-"),
-            &item!(app, "paragraph.front-matter", "Front Matter"),
+            &item!(app, "paragraph.horizontal-line", "Horizontal Line", "CmdOrCtrl+Shift+-"),
+            &item!(app, "paragraph.front-matter", "YAML Front Matter"),
         ],
     )?;
 
-    // ---------------- Format ----------------
+    // ---------------- Format (Typora layout) ----------------
     let format_menu = Submenu::with_id_and_items(
         app,
         "menu.format",
         "Format",
         false,
         &[
-            &item!(app, "format.strong", "Bold", "CmdOrCtrl+B"),
-            &item!(app, "format.emphasis", "Italic", "CmdOrCtrl+I"),
+            &item!(app, "format.strong", "Strong", "CmdOrCtrl+B"),
+            &item!(app, "format.emphasis", "Emphasis", "CmdOrCtrl+I"),
             &item!(app, "format.underline", "Underline", "CmdOrCtrl+U"),
-            &PredefinedMenuItem::separator(app)?,
+            &item!(app, "format.inline-code", "Code", "CmdOrCtrl+Shift+`"),
+            &item!(app, "format.inline-math", "Inline Math"),
+            &item!(app, "format.strike", "Strike", "Alt+Shift+5"),
+            &item!(app, "format.highlight", "Highlight"),
             &item!(app, "format.superscript", "Superscript"),
             &item!(app, "format.subscript", "Subscript"),
-            &item!(app, "format.highlight", "Highlight"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "format.inline-code", "Inline Code", "CmdOrCtrl+`"),
-            &item!(app, "format.inline-math", "Inline Math", "CmdOrCtrl+M"),
-            &PredefinedMenuItem::separator(app)?,
-            &item!(app, "format.strike", "Strikethrough", "CmdOrCtrl+D"),
             &item!(app, "format.hyperlink", "Hyperlink", "CmdOrCtrl+K"),
-            &item!(app, "format.image", "Image"),
+            &item!(app, "format.image", "Image", "CmdOrCtrl+Shift+I"),
             &PredefinedMenuItem::separator(app)?,
-            &item!(app, "format.clear-format", "Clear Formatting"),
-        ],
-    )?;
-
-    // ---------------- Window ----------------
-    let window_menu = Submenu::with_items(
-        app,
-        "Window",
-        true,
-        &[
-            &item!(app, "window.minimize", "Minimize"),
-            &CheckMenuItem::with_id(app, "window.toggle-always-on-top", "Always on Top", true, false, None::<&str>)?,
-            &PredefinedMenuItem::separator(app)?,
-            &item!(app, "window.zoomIn", "Zoom In", "CmdOrCtrl+="),
-            &item!(app, "window.zoomOut", "Zoom Out", "CmdOrCtrl+-"),
-            &PredefinedMenuItem::separator(app)?,
-            &item!(app, "window.toggle-full-screen", "Full Screen", "F11"),
+            &item!(app, "format.clear-format", "Clear Format", "CmdOrCtrl+\\"),
         ],
     )?;
 
     // ---------------- Theme ----------------
     let theme_menu = submenu_theme(app)?;
 
-    // ---------------- View ----------------
+    // ---------------- View (Typora layout) ----------------
     let view_menu = Submenu::with_items(
         app,
         "View",
         true,
         &[
+            &item!(app, "view.source-code-mode", "Source Code Mode", "CmdOrCtrl+/"),
+            &item!(app, "view.focus-mode", "Focus Mode", "F8"),
+            &item!(app, "view.typewriter-mode", "Typewriter Mode", "F9"),
+            &item!(app, "view.readonly-mode", "Readonly Mode"),
+            &PredefinedMenuItem::separator(app)?,
+            &item!(app, "view.toggle-sidebar", "Toggle Sidebar", "CmdOrCtrl+Shift+L"),
+            &item!(app, "view.toggle-toc", "Outline", "CmdOrCtrl+Shift+1"),
+            &item!(app, "view.toggle-status-bar", "Status Bar"),
+            &PredefinedMenuItem::separator(app)?,
+            &item!(app, "window.zoomIn", "Zoom In", "CmdOrCtrl+Shift+="),
+            &item!(app, "window.zoomOut", "Zoom Out", "CmdOrCtrl+Shift+-"),
+            &item!(app, "window.toggle-full-screen", "Full Screen", "F11"),
+            &PredefinedMenuItem::separator(app)?,
             &item!(app, "view.command-palette", "Command Palette", "CmdOrCtrl+Shift+P"),
-            &PredefinedMenuItem::separator(app)?,
-            &item!(app, "view.source-code-mode", "Source Code Mode", "CmdOrCtrl+Alt+S"),
-            &PredefinedMenuItem::separator(app)?,
-            // Chromium reserves Ctrl+J for Downloads. Handle it in the
-            // WebView before the browser default action runs.
-            &item!(app, "view.toggle-sidebar", "Toggle Sidebar"),
-            &item!(app, "view.toggle-tabbar", "Toggle Tabbar"),
-            &item!(app, "view.toggle-toc", "Toggle Table of Contents", "CmdOrCtrl+Alt+O"),
-            &item!(app, "view.reload-images", "Reload Images"),
-            &PredefinedMenuItem::separator(app)?,
-            &item!(app, "view.toggle-dev-tools", "Show Developer Tools", "CmdOrCtrl+Shift+I"),
+            &item!(app, "view.toggle-dev-tools", "Toggle Developer Tools", "Shift+F12"),
             &item!(app, "view.dev-reload", "Reload Window", "CmdOrCtrl+Shift+R"),
         ],
     )?;
@@ -200,7 +185,7 @@ pub fn setup_menu(app: &App) -> tauri::Result<()> {
 
     let menu = Menu::with_items(
         app,
-        &[&file_menu, &edit_menu, &paragraph_menu, &format_menu, &window_menu, &theme_menu, &view_menu, &help_menu],
+        &[&file_menu, &edit_menu, &paragraph_menu, &format_menu, &view_menu, &theme_menu, &help_menu],
     )?;
     app.set_menu(menu)?;
     set_editor_menu_state(app.handle(), false, None)?;
@@ -235,6 +220,34 @@ fn submenu_theme(app: &App) -> tauri::Result<Submenu<tauri::Wry>> {
     let mut items: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = Vec::new();
     items.push(&follow);
     items.push(&sep);
+
+    // Typora's five bundled themes come first; they are the closest visual
+    // match to the original application.
+    let typora_themes = [
+        ("typora-github", "GitHub"),
+        ("typora-night", "Night"),
+        ("typora-newsprint", "Newsprint"),
+        ("typora-pixyll", "Pixyll"),
+        ("typora-whitey", "Whitey"),
+    ];
+    let mut typora_items: Vec<MenuItem<tauri::Wry>> = Vec::new();
+    for (value, label) in typora_themes {
+        typora_items.push(MenuItem::with_id(
+            app,
+            &format!("window.change-theme-{value}"),
+            label,
+            true,
+            None::<&str>,
+        )?);
+    }
+    let mut typora_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = Vec::new();
+    for i in &typora_items {
+        typora_refs.push(i);
+    }
+    let typora_sub = Submenu::with_items(app, "Typora Themes", true, &typora_refs)?;
+    items.push(&typora_sub);
+    let typora_sep = PredefinedMenuItem::separator(app)?;
+    items.push(&typora_sep);
 
     let mut light_items: Vec<MenuItem<tauri::Wry>> = Vec::new();
     for name in light_themes {
@@ -271,7 +284,7 @@ fn submenu_theme(app: &App) -> tauri::Result<Submenu<tauri::Wry>> {
     items.push(&light_sub);
     items.push(&dark_sub);
 
-    Submenu::with_items(app, "Theme", true, &items)
+    Submenu::with_items(app, "Themes", true, &items)
 }
 
 pub fn on_menu_event(app: &AppHandle, event: tauri::menu::MenuEvent) {
@@ -342,6 +355,9 @@ fn set_editor_menu_state(
         "file.close-tab",
         "edit.line-ending",
         "view.source-code-mode",
+        "view.focus-mode",
+        "view.typewriter-mode",
+        "view.readonly-mode",
     ] {
         set_menu_item_enabled(&menu, id, has_document)?;
     }
@@ -367,3 +383,6 @@ pub fn update_editor_menu_state(app: AppHandle, payload: EditorMenuState) -> Res
     set_editor_menu_state(&app, payload.has_document, payload.line_ending.as_deref())
         .map_err(|error| error.to_string())
 }
+
+
+

@@ -39,7 +39,13 @@ import {
   solarizedLight,
   ayuLight,
   everforestLight,
-  rosePineDawn
+  rosePineDawn,
+  // Typora 主题
+  typoraGithub,
+  typoraNight,
+  typoraNewsprint,
+  typoraPixyll,
+  typoraWhitey
 } from './themeColor'
 import { isLinux } from './index'
 import { getCurrentWindow } from '@tauri-apps/api/window'
@@ -176,6 +182,22 @@ export const addThemeStyle = (theme: string): void => {
     case 'rose-pine-dawn':
       themeStyleEle.innerHTML = patchTheme(rosePineDawn())
       break
+    // Typora 主题
+    case 'typora-github':
+      themeStyleEle.innerHTML = patchTheme(typoraGithub())
+      break
+    case 'typora-night':
+      themeStyleEle.innerHTML = patchTheme(typoraNight())
+      break
+    case 'typora-newsprint':
+      themeStyleEle.innerHTML = patchTheme(typoraNewsprint())
+      break
+    case 'typora-pixyll':
+      themeStyleEle.innerHTML = patchTheme(typoraPixyll())
+      break
+    case 'typora-whitey':
+      themeStyleEle.innerHTML = patchTheme(typoraWhitey())
+      break
     default:
       break
   }
@@ -287,3 +309,4 @@ export const addStyles = (options: AddStylesOptions): void => {
   addThemeStyle(theme)
   addCommonStyle(options)
 }
+

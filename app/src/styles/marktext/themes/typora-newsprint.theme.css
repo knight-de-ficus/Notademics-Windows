@@ -1,0 +1,496 @@
+/* Typora "newsprint" theme — ported from Typora 1.14.9 resources/style/themes/newsprint.css
+ *
+ * Font files and remote imports were dropped: the bundled PT Serif woff2
+ * faces and the `@include-when-export` Google Fonts URL are replaced with a
+ * local/system serif stack. Typora's `@media print` blocks were dropped.
+ * Typora's `#write` container maps onto Muya's `.mu-container`; the
+ * `html` / `body` typography maps onto `.mu-editor`.
+ */
+
+/* ==================================================================== */
+/* App chrome variables — exact Typora newsprint values where defined,  */
+/* derived values for chrome Typora does not style.                     */
+/* ==================================================================== */
+
+:root {
+  /*editor*/
+  --themeColor: #065588;
+  --themeColor90: rgba(6, 85, 136, 0.9);
+  --themeColor80: rgba(6, 85, 136, 0.8);
+  --themeColor70: rgba(6, 85, 136, 0.7);
+  --themeColor60: rgba(6, 85, 136, 0.6);
+  --themeColor50: rgba(6, 85, 136, 0.5);
+  --themeColor40: rgba(6, 85, 136, 0.4);
+  --themeColor30: rgba(6, 85, 136, 0.3);
+  --themeColor20: rgba(6, 85, 136, 0.2);
+  --themeColor10: rgba(6, 85, 136, 0.1);
+
+  --highlightColor: rgba(6, 85, 136, 0.25);
+  --selectionColor: rgba(32, 43, 51, 0.63);
+  --editorColor: #1f0909;
+  --editorColor80: rgba(31, 9, 9, 0.8);
+  --editorColor60: rgba(31, 9, 9, 0.6);
+  --editorColor50: rgba(31, 9, 9, 0.5);
+  --editorColor40: rgba(31, 9, 9, 0.4);
+  --editorColor30: rgba(31, 9, 9, 0.3);
+  --editorColor10: rgba(31, 9, 9, 0.1);
+  --editorColor04: rgba(31, 9, 9, 0.04);
+  --editorBgColor: #f3f2ee;
+  --deleteColor: #9b5146;
+  --iconColor: #444444;
+  --codeBgColor: #dadada;
+  --codeBlockBgColor: #dadada;
+  --footnoteBgColor: rgba(0, 0, 0, 0.03);
+  --inputBgColor: rgba(0, 0, 0, 0.05);
+
+  --focusColor: var(--themeColor);
+
+  --buttonFontColor: var(--editorColor);
+  --buttonBgColor: #f3f2ee;
+  --buttonBorder: 1px solid #c5c5c5;
+  --buttonShadow: none;
+  --buttonFontColorHover: var(--buttonFontColor);
+  --buttonBgColorHover: #e8e7e7;
+  --buttonBorderHover: var(--buttonBorder);
+  --buttonFontColorActive: var(--buttonFontColor);
+  --buttonBgColorActive: #dadada;
+  --buttonBorderActive: var(--buttonBorder);
+  --buttonFocusBorder: 1px solid var(--themeColor);
+
+  --buttonPrimaryFontColor: #ffffff;
+  --buttonPrimaryBgColor: var(--themeColor);
+  --buttonPrimaryBorder: none;
+  --buttonPrimaryShadow: none;
+  --buttonPrimaryFontColorHover: var(--buttonPrimaryFontColor);
+  --buttonPrimaryBgColorHover: #0a6ba6;
+  --buttonPrimaryBorderHover: var(--buttonPrimaryBorder);
+  --buttonPrimaryFontColorActive: var(--buttonPrimaryFontColor);
+  --buttonPrimaryBgColorActive: #05466e;
+  --buttonPrimaryBorderActive: var(--buttonPrimaryBorder);
+  --buttonPrimaryFocusBorder: none;
+  --buttonPrimaryFocusShadow: inset 0 0 0 1px rgba(4, 55, 88, 0.5), 0 0 0 1px var(--themeColor);
+  --tableBorderColor: #c5c5c5;
+
+  /* Markdown element colors */
+  --headingColor: #1f0909;
+  --h1Color: #1f0909;
+  --h2Color: #1f0909;
+  --h3Color: #1f0909;
+  --h4Color: #1f0909;
+  --h5Color: #1f0909;
+  --h6Color: #1f0909;
+  --blockquoteTextColor: #656565;
+  --blockquoteBorderColor: #bababa;
+  --hrColor: #c5c5c5;
+  --linkColor: #065588;
+  --strongColor: #1f0909;
+  --emColor: #1f0909;
+  --listMarkerColor: #1f0909;
+
+  /*marktext*/
+  --sideBarColor: #1f0909;
+  --sideBarIconColor: #444444;
+  --sideBarTitleColor: #1f0909;
+  --sideBarTextColor: #444444;
+  --sideBarBgColor: #f3f2ee;
+  --sideBarItemHoverBgColor: #dadada;
+  --itemBgColor: #dadada;
+
+  --floatFontColor: #1f0909;
+  --floatBgColor: #f3f2ee;
+  --floatHoverColor: #dadada;
+  --floatBorderColor: rgba(0, 0, 0, 0.12);
+  --floatShadow: rgba(0, 0, 0, 0.18);
+  --maskColor: rgba(243, 242, 238, 0.8);
+  --editorAreaWidth: 40em;
+
+  /* @muyajs/core (kebab-case) editor variables
+     Additive prep for the muyajs -> @muyajs/core editor swap. These
+     mirror the camelCase vars above; the legacy editor ignores them.
+     Do NOT remove the camelCase vars — they still drive the current
+     editor until editor.vue switches engines. */
+  --theme-color: var(--themeColor);
+  --highlight-color: var(--highlightColor);
+  --selection-color: var(--selectionColor);
+  --editor-color: var(--editorColor);
+  --editor-color-80: var(--editorColor80);
+  --editor-color-50: var(--editorColor50);
+  --editor-color-30: var(--editorColor30);
+  --editor-color-10: var(--editorColor10);
+  --editor-color-04: var(--editorColor04);
+  --editor-bg-color: var(--editorBgColor);
+  --editor-area-width: var(--editorAreaWidth);
+  --delete-color: var(--deleteColor);
+  --icon-color: var(--iconColor);
+  --code-block-bg-color: var(--codeBlockBgColor);
+  --table-border-color: var(--tableBorderColor);
+  --input-bg-color: var(--inputBgColor);
+  --button-font-color: var(--buttonFontColor);
+  --button-bg-color: var(--buttonBgColor);
+  --button-border: var(--buttonBorder);
+  --button-bg-color-hover: var(--buttonBgColorHover);
+  --button-border-hover: var(--buttonBorderHover);
+  --button-bg-color-active: var(--buttonBgColorActive);
+  --button-border-active: var(--buttonBorderActive);
+  --button-border-focus: var(--button-border);
+  --float-bg-color: var(--floatBgColor);
+  --float-hover-color: var(--floatHoverColor);
+  --float-border-color: var(--floatBorderColor);
+  --float-shadow: rgb(15 15 15 / 3%) 0 0 0 1px, rgb(15 15 15 / 4%) 0 3px 6px, rgb(15 15 15 / 5%) 0 9px 24px;
+  --link-color: var(--linkColor);
+  --h1-color: var(--h1Color);
+  --h2-color: var(--h2Color);
+  --h3-color: var(--h3Color);
+  --h4-color: var(--h4Color);
+  --h5-color: var(--h5Color);
+  --h6-color: var(--h6Color);
+  --blockquote-text-color: var(--blockquoteTextColor);
+  --blockquote-border-color: var(--blockquoteBorderColor);
+  --strong-color: var(--strongColor);
+  --em-color: var(--emColor);
+  --list-marker-color: var(--listMarkerColor);
+  --hr-color: var(--hrColor);
+}
+
+/* ==================================================================== */
+/* Chrome touches from the Typora newsprint UI                          */
+/* ==================================================================== */
+
+/* Typora `#typora-sidebar`: no shadow, dashed border when pinned */
+.side-bar {
+  box-shadow: none !important;
+  border-right: 1px dashed #c5c5c5 !important;
+}
+
+.editor-tabs {
+  background: #f3f2ee !important;
+  box-shadow: none !important;
+}
+
+/* Typora's in-document TOC (`.md-toc-item { color:#065588 }`) maps onto the
+   sidebar outline list, which is the app's only table of contents. */
+.toc-item {
+  color: #065588;
+}
+
+/* ==================================================================== */
+/* Editor surface — Typora `html` / `body`                              */
+/* ==================================================================== */
+
+.mu-editor {
+  --mu-font-size: 16px;
+  --mu-line-height: 1.5;
+
+  -webkit-font-smoothing: antialiased;
+
+  font-family: 'PT Serif', 'Times New Roman', 'SF Pro', Times, serif;
+  font-size: var(--mu-font-size);
+  line-height: var(--mu-line-height);
+  color: #1f0909;
+}
+
+/* ==================================================================== */
+/* Writing column — Typora `#write` (max-width: 40em)                   */
+/* ==================================================================== */
+
+.mu-container {
+  color: #1f0909;
+}
+
+/* selection: Typora paints a dark band with white text */
+.mu-container ::selection {
+  color: #ffffff;
+}
+
+/* lists — the theme resets the boxes and re-declares the markers on the items */
+.mu-container ul.mu-bullet-list,
+.mu-container ol.mu-order-list {
+  margin: 0 0 1.5em 1.5em;
+  padding: 0;
+
+  list-style: none;
+}
+
+.mu-container ul.mu-bullet-list > li {
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.mu-container ol.mu-order-list > li {
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+
+.mu-container li ol.mu-order-list > li {
+  list-style-type: lower-alpha;
+}
+
+.mu-container li li ol.mu-order-list > li {
+  list-style-type: lower-roman;
+}
+
+.mu-container li > ul.mu-bullet-list,
+.mu-container li > ol.mu-order-list {
+  margin-bottom: 0;
+}
+
+/* headings */
+.mu-container h1,
+.mu-container h2,
+.mu-container h3,
+.mu-container h4,
+.mu-container h5,
+.mu-container h6 {
+  font-weight: bold;
+}
+
+.mu-container h1 {
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  padding-bottom: 0.8125em;
+
+  font-size: 1.875em;
+  font-weight: normal;
+  line-height: 1.3;
+
+  border-bottom: 1px solid #c5c5c5;
+}
+
+.mu-container h2 {
+  margin-top: 2.285714em;
+  margin-bottom: 0.75em;
+
+  font-size: 1.3125em;
+  line-height: 1.15;
+}
+
+.mu-container h3 {
+  margin-top: 2.285714em;
+  margin-bottom: 0.75em;
+
+  font-size: 1.3125em;
+  font-weight: normal;
+  line-height: 1.15;
+}
+
+.mu-container h4 {
+  margin-top: 2.67em;
+  margin-bottom: 1.5em;
+
+  font-size: 1.125em;
+}
+
+.mu-container h5,
+.mu-container h6 {
+  margin-bottom: 1.5em;
+
+  font-size: 1em;
+}
+
+/* block spacing */
+.mu-container p,
+.mu-container blockquote {
+  margin-bottom: 1.5em;
+}
+
+.mu-container p {
+  margin-top: 0;
+}
+
+.mu-container p + ul.mu-bullet-list,
+.mu-container p + ol.mu-order-list {
+  margin-top: 0.5em;
+}
+
+.mu-container h3 + ul.mu-bullet-list,
+.mu-container h4 + ul.mu-bullet-list,
+.mu-container h5 + ul.mu-bullet-list,
+.mu-container h6 + ul.mu-bullet-list,
+.mu-container h3 + ol.mu-order-list,
+.mu-container h4 + ol.mu-order-list,
+.mu-container h5 + ol.mu-order-list,
+.mu-container h6 + ol.mu-order-list {
+  margin-top: 0.5em;
+}
+
+/* links */
+.mu-container a {
+  color: #065588;
+  text-decoration: none;
+}
+
+.mu-container a:hover,
+.mu-container a:active {
+  text-decoration: underline;
+}
+
+/* blockquote */
+.mu-container blockquote {
+  margin: 0 0 1.5em 2em;
+  padding: 0 0 0 1em;
+
+  font-style: italic;
+
+  color: #656565;
+}
+
+.mu-container blockquote::before {
+  left: 0;
+
+  width: 5px;
+
+  background: #bababa;
+}
+
+.mu-container blockquote blockquote {
+  padding-right: 0;
+}
+
+.mu-container blockquote ul.mu-bullet-list,
+.mu-container blockquote ol.mu-order-list {
+  margin-left: 0;
+}
+
+/* horizontal rule */
+.mu-container hr {
+  border-top: none;
+  border-right: none;
+  border-bottom: 1px solid #c5c5c5;
+  border-left: none;
+}
+
+.mu-container .mu-thematic-break:not(.mu-active)::before {
+  height: 0;
+
+  background: none;
+  border: 0;
+  border-bottom: 1px solid #c5c5c5;
+}
+
+/* tables — newsprint prints banding, not cell rules */
+.mu-container .mu-table-inner {
+  margin-bottom: 1.5em;
+
+  font-size: 1em;
+
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.mu-container .mu-table-inner tr th,
+.mu-container .mu-table-inner tr td {
+  margin: 0;
+  padding: 0.25em 0.25em 0.25em 0.4em;
+
+  text-align: left;
+  vertical-align: top;
+
+  border: 0;
+}
+
+.mu-container .mu-table-inner tr th::before,
+.mu-container .mu-table-inner tr td::before {
+  border-color: transparent;
+}
+
+.mu-container .mu-table-inner tr:first-child {
+  background-color: #dadada;
+}
+
+.mu-container .mu-table-inner tr:first-child th,
+.mu-container .mu-table-inner tr:first-child td {
+  text-transform: uppercase;
+}
+
+.mu-container .mu-table-inner tr:nth-child(even) {
+  background: #e8e7e7;
+}
+
+/* inline + fenced code */
+.mu-container code.mu-inline-rule {
+  padding-right: 2px;
+  padding-left: 2px;
+
+  font-size: 0.875em;
+  line-height: 1.714285em;
+
+  color: #1f0909;
+
+  background-color: #dadada;
+  border: 0;
+  border-radius: 0;
+}
+
+.mu-container pre.mu-code-block {
+  margin: 0 0 3em 2em;
+  padding: 0 1ch;
+
+  font-size: 0.875em;
+  line-height: 1.714285em;
+
+  color: #1f0909;
+
+  background-color: #dadada;
+  border: 0;
+  border-radius: 0;
+}
+
+/* task lists */
+.mu-container ul.mu-task-list {
+  padding-left: 1rem;
+}
+
+.mu-container li.mu-task-list-item {
+  padding-left: 1.5rem;
+
+  list-style-type: none;
+}
+
+.mu-container li.mu-task-list-item > input[type='checkbox']::before,
+.mu-container li.mu-task-list-item > span.mu-task-list-checkbox::before {
+  background-color: #f3f2ee;
+  border: 1px solid #bababa;
+  border-radius: 0;
+}
+
+.mu-container li.mu-task-list-item > input.mu-checkbox-checked::before,
+.mu-container li.mu-task-list-item > span.mu-checkbox-checked::before {
+  background: #f3f2ee;
+  border-color: #656565;
+  box-shadow: none;
+}
+
+.mu-container li.mu-task-list-item > input.mu-checkbox-checked::after,
+.mu-container li.mu-task-list-item > span.mu-checkbox-checked::after {
+  border-color: #1f0909;
+}
+
+/* images — Typora `.md-image > .md-meta` colour and typeface */
+.mu-container .mu-image-marked-text {
+  color: #9b5146;
+  font-family:
+    Menlo, 'Ubuntu Mono', Consolas, 'Courier New', 'Microsoft Yahei', 'Hiragino Sans GB', 'WenQuanYi Micro Hei',
+    serif;
+}
+
+/* footnote definition block (Typora `.footnotes`) */
+.mu-container figure.mu-footnote {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* YAML front matter — Typora `#write pre.md-meta-block` */
+.mu-container pre.mu-frontmatter {
+  min-height: 1.875rem;
+  margin: 1em 0 1.5em 1em;
+  padding: 0;
+
+  color: #555555;
+
+  background: transparent;
+  border: 0;
+}
+
+/* diagrams — Typora `.md-diagram-panel { margin-top: 8px }` */
+.mu-container figure.mu-diagram-block {
+  margin-top: 8px;
+}

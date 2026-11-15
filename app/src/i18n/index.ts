@@ -106,6 +106,8 @@ const FALLBACK: Messages = {
   'commands.view.sourceCodeMode': 'Source Code Mode',
   'commands.view.typewriterMode': 'Typewriter Mode',
   'commands.view.focusMode': 'Focus Mode',
+  'commands.view.readonlyMode': 'Readonly Mode',
+  'commands.view.toggleStatusBar': 'Toggle Status Bar',
   'commands.view.toggleSidebar': 'Toggle Sidebar',
   'commands.view.toggleTabbar': 'Toggle Tab Bar',
   'commands.view.textDirection': 'Text Direction',

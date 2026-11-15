@@ -29,6 +29,10 @@ export interface MuyaEditorHandle {
   cut(): void;
   copy(): void;
   paste(): void;
+  /** Typora-style focus mode: dim every block except the one holding the caret. */
+  setFocusMode(enabled: boolean): void;
+  /** Typora-style read-only mode: keep the rendered document, refuse edits. */
+  setReadOnly(enabled: boolean): void;
 }
 
 interface MuyaEditorProps {
@@ -116,6 +120,16 @@ export const MuyaEditor = forwardRef<MuyaEditorHandle, MuyaEditorProps>(
       paste() {
         muyaRef.current?.focus();
         requestAnimationFrame(() => document.execCommand('paste'));
+      },
+      setFocusMode(enabled: boolean) {
+        muyaRef.current?.setFocusMode(!!enabled);
+      },
+      setReadOnly(enabled: boolean) {
+        const muya = muyaRef.current;
+        if (!muya) return;
+        const container = muya.domNode as HTMLElement;
+        container.setAttribute('contenteditable', enabled ? 'false' : 'true');
+        container.classList.toggle('mu-readonly', !!enabled);
       },
     }), []);
 

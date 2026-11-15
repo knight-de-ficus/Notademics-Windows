@@ -40,3 +40,134 @@
 .status-item.save-status.modified {
   color: var(--themeColor, #409eff);
 }
+
+/* ============================================================
+   Typora-style footer (ported layout from Typora 1.14.9
+   resources/style/window.css footer rules)
+   ============================================================ */
+.status-bar.typora-footer {
+  height: 26px;
+  padding: 0 6px;
+  font-size: 12px;
+  color: var(--editorColor50, #808080);
+  background: var(--editorBgColor, #fff);
+  border-top: 1px solid var(--editorColor10, #e6e6e6);
+}
+
+.typora-footer .status-bar-left,
+.typora-footer .status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.typora-footer .footer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 24px;
+  height: 20px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--editorColor50, #808080);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.typora-footer .footer-btn:hover {
+  background: var(--editorColor10, rgba(0, 0, 0, 0.06));
+  color: var(--editorColor80, #333);
+}
+
+.typora-footer .footer-btn.active {
+  color: var(--themeColor, #409eff);
+}
+
+.typora-footer .footer-btn-wide {
+  padding: 0 7px;
+}
+
+.typora-footer .footer-btn-label {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.typora-footer .footer-btn-glyph {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.typora-footer .word-count {
+  position: relative;
+  height: 26px;
+  display: flex;
+  align-items: center;
+}
+
+.typora-footer .status-item.word-count-label {
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--editorColor50, #808080);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.typora-footer .word-count:hover .word-count-label,
+.typora-footer .word-count.open .word-count-label {
+  background: var(--editorColor10, rgba(0, 0, 0, 0.06));
+  color: var(--editorColor80, #333);
+}
+
+.word-count-info {
+  position: absolute;
+  right: 0;
+  bottom: 26px;
+  z-index: 40;
+  min-width: 190px;
+  padding: 8px 12px;
+  border: 1px solid var(--editorColor10, #e6e6e6);
+  border-radius: 4px;
+  background: var(--editorBgColor, #fff);
+  box-shadow: var(--floatShadow, 0 2px 12px rgba(0, 0, 0, 0.12));
+  color: var(--editorColor80, #333);
+}
+
+.word-count-info table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.word-count-info td {
+  padding: 2px 0;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.word-count-info td.count {
+  padding-right: 18px;
+  color: var(--editorColor, #4d4d4d);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.word-count-info tr.section-head td {
+  padding-top: 8px;
+  color: var(--editorColor40, #999);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Typora read-only mode keeps the rendered page but refuses edits. */
+.mu-readonly {
+  caret-color: transparent;
+  user-select: text;
+}

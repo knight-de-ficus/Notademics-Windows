@@ -291,6 +291,17 @@ export default function Editor({ markdown, cursor, textDirection }: EditorProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── 写作模式同步（Typora: Focus / Typewriter / Readonly）──
+  // Muya only reads these options at construction time, so runtime toggles
+  // must go through the instance methods.
+  useEffect(() => {
+    editorRef.current?.setFocusMode(preferencesStore.focus);
+  }, [preferencesStore.focus]);
+
+  useEffect(() => {
+    editorRef.current?.setReadOnly(preferencesStore.readonly);
+  }, [preferencesStore.readonly]);
+
   return (
     <div className="editor" style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
       <MuyaEditor

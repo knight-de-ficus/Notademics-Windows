@@ -9,6 +9,7 @@ export interface LayoutPartial {
   rightColumn?: RightColumn
   showSideBar?: boolean
   showTabBar?: boolean
+  showStatusBar?: boolean
   sideBarWidth?: number | string
 }
 
@@ -41,10 +42,11 @@ interface LayoutState extends LayoutPartial {
   rightColumn: RightColumn
   showSideBar: boolean
   showTabBar: boolean
+  showStatusBar: boolean
   sideBarWidth: number
   SET_LAYOUT: (layout: LayoutPartial) => void
   SET_SIDE_BAR_WIDTH: (width: number | string) => void
-  TOGGLE_LAYOUT_ENTRY: (entryName: 'showSideBar' | 'showTabBar') => void
+  TOGGLE_LAYOUT_ENTRY: (entryName: 'showSideBar' | 'showTabBar' | 'showStatusBar') => void
   CREATE_BUFFERED_STATE: () => BufferedLayout | null
   RESTORE_BUFFERED_STATE: (state: unknown) => void
 }
@@ -53,6 +55,7 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
   rightColumn: 'files',
   showSideBar: true,
   showTabBar: true,
+  showStatusBar: localStorage.getItem('status-bar-visible') !== 'false',
   sideBarWidth: initialSideBarWidth,
 
   SET_LAYOUT: (layout) => {
@@ -64,6 +67,10 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
     }
     if (layout.rightColumn !== undefined) next.rightColumn = layout.rightColumn
     if (layout.showTabBar !== undefined) next.showTabBar = !!layout.showTabBar
+    if (layout.showStatusBar !== undefined) {
+      next.showStatusBar = !!layout.showStatusBar
+      localStorage.setItem('status-bar-visible', String(next.showStatusBar))
+    }
     if (layout.sideBarWidth !== undefined) {
       next.sideBarWidth = layout.sideBarWidth as number
     }
@@ -83,6 +90,10 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
       usePreferencesStore.getState().SET_SINGLE_PREFERENCE('sideBarVisibility', showSideBar)
     } else if (entryName === 'showTabBar') {
       set({ showTabBar: !get().showTabBar })
+    } else if (entryName === 'showStatusBar') {
+      const showStatusBar = !get().showStatusBar
+      set({ showStatusBar })
+      localStorage.setItem('status-bar-visible', String(showStatusBar))
     }
   },
 

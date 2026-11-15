@@ -116,6 +116,7 @@ export interface PreferencesState {
   typewriter: boolean
   focus: boolean
   sourceCode: boolean
+  readonly: boolean
 
   // ----- User config -----
   imageFolderPath: string
@@ -126,7 +127,7 @@ export interface PreferencesState {
 }
 
 export interface ModeTogglePayload {
-  type: keyof PreferencesState | 'typewriter' | 'focus' | 'sourceCode'
+  type: keyof PreferencesState | 'typewriter' | 'focus' | 'sourceCode' | 'readonly'
   checked: boolean
 }
 
@@ -189,10 +190,10 @@ const DEFAULT_STATE: PreferencesState = {
   sequenceTheme: 'hand',
   plantumlServer: 'https://www.plantuml.com/plantuml',
 
-  theme: 'light',
+  theme: 'typora-github',
   followSystemTheme: true,
-  lightModeTheme: 'light',
-  darkModeTheme: 'dark',
+  lightModeTheme: 'typora-github',
+  darkModeTheme: 'typora-night',
   customCss: '',
   editorBackgroundImage: '',
   editorBackgroundPosition: 'center',
@@ -220,6 +221,7 @@ const DEFAULT_STATE: PreferencesState = {
   typewriter: false,
   focus: false,
   sourceCode: false,
+  readonly: false,
 
   // 用户配置
   imageFolderPath: '',
@@ -342,3 +344,4 @@ export const usePreferencesStore = create<PreferencesStateShape>((set, get) => (
     }
   }
 }))
+

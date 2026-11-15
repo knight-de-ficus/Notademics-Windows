@@ -2,6 +2,7 @@
 // 极简 Windows Markdown 编辑器后端：文件系统、偏好、目录监视、原生菜单。
 
 mod boot_info;
+mod cli_files;
 mod buffer_store;
 mod commands;
 mod data_center;
@@ -98,12 +99,18 @@ pub fn run() {
             uploader::upload_image,
             // 文件夹内搜索
             search::search_in_folder,
+            // 冷启动命令行文件
+            cli_files::get_cli_files,
         ])
         .on_menu_event(menu::on_menu_event)
         .setup(|app| {
             menu::setup_menu(app)?;
+
+            app.manage(cli_files::collect());
+
             Ok(())
         })
         .run(tauri::generate_context!())
         .expect("error while running Notademics");
 }
+

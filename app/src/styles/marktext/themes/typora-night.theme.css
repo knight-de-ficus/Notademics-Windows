@@ -1,0 +1,541 @@
+/* Typora "night" theme — ported from Typora 1.14.9 resources/style/themes/night.css
+ *
+ * Remote font imports and the bundled `night/mermaid.dark.css`,
+ * `night/codeblock.dark.css` and `night/sourcemode.dark.css` split files were
+ * dropped; their visible rules are folded into the sections below. Typora's
+ * `@media print` blocks were dropped. Typora's `#write` container maps onto
+ * Muya's `.mu-container`; the `html` / `body` typography maps onto
+ * `.mu-editor`. Night is a genuine dark theme (#363B40 page, #b8bfc6 text).
+ */
+
+/* ==================================================================== */
+/* App chrome variables — exact Typora night values where defined,      */
+/* derived values for chrome Typora does not style.                     */
+/* ==================================================================== */
+
+:root {
+  /*editor*/
+  --themeColor: #6dc1e7;
+  --themeColor90: rgba(109, 193, 231, 0.9);
+  --themeColor80: rgba(109, 193, 231, 0.8);
+  --themeColor70: rgba(109, 193, 231, 0.7);
+  --themeColor60: rgba(109, 193, 231, 0.6);
+  --themeColor50: rgba(109, 193, 231, 0.5);
+  --themeColor40: rgba(109, 193, 231, 0.4);
+  --themeColor30: rgba(109, 193, 231, 0.3);
+  --themeColor20: rgba(109, 193, 231, 0.2);
+  --themeColor10: rgba(109, 193, 231, 0.1);
+
+  --highlightColor: rgba(211, 212, 14, 0.4);
+  --selectionColor: rgba(74, 137, 220, 0.45);
+  --editorColor: #b8bfc6;
+  --editorColor80: rgba(184, 191, 198, 0.8);
+  --editorColor60: rgba(184, 191, 198, 0.6);
+  --editorColor50: rgba(184, 191, 198, 0.5);
+  --editorColor40: rgba(184, 191, 198, 0.4);
+  --editorColor30: rgba(184, 191, 198, 0.3);
+  --editorColor10: rgba(184, 191, 198, 0.1);
+  --editorColor04: rgba(184, 191, 198, 0.04);
+  --editorBgColor: #363b40;
+  --deleteColor: #f1908e;
+  --iconColor: rgba(184, 191, 198, 0.56);
+  --codeBgColor: #333333;
+  --codeBlockBgColor: #333333;
+  --footnoteBgColor: rgba(0, 0, 0, 0.2);
+  --inputBgColor: rgba(0, 0, 0, 0.25);
+
+  --focusColor: var(--themeColor);
+
+  --buttonFontColor: var(--editorColor);
+  --buttonBgColor: #42464a;
+  --buttonBorder: 1px solid rgba(0, 0, 0, 0.2);
+  --buttonShadow: none;
+  --buttonFontColorHover: #eeeeee;
+  --buttonBgColorHover: #4d5156;
+  --buttonBorderHover: var(--buttonBorder);
+  --buttonFontColorActive: var(--buttonFontColor);
+  --buttonBgColorActive: #35393d;
+  --buttonBorderActive: var(--buttonBorder);
+
+  --buttonPrimaryFontColor: #ffffff;
+  --buttonPrimaryBgColor: #4d8bdb;
+  --buttonPrimaryBorder: none;
+  --buttonPrimaryShadow: none;
+  --buttonPrimaryFontColorHover: var(--buttonPrimaryFontColor);
+  --buttonPrimaryBgColorHover: #5f99e1;
+  --buttonPrimaryBorderHover: var(--buttonPrimaryBorder);
+  --buttonPrimaryFontColorActive: var(--buttonPrimaryFontColor);
+  --buttonPrimaryBgColorActive: #3f7ac7;
+  --buttonPrimaryBorderActive: var(--buttonPrimaryBorder);
+  --buttonPrimaryFocusBorder: none;
+  --buttonPrimaryFocusShadow: inset 0 0 0 1px rgba(24, 26, 31, 0.5), 0 0 0 1px var(--themeColor);
+  --tableBorderColor: #474d54;
+
+  /* Markdown element colors */
+  --headingColor: #dedede;
+  --h1Color: #dedede;
+  --h2Color: #dedede;
+  --h3Color: #dedede;
+  --h4Color: #ffffff;
+  --h5Color: #dedede;
+  --h6Color: #ffffff;
+  --blockquoteTextColor: #9da2a6;
+  --blockquoteBorderColor: #474d54;
+  --hrColor: #474d54;
+  --linkColor: #e0e0e0;
+  --strongColor: #dedede;
+  --emColor: #dedede;
+  --listMarkerColor: #b8bfc6;
+
+  /*marktext*/
+  --sideBarColor: #b8bfc6;
+  --sideBarIconColor: var(--iconColor);
+  --sideBarTitleColor: #eeeeee;
+  --sideBarTextColor: #b7b7b7;
+  --sideBarBgColor: #2e3033;
+  --sideBarItemHoverBgColor: rgba(112, 113, 125, 0.45);
+  --itemBgColor: #222222;
+
+  --floatFontColor: #b8bfc6;
+  --floatBgColor: #42464a;
+  --floatHoverColor: rgba(255, 255, 255, 0.06);
+  --floatBorderColor: rgba(255, 255, 255, 0.08);
+  --floatShadow: rgba(0, 0, 0, 0.3);
+  --maskColor: rgba(0, 0, 0, 0.7);
+  --editorAreaWidth: 914px;
+
+  /* @muyajs/core (kebab-case) editor variables
+     Additive prep for the muyajs -> @muyajs/core editor swap. These
+     mirror the camelCase vars above; the legacy editor ignores them.
+     Do NOT remove the camelCase vars — they still drive the current
+     editor until editor.vue switches engines. */
+  --theme-color: var(--themeColor);
+  --highlight-color: var(--highlightColor);
+  --selection-color: var(--selectionColor);
+  --editor-color: var(--editorColor);
+  --editor-color-80: var(--editorColor80);
+  --editor-color-50: var(--editorColor50);
+  --editor-color-30: var(--editorColor30);
+  --editor-color-10: var(--editorColor10);
+  --editor-color-04: var(--editorColor04);
+  --editor-bg-color: var(--editorBgColor);
+  --editor-area-width: var(--editorAreaWidth);
+  --delete-color: var(--deleteColor);
+  --icon-color: var(--iconColor);
+  --code-block-bg-color: var(--codeBlockBgColor);
+  --table-border-color: var(--tableBorderColor);
+  --input-bg-color: var(--inputBgColor);
+  --button-font-color: var(--buttonFontColor);
+  --button-bg-color: var(--buttonBgColor);
+  --button-border: var(--buttonBorder);
+  --button-bg-color-hover: var(--buttonBgColorHover);
+  --button-border-hover: var(--buttonBorderHover);
+  --button-bg-color-active: var(--buttonBgColorActive);
+  --button-border-active: var(--buttonBorderActive);
+  --button-border-focus: var(--button-border);
+  --float-bg-color: var(--floatBgColor);
+  --float-hover-color: var(--floatHoverColor);
+  --float-border-color: var(--floatBorderColor);
+  --float-shadow: rgb(15 15 15 / 3%) 0 0 0 1px, rgb(15 15 15 / 4%) 0 3px 6px, rgb(15 15 15 / 5%) 0 9px 24px;
+  --link-color: var(--linkColor);
+  --h1-color: var(--h1Color);
+  --h2-color: var(--h2Color);
+  --h3-color: var(--h3Color);
+  --h4-color: var(--h4Color);
+  --h5-color: var(--h5Color);
+  --h6-color: var(--h6Color);
+  --blockquote-text-color: var(--blockquoteTextColor);
+  --blockquote-border-color: var(--blockquoteBorderColor);
+  --strong-color: var(--strongColor);
+  --em-color: var(--emColor);
+  --list-marker-color: var(--listMarkerColor);
+  --hr-color: var(--hrColor);
+}
+
+/* ==================================================================== */
+/* Chrome touches from the Typora night UI                              */
+/* ==================================================================== */
+
+::-webkit-scrollbar,
+::-webkit-scrollbar-corner {
+  background: var(--editorBgColor);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(230, 230, 230, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(230, 230, 230, 0.5);
+}
+
+.title-bar .frameless-titlebar-button > div > svg {
+  fill: #ffffff;
+}
+
+.title-bar .frameless-titlebar-minimize:hover,
+.title-bar .frameless-titlebar-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.mu-front-menu,
+.mu-float-wrapper {
+  box-shadow: 0 4px 8px 0 var(--floatShadow) !important;
+}
+
+.editor-tabs {
+  box-shadow: none !important;
+}
+
+/* ==================================================================== */
+/* Editor surface — Typora `html` / `body` (background #363B40)         */
+/* ==================================================================== */
+
+.mu-editor {
+  --mu-font-size: 16px;
+  --mu-line-height: 1.625;
+
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, 'Segoe UI Emoji', sans-serif;
+  font-size: var(--mu-font-size);
+  line-height: var(--mu-line-height);
+  color: #b8bfc6;
+}
+
+/* ==================================================================== */
+/* Writing column — Typora `#write` (max-width: 914px)                  */
+/* ==================================================================== */
+
+.mu-container {
+  color: #b8bfc6;
+}
+
+/* links */
+.mu-container a {
+  color: #e0e0e0;
+  text-decoration: underline;
+
+  outline: 0;
+
+  transition: all 0.2s ease-in-out;
+}
+
+.mu-container a:hover {
+  color: #ffffff;
+}
+
+/* headings */
+.mu-container h1,
+.mu-container h2,
+.mu-container h3,
+.mu-container h4,
+.mu-container h5,
+.mu-container h6 {
+  clear: both;
+
+  margin: 0;
+  padding: 0;
+
+  font-family: 'Lucida Grande', 'Corbel', sans-serif;
+  font-weight: normal;
+  word-wrap: break-word;
+
+  color: #dedede;
+}
+
+.mu-container h1 {
+  margin-top: 2em;
+  margin-bottom: 1.5rem;
+
+  font-size: 2.5rem;
+  line-height: 2.75rem;
+  letter-spacing: -1.5px;
+}
+
+.mu-container h2 {
+  margin-bottom: 1.5rem;
+
+  font-size: 1.63rem;
+  font-weight: bold;
+  line-height: 1.875rem;
+  letter-spacing: -1px;
+}
+
+.mu-container h3 {
+  margin-bottom: 1.5rem;
+
+  font-size: 1.17rem;
+  font-weight: bold;
+  line-height: 1.5rem;
+  letter-spacing: -1px;
+}
+
+.mu-container h4 {
+  margin-bottom: 1.5rem;
+
+  font-size: 1.12rem;
+  line-height: 1.375rem;
+
+  color: #ffffff;
+}
+
+.mu-container h5 {
+  margin-bottom: 1.5rem;
+
+  font-size: 0.97rem;
+  font-weight: bold;
+  line-height: 1.25rem;
+}
+
+.mu-container h6 {
+  margin-bottom: 0.75rem;
+
+  font-size: 0.93rem;
+  line-height: 1rem;
+
+  color: #ffffff;
+}
+
+/* block spacing */
+.mu-container p,
+.mu-container ul.mu-bullet-list,
+.mu-container ol.mu-order-list,
+.mu-container dl,
+.mu-container hr,
+.mu-container pre.mu-code-block,
+.mu-container figure.mu-table {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.mu-container p {
+  word-wrap: break-word;
+}
+
+/* horizontal rule */
+.mu-container hr {
+  height: 2px;
+  margin: 24px 0;
+
+  background: #474d54;
+  border: 0;
+}
+
+.mu-container .mu-thematic-break:not(.mu-active)::before {
+  height: 2px;
+
+  background: #474d54;
+  border: 0;
+}
+
+/* lists */
+.mu-container ul.mu-bullet-list,
+.mu-container ol.mu-order-list {
+  padding: 0 0 0 1.875rem;
+}
+
+.mu-container ol.mu-order-list {
+  list-style: decimal;
+}
+
+.mu-container li > ul.mu-bullet-list,
+.mu-container li > ol.mu-order-list {
+  margin: 0;
+}
+
+/* blockquote */
+.mu-container blockquote {
+  margin: 35px 0 1.875rem 1.875rem;
+  padding: 0 30px;
+
+  color: #9da2a6;
+}
+
+.mu-container blockquote::before {
+  left: 0;
+
+  width: 2px;
+
+  background: #474d54;
+}
+
+/* inline emphasis */
+.mu-container b,
+.mu-container th,
+.mu-container dt,
+.mu-container strong {
+  font-weight: bold;
+
+  color: #dedede;
+}
+
+.mu-container i,
+.mu-container em,
+.mu-container dfn,
+.mu-container cite {
+  font-style: italic;
+}
+
+/* inline + fenced code */
+.mu-container pre,
+.mu-container code,
+.mu-container kbd,
+.mu-container var {
+  font-family: Monaco, Consolas, 'Andale Mono', 'DejaVu Sans Mono', monospace;
+  font-size: 0.875em;
+}
+
+.mu-container code.mu-inline-rule {
+  padding: 2px 5px;
+
+  background: rgba(0, 0, 0, 0.2);
+  border: 0;
+  border-radius: 3px;
+}
+
+.mu-container pre.mu-code-block {
+  margin-bottom: 20px;
+  padding: 10px 10px 10px 30px;
+
+  font-size: 0.875em;
+  line-height: 1.6;
+
+  background: #333333;
+  border: 0;
+  border-radius: 3px;
+}
+
+/* Typora `.CodeMirror-gutters { background: #333; border-right: 1px solid transparent }` */
+.mu-container .mu-code-block .mu-line-numbers-rows {
+  background: #333333;
+  border-right: 1px solid transparent;
+}
+
+.mu-container kbd {
+  padding: 2px 4px;
+
+  font-size: 90%;
+
+  color: #ffffff;
+
+  background-color: #333333;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* tables */
+.mu-container .mu-table-inner {
+  width: 100%;
+  max-width: 100%;
+
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.mu-container .mu-table-inner tr th,
+.mu-container .mu-table-inner tr td {
+  padding: 5px 10px;
+
+  vertical-align: top;
+}
+
+.mu-container .mu-table-inner tr th::before,
+.mu-container .mu-table-inner tr td::before {
+  border-color: #474d54;
+}
+
+.mu-container .mu-table-inner a {
+  color: #dedede;
+}
+
+/* task lists */
+.mu-container ul.mu-task-list {
+  padding-left: 0;
+}
+
+.mu-container li.mu-task-list-item {
+  padding-left: 1.25rem;
+
+  list-style-type: none;
+}
+
+.mu-container li.mu-task-list-item > input[type='checkbox']::before,
+.mu-container li.mu-task-list-item > span.mu-task-list-checkbox::before {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: -0.4rem;
+
+  vertical-align: middle;
+
+  background-color: #363b40;
+  border: 1px solid #b8bfc6;
+  border-radius: 0;
+}
+
+.mu-container li.mu-task-list-item > input.mu-checkbox-checked::before,
+.mu-container li.mu-task-list-item > span.mu-checkbox-checked::before {
+  background: var(--theme-color);
+  border-color: var(--theme-color);
+  box-shadow: none;
+}
+
+.mu-container li.mu-task-list-item > input.mu-checkbox-checked::after,
+.mu-container li.mu-task-list-item > span.mu-checkbox-checked::after {
+  border-color: #dedede;
+}
+
+/* footnote reference — Typora `sup.md-footnote { background:#555; color:#ddd }` */
+.mu-container .mu-inline-footnote-identifier {
+  color: #dddddd;
+
+  background-color: #555555;
+  border-radius: 3px;
+}
+
+.mu-container .mu-inline-footnote-identifier a {
+  color: #dddddd;
+}
+
+/* YAML front matter */
+.mu-container pre.mu-frontmatter {
+  margin-top: 1.5em;
+  padding: 0 0 0.6em;
+
+  line-height: 1.6em;
+
+  color: #b8bfc6;
+
+  background: transparent;
+  border: 0;
+  border-bottom: 1px dashed #cccccc;
+}
+
+/* inline math — Typora `.md-inline-math script { color: #81b1db }` */
+.mu-container .mu-math > .mu-math-render {
+  color: #81b1db;
+}
+
+.mu-container .mu-math svg {
+  color: #b8bfc6;
+}
+
+/* diagrams — Typora `.md-diagram-panel-error { color: #f1908e }` */
+.mu-container .mu-diagram-error {
+  color: #f1908e;
+}
+
+/* Typora `mark { background: #D3D40E }`; darker text keeps the highlight legible */
+.mu-container mark {
+  color: #363b40;
+  background: #d3d40e;
+}
+
+/* Typora renders `[toc]` as an in-document block (`.md-toc-item` is coloured
+   #A8C2DC there); Muya exposes the outline in the sidebar, so that accent is
+   applied to the sidebar TOC list below. */
+.toc-item {
+  color: #a8c2dc;
+}

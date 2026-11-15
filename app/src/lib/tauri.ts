@@ -26,4 +26,7 @@ export const trashPath = (path: string): Promise<void> =>
 export const watchPath = (path: string): Promise<void> =>
   invoke<void>('watch_path', { path });
 
+/** Files passed on the command line at start-up ("Open with", shell launch). */
+export const getCliFiles = (): Promise<string[]> => invoke<string[]>('get_cli_files');
+
 export const unwatchPath = (): Promise<void> => invoke<void>('unwatch_path');

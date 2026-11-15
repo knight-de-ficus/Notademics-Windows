@@ -117,6 +117,20 @@ function bootstrapApp(): Promise<void> {
       bus.emit('cmd::execute', String(event.payload));
     });
 
+    // Second instance ("Open with" while running) forwards file paths here.
+    await listen<string[]>('open-file', (event) => {
+      const paths = Array.isArray(event.payload) ? event.payload : [];
+      const first = paths.find((p) => typeof p === 'string');
+      if (first) void openFileFromSidebar(first);
+    });
+
+    // Cold start with a shell/`Open with` file argument (Typora opens files the
+    // same way from cmd/PowerShell).
+    const cliFiles = await invoke<string[]>('get_cli_files').catch(() => [] as string[]);
+    if (cliFiles.length > 0) {
+      await openFileFromSidebar(cliFiles[0]);
+    }
+
     // ASK_FOR_USER_PREFERENCE is asynchronous; read the fresh state afterwards.
     const loaded = usePreferencesStore.getState();
     addStyles({
@@ -202,8 +216,8 @@ export default function AppPage() {
         <AboutDialog />
         <Rename />
         <ImportModal />
-        {/* 状态栏固定在底部：仅当有文件打开时显示，字数来自当前 tab */}
-        {init && hasCurrentFile && <StatusBar />}
+        {/* 状态栏固定在底部：仅当有文件打开且未隐藏时显示，字数来自当前 tab */}
+        {init && hasCurrentFile && layoutStore.showStatusBar && <StatusBar />}
       </div>
     </div>
   );

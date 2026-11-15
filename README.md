@@ -27,6 +27,25 @@ WYSIWYG Engine: Muya;
 
 - Supports [all themes of Marktext](https://marktext.me/docs/themes) , and allows customization of image backgrounds on this basis;
 
+## Typora replication
+
+This repository now carries a Typora-parity pass built from static analysis of
+the shipped Typora 1.14.9 application:
+
+- Typora's five bundled themes (`github`, `night`, `newsprint`, `pixyll`,
+  `whitey`) ported onto the Muya writing surface, with `github` as the default
+  theme and `night` as the default dark theme;
+- a Typora-style footer: sidebar / source-code / focus / typewriter / read-only
+  toggles on the left, and a Typora word-count popover (reading time, lines,
+  words, characters, selection counts) on the right;
+- Typora writing modes wired to `Ctrl+/` (source), `F8` (focus) and `F9`
+  (typewriter), with a menu-only read-only mode;
+- a menu bar shaped like Typora's File / Edit / Paragraph / Format / View /
+  Themes / Window / Help menus, including a `Typora Themes` group.
+
+See [docs/typora-clone.md](docs/typora-clone.md) for the evidence trail, the
+architecture mapping and the known deviations.
+
 ## Installation, Build & Deployment
 
 ```bash
